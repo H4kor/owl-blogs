@@ -25,6 +25,15 @@ func (user User) Name() string {
 	return user.name
 }
 
+func (user User) Posts() ([]Post, error) {
+	postNames := listDir(path.Join(user.Dir(), "public"))
+	posts := make([]Post, len(postNames))
+	for i, name := range postNames {
+		posts[i] = Post{user: user, title: name}
+	}
+	return posts, nil
+}
+
 func CreateNewPost(user User, title string) {
 	timestamp := time.Now().UTC().Unix()
 	folder_name := fmt.Sprintf("%d-%s", timestamp, title)

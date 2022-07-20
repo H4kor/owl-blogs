@@ -39,3 +39,20 @@ func TestCreateNewPostMultipleCalls(t *testing.T) {
 		t.Error(fmt.Sprintf("Only %d posts created", len(files)))
 	}
 }
+
+func TestCanListUserPosts(t *testing.T) {
+	// Create a new user
+	repo, _ := kiss.CreateRepository(testRepoName())
+	user, _ := repo.CreateUser(randomUserName())
+	// Create a new post
+	kiss.CreateNewPost(user, "testpost")
+	kiss.CreateNewPost(user, "testpost")
+	kiss.CreateNewPost(user, "testpost")
+	posts, err := user.Posts()
+	if err != nil {
+		t.Error("Error reading posts")
+	}
+	if len(posts) != 3 {
+		t.Error("No posts found")
+	}
+}
