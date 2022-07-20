@@ -22,13 +22,14 @@ type Post struct {
 }
 
 func CreateRepository(name string) (Repository, error) {
+	newRepo := Repository{name: name}
 	// check if repository already exists
-	if _, err := os.Stat(name); err == nil {
+	if dirExists(newRepo.Dir()) {
 		return Repository{}, fmt.Errorf("Repository already exists")
 	}
 
 	os.Mkdir(name, 0755)
-	return Repository{name: name}, nil
+	return newRepo, nil
 }
 
 func (repo Repository) Dir() string {
@@ -46,7 +47,7 @@ func PostDir(post Post) string {
 func CreateNewUser(repo Repository, name string) (User, error) {
 	new_user := User{repo: repo, name: name}
 	// check if user already exists
-	if _, err := os.Stat(new_user.Dir()); err == nil {
+	if dirExists(new_user.Dir()) {
 		return User{}, fmt.Errorf("User already exists")
 	}
 
@@ -72,7 +73,7 @@ func CreateNewPost(user User, title string) {
 	// if post already exists, add -n to the end of the name
 	i := 0
 	for {
-		if _, err := os.Stat(post_dir); err == nil {
+		if dirExists(post_dir) {
 			i++
 			folder_name = fmt.Sprintf("%d-%s-%d", timestamp, title, i)
 			post_dir = path.Join(user.Dir(), "public", folder_name)
