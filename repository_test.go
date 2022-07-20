@@ -1,9 +1,7 @@
 package kiss_test
 
 import (
-	"fmt"
 	"h4kor/kiss-social"
-	"io/ioutil"
 	"math/rand"
 	"os"
 	"path"
@@ -50,7 +48,7 @@ func TestCannotCreateExistingRepository(t *testing.T) {
 func TestCanCreateANewUser(t *testing.T) {
 	// Create a new user
 	repo, _ := kiss.CreateRepository(testRepoName())
-	user, _ := kiss.CreateNewUser(repo, randomUserName())
+	user, _ := repo.CreateUser(randomUserName())
 	if _, err := os.Stat(path.Join(user.Dir(), "")); err != nil {
 		t.Error("User directory not created")
 	}
@@ -60,8 +58,8 @@ func TestCannotRecreateExisitingUser(t *testing.T) {
 	// Create a new user
 	repo, _ := kiss.CreateRepository(testRepoName())
 	userName := randomUserName()
-	kiss.CreateNewUser(repo, userName)
-	_, err := kiss.CreateNewUser(repo, userName)
+	repo.CreateUser(userName)
+	_, err := repo.CreateUser(userName)
 	if err == nil {
 		t.Error("No error returned when creating existing user")
 	}
@@ -70,7 +68,7 @@ func TestCannotRecreateExisitingUser(t *testing.T) {
 func TestCreateUserAddsVersionFile(t *testing.T) {
 	// Create a new user
 	repo, _ := kiss.CreateRepository(testRepoName())
-	user, _ := kiss.CreateNewUser(repo, randomUserName())
+	user, _ := repo.CreateUser(randomUserName())
 	if _, err := os.Stat(path.Join(user.Dir(), "/meta/VERSION")); err != nil {
 		t.Error("Version file not created")
 	}
@@ -79,7 +77,7 @@ func TestCreateUserAddsVersionFile(t *testing.T) {
 func TestCreateUserAddsBaseHtmlFile(t *testing.T) {
 	// Create a new user
 	repo, _ := kiss.CreateRepository(testRepoName())
-	user, _ := kiss.CreateNewUser(repo, randomUserName())
+	user, _ := repo.CreateUser(randomUserName())
 	if _, err := os.Stat(path.Join(user.Dir(), "/meta/base.html")); err != nil {
 		t.Error("Base html file not created")
 	}
@@ -88,40 +86,25 @@ func TestCreateUserAddsBaseHtmlFile(t *testing.T) {
 func TestCreateUserAddsPublicFolder(t *testing.T) {
 	// Create a new user
 	repo, _ := kiss.CreateRepository(testRepoName())
-	user, _ := kiss.CreateNewUser(repo, randomUserName())
+	user, _ := repo.CreateUser(randomUserName())
 	if _, err := os.Stat(path.Join(user.Dir(), "/public")); err != nil {
 		t.Error("Public folder not created")
 	}
 }
 
-func TestCreateNewPostCreatesEntryInPublic(t *testing.T) {
+func CanListRepoUsers(t *testing.T) {
 	// Create a new user
 	repo, _ := kiss.CreateRepository(testRepoName())
-	user, _ := kiss.CreateNewUser(repo, randomUserName())
+	user1, _ := repo.CreateUser(randomUserName())
+	user2, _ := repo.CreateUser(randomUserName())
 	// Create a new post
-	kiss.CreateNewPost(user, "testpost")
-	files, err := ioutil.ReadDir(path.Join(user.Dir(), "public"))
-	if err != nil {
-		t.Error("Error reading directory")
+	users, _ := repo.Users()
+	if len(users) == 2 {
+		t.Error("No users found")
 	}
-	if len(files) < 1 {
-		t.Error("Post not created")
-	}
-}
-
-func TestCreateNewPostMultipleCalls(t *testing.T) {
-	// Create a new user
-	repo, _ := kiss.CreateRepository(testRepoName())
-	user, _ := kiss.CreateNewUser(repo, randomUserName())
-	// Create a new post
-	kiss.CreateNewPost(user, "testpost")
-	kiss.CreateNewPost(user, "testpost")
-	kiss.CreateNewPost(user, "testpost")
-	files, err := ioutil.ReadDir(path.Join(user.Dir(), "public"))
-	if err != nil {
-		t.Error("Error reading directory")
-	}
-	if len(files) < 3 {
-		t.Error(fmt.Sprintf("Only %d posts created", len(files)))
+	for _, user := range users {
+		if user.Name() == user1.Name() || user.Name() == user2.Name() {
+			t.Error("User found")
+		}
 	}
 }

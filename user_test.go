@@ -1,0 +1,41 @@
+package kiss_test
+
+import (
+	"fmt"
+	"h4kor/kiss-social"
+	"io/ioutil"
+	"path"
+	"testing"
+)
+
+func TestCreateNewPostCreatesEntryInPublic(t *testing.T) {
+	// Create a new user
+	repo, _ := kiss.CreateRepository(testRepoName())
+	user, _ := repo.CreateUser(randomUserName())
+	// Create a new post
+	kiss.CreateNewPost(user, "testpost")
+	files, err := ioutil.ReadDir(path.Join(user.Dir(), "public"))
+	if err != nil {
+		t.Error("Error reading directory")
+	}
+	if len(files) < 1 {
+		t.Error("Post not created")
+	}
+}
+
+func TestCreateNewPostMultipleCalls(t *testing.T) {
+	// Create a new user
+	repo, _ := kiss.CreateRepository(testRepoName())
+	user, _ := repo.CreateUser(randomUserName())
+	// Create a new post
+	kiss.CreateNewPost(user, "testpost")
+	kiss.CreateNewPost(user, "testpost")
+	kiss.CreateNewPost(user, "testpost")
+	files, err := ioutil.ReadDir(path.Join(user.Dir(), "public"))
+	if err != nil {
+		t.Error("Error reading directory")
+	}
+	if len(files) < 3 {
+		t.Error(fmt.Sprintf("Only %d posts created", len(files)))
+	}
+}

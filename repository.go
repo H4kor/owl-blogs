@@ -4,21 +4,10 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"time"
 )
 
 type Repository struct {
 	name string
-}
-
-type User struct {
-	repo Repository
-	name string
-}
-
-type Post struct {
-	user  User
-	title string
 }
 
 func CreateRepository(name string) (Repository, error) {
@@ -29,6 +18,7 @@ func CreateRepository(name string) (Repository, error) {
 	}
 
 	os.Mkdir(name, 0755)
+	os.Mkdir(path.Join(name, "users"), 0755)
 	return newRepo, nil
 }
 
@@ -36,15 +26,16 @@ func (repo Repository) Dir() string {
 	return repo.name
 }
 
-func (user User) Dir() string {
-	return path.Join(user.repo.Dir(), user.name)
+func (repo Repository) Users() ([]User, error) {
+	userNames := listDir(path.Join(repo.Dir(), "users"))
+	users := make([]User, len(userNames))
+	for i, name := range userNames {
+		users[i] = User{repo: repo, name: name}
+	}
+	return users, nil
 }
 
-func PostDir(post Post) string {
-	return path.Join(post.user.Dir(), "public", post.title)
-}
-
-func CreateNewUser(repo Repository, name string) (User, error) {
+func (repo Repository) CreateUser(name string) (User, error) {
 	new_user := User{repo: repo, name: name}
 	// check if user already exists
 	if dirExists(new_user.Dir()) {
@@ -63,27 +54,4 @@ func CreateNewUser(repo Repository, name string) (User, error) {
 	os.WriteFile(path.Join(user_dir, "meta", "base.html"), []byte("<html><body><{{content}}/body></html>"), 0644)
 
 	return new_user, nil
-}
-
-func CreateNewPost(user User, title string) {
-	timestamp := time.Now().UTC().Unix()
-	folder_name := fmt.Sprintf("%d-%s", timestamp, title)
-	post_dir := path.Join(user.Dir(), "public", folder_name)
-
-	// if post already exists, add -n to the end of the name
-	i := 0
-	for {
-		if dirExists(post_dir) {
-			i++
-			folder_name = fmt.Sprintf("%d-%s-%d", timestamp, title, i)
-			post_dir = path.Join(user.Dir(), "public", folder_name)
-		} else {
-			break
-		}
-	}
-
-	initial_content := "# " + title
-	// create post file
-	os.Mkdir(post_dir, 0755)
-	os.WriteFile(path.Join(post_dir, "index.md"), []byte(initial_content), 0644)
 }
