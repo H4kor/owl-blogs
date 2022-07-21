@@ -13,7 +13,7 @@ func TestCreateNewPostCreatesEntryInPublic(t *testing.T) {
 	repo, _ := kiss.CreateRepository(testRepoName())
 	user, _ := repo.CreateUser(randomUserName())
 	// Create a new post
-	kiss.CreateNewPost(user, "testpost")
+	user.CreateNewPost("testpost")
 	files, err := ioutil.ReadDir(path.Join(user.Dir(), "public"))
 	if err != nil {
 		t.Error("Error reading directory")
@@ -28,9 +28,9 @@ func TestCreateNewPostMultipleCalls(t *testing.T) {
 	repo, _ := kiss.CreateRepository(testRepoName())
 	user, _ := repo.CreateUser(randomUserName())
 	// Create a new post
-	kiss.CreateNewPost(user, "testpost")
-	kiss.CreateNewPost(user, "testpost")
-	kiss.CreateNewPost(user, "testpost")
+	user.CreateNewPost("testpost")
+	user.CreateNewPost("testpost")
+	user.CreateNewPost("testpost")
 	files, err := ioutil.ReadDir(path.Join(user.Dir(), "public"))
 	if err != nil {
 		t.Error("Error reading directory")
@@ -45,9 +45,9 @@ func TestCanListUserPosts(t *testing.T) {
 	repo, _ := kiss.CreateRepository(testRepoName())
 	user, _ := repo.CreateUser(randomUserName())
 	// Create a new post
-	kiss.CreateNewPost(user, "testpost")
-	kiss.CreateNewPost(user, "testpost")
-	kiss.CreateNewPost(user, "testpost")
+	user.CreateNewPost("testpost")
+	user.CreateNewPost("testpost")
+	user.CreateNewPost("testpost")
 	posts, err := user.Posts()
 	if err != nil {
 		t.Error("Error reading posts")

@@ -12,11 +12,6 @@ type User struct {
 	name string
 }
 
-type Post struct {
-	user  User
-	title string
-}
-
 func (user User) Dir() string {
 	return path.Join(user.repo.Dir(), "users", user.name)
 }
@@ -29,12 +24,12 @@ func (user User) Posts() ([]Post, error) {
 	postNames := listDir(path.Join(user.Dir(), "public"))
 	posts := make([]Post, len(postNames))
 	for i, name := range postNames {
-		posts[i] = Post{user: user, title: name}
+		posts[i] = Post{user: user, id: name}
 	}
 	return posts, nil
 }
 
-func CreateNewPost(user User, title string) {
+func (user User) CreateNewPost(title string) (Post, error) {
 	timestamp := time.Now().UTC().Unix()
 	folder_name := fmt.Sprintf("%d-%s", timestamp, title)
 	post_dir := path.Join(user.Dir(), "public", folder_name)
@@ -50,13 +45,11 @@ func CreateNewPost(user User, title string) {
 			break
 		}
 	}
+	post := Post{user: user, id: folder_name}
 
 	initial_content := "# " + title
 	// create post file
 	os.Mkdir(post_dir, 0755)
-	os.WriteFile(path.Join(post_dir, "index.md"), []byte(initial_content), 0644)
-}
-
-func PostDir(post Post) string {
-	return path.Join(post.user.Dir(), "public", post.title)
+	os.WriteFile(post.ContentFile(), []byte(initial_content), 0644)
+	return post, nil
 }
