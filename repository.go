@@ -49,9 +49,11 @@ func (repo Repository) CreateUser(name string) (User, error) {
 	// create public folder
 	os.Mkdir(path.Join(user_dir, "public"), 0755)
 
+	base_template := "<html><body><{{content}}/body></html>"
+
 	// create Meta files
 	os.WriteFile(path.Join(user_dir, "meta", "VERSION"), []byte("0.0.1"), 0644)
-	os.WriteFile(path.Join(user_dir, "meta", "base.html"), []byte("<html><body><{{content}}/body></html>"), 0644)
+	os.WriteFile(path.Join(user_dir, "meta", "base.html"), []byte(base_template), 0644)
 
 	return new_user, nil
 }

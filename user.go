@@ -2,6 +2,7 @@ package kiss
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path"
 	"time"
@@ -20,13 +21,18 @@ func (user User) Name() string {
 	return user.name
 }
 
-func (user User) Posts() ([]Post, error) {
-	postNames := listDir(path.Join(user.Dir(), "public"))
-	posts := make([]Post, len(postNames))
-	for i, name := range postNames {
-		posts[i] = Post{user: user, id: name}
-	}
-	return posts, nil
+func (user User) Posts() ([]string, error) {
+	postIds := listDir(path.Join(user.Dir(), "public"))
+	return postIds, nil
+}
+
+func (user User) GetPost(id string) (Post, error) {
+	post := Post{user: user, id: id}
+	_, metaData := post.MarkdownData()
+	title := metaData["title"]
+	post.title = fmt.Sprint(title)
+
+	return post, nil
 }
 
 func (user User) CreateNewPost(title string) (Post, error) {
@@ -45,11 +51,27 @@ func (user User) CreateNewPost(title string) (Post, error) {
 			break
 		}
 	}
-	post := Post{user: user, id: folder_name}
+	post := Post{user: user, id: folder_name, title: title}
 
-	initial_content := "# " + title
+	initial_content := ""
+	initial_content += "---\n"
+	initial_content += "title: " + title + "\n"
+	initial_content += "---\n"
+	initial_content += "\n"
+	initial_content += "Write your post here.\n"
+
 	// create post file
 	os.Mkdir(post_dir, 0755)
 	os.WriteFile(post.ContentFile(), []byte(initial_content), 0644)
 	return post, nil
+}
+
+func (user User) Template() (string, error) {
+	// load base.html
+	path := path.Join(user.Dir(), "meta", "base.html")
+	base_html, err := ioutil.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+	return string(base_html), nil
 }

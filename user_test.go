@@ -56,3 +56,15 @@ func TestCanListUserPosts(t *testing.T) {
 		t.Error("No posts found")
 	}
 }
+
+func TestCanLoadPost(t *testing.T) {
+	user := getTestUser()
+	// Create a new post
+	user.CreateNewPost("testpost")
+
+	posts, _ := user.Posts()
+	post, _ := user.GetPost(posts[0])
+	if post.Title() != "testpost" {
+		t.Error("Wrong title, Got: " + post.Title())
+	}
+}
