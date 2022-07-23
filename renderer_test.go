@@ -24,3 +24,16 @@ func TestRendererUsesBaseTemplate(t *testing.T) {
 		t.Error("Base template not used. Got: " + result)
 	}
 }
+
+func TestCanRenderIndexPage(t *testing.T) {
+	user := getTestUser()
+	user.CreateNewPost("testpost1")
+	user.CreateNewPost("testpost2")
+	result, _ := kiss.RenderIndexPage(user)
+	if !strings.Contains(result, "testpost1") {
+		t.Error("Post title not rendered as h1. Got: " + result)
+	}
+	if !strings.Contains(result, "testpost2") {
+		t.Error("Post title not rendered as h1. Got: " + result)
+	}
+}

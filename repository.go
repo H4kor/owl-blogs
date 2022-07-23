@@ -31,7 +31,7 @@ func OpenRepository(name string) (Repository, error) {
 
 	repo := Repository{name: name}
 	if !dirExists(repo.Dir()) {
-		return Repository{}, fmt.Errorf("Repository does not exist")
+		return Repository{}, fmt.Errorf("Repository does not exist: " + repo.Dir())
 	}
 
 	return repo, nil
@@ -70,4 +70,12 @@ func (repo Repository) CreateUser(name string) (User, error) {
 	os.WriteFile(path.Join(user_dir, "meta", "base.html"), []byte(base_template), 0644)
 
 	return new_user, nil
+}
+
+func (repo Repository) GetUser(name string) (User, error) {
+	user := User{repo: repo, name: name}
+	if !dirExists(user.Dir()) {
+		return User{}, fmt.Errorf("User does not exist")
+	}
+	return user, nil
 }

@@ -20,6 +20,10 @@ func (post Post) Dir() string {
 	return path.Join(post.user.Dir(), "public", post.id)
 }
 
+func (post Post) Path() string {
+	return post.user.Path() + "/" + post.id
+}
+
 func (post Post) Title() string {
 	return post.title
 }

@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"strings"
 	"time"
 )
 
@@ -17,13 +18,27 @@ func (user User) Dir() string {
 	return path.Join(user.repo.Dir(), "users", user.name)
 }
 
+func (user User) Path() string {
+	return "/" + user.name
+}
+
+func (user User) PostDir() string {
+	return path.Join(user.Dir(), "public")
+}
+
 func (user User) Name() string {
 	return user.name
 }
 
 func (user User) Posts() ([]string, error) {
-	postIds := listDir(path.Join(user.Dir(), "public"))
-	return postIds, nil
+	postFiles := walkDir(path.Join(user.Dir(), "public"))
+	posts := make([]string, 0)
+	for _, id := range postFiles {
+		if strings.HasSuffix(id, "/index.md") {
+			posts = append(posts, id[:len(id)-9])
+		}
+	}
+	return posts, nil
 }
 
 func (user User) GetPost(id string) (Post, error) {

@@ -129,3 +129,26 @@ func TestCannotOpenNonExisitingRepo(t *testing.T) {
 		t.Error("No error returned when opening non-existing repository")
 	}
 }
+
+func TestGetUser(t *testing.T) {
+	// Create a new user
+	repo, _ := kiss.CreateRepository(testRepoName())
+	user, _ := repo.CreateUser(randomUserName())
+	// Get the user
+	user2, err := repo.GetUser(user.Name())
+	if err != nil {
+		t.Error("Error getting user: ", err.Error())
+	}
+	if user2.Name() != user.Name() {
+		t.Error("User names do not match")
+	}
+}
+
+func TestCannotGetNonexistingUser(t *testing.T) {
+	// Create a new user
+	repo, _ := kiss.CreateRepository(testRepoName())
+	_, err := repo.GetUser(randomUserName())
+	if err == nil {
+		t.Error("No error returned when getting non-existing user")
+	}
+}

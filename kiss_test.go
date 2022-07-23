@@ -7,3 +7,12 @@ func getTestUser() kiss.User {
 	user, _ := repo.CreateUser(randomUserName())
 	return user
 }
+
+func contains(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
