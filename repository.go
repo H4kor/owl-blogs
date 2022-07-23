@@ -9,6 +9,7 @@ import (
 
 //go:embed embed/base.html
 var base_template string
+var VERSION = "0.0.1"
 
 type Repository struct {
 	name string
@@ -65,7 +66,7 @@ func (repo Repository) CreateUser(name string) (User, error) {
 	os.Mkdir(path.Join(user_dir, "public"), 0755)
 
 	// create Meta files
-	os.WriteFile(path.Join(user_dir, "meta", "VERSION"), []byte("0.0.1"), 0644)
+	os.WriteFile(path.Join(user_dir, "meta", "VERSION"), []byte(VERSION), 0644)
 	os.WriteFile(path.Join(user_dir, "meta", "base.html"), []byte(base_template), 0644)
 
 	return new_user, nil
