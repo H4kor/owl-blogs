@@ -31,7 +31,7 @@ func TestCanCreateRepository(t *testing.T) {
 	repoName := testRepoName()
 	_, err := kiss.CreateRepository(repoName)
 	if err != nil {
-		t.Error("Error creating repository: ", err)
+		t.Error("Error creating repository: ", err.Error())
 	}
 
 }
@@ -116,7 +116,7 @@ func TestCanOpenRepository(t *testing.T) {
 	// Open the repository
 	repo2, err := kiss.OpenRepository(repoName)
 	if err != nil {
-		t.Error("Error opening repository: ", err)
+		t.Error("Error opening repository: ", err.Error())
 	}
 	if repo2.Dir() != repo.Dir() {
 		t.Error("Repository directories do not match")

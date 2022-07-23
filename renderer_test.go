@@ -20,7 +20,7 @@ func TestRendererUsesBaseTemplate(t *testing.T) {
 	user := getTestUser()
 	post, _ := user.CreateNewPost("testpost")
 	result, _ := kiss.RenderPost(post)
-	if !strings.Contains(result, "<html>") {
+	if !strings.Contains(result, "<html") {
 		t.Error("Base template not used. Got: " + result)
 	}
 }

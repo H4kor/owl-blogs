@@ -1,10 +1,14 @@
 package kiss
 
 import (
+	_ "embed"
 	"fmt"
 	"os"
 	"path"
 )
+
+//go:embed embed/base.html
+var base_template string
 
 type Repository struct {
 	name string
@@ -59,8 +63,6 @@ func (repo Repository) CreateUser(name string) (User, error) {
 	os.Mkdir(path.Join(user_dir, "meta"), 0755)
 	// create public folder
 	os.Mkdir(path.Join(user_dir, "public"), 0755)
-
-	base_template := "<html><body><{{content}}/body></html>"
 
 	// create Meta files
 	os.WriteFile(path.Join(user_dir, "meta", "VERSION"), []byte("0.0.1"), 0644)
