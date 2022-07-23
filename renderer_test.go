@@ -9,7 +9,13 @@ import (
 func TestCanRenderPost(t *testing.T) {
 	user := getTestUser()
 	post, _ := user.CreateNewPost("testpost")
-	result, _ := kiss.RenderPost(post)
+	result, err := kiss.RenderPost(post)
+
+	if err != nil {
+		t.Error("Error rendering post: " + err.Error())
+		return
+	}
+
 	if !strings.Contains(result, "<h1>testpost</h1>") {
 		t.Error("Post title not rendered as h1. Got: " + result)
 	}
@@ -19,7 +25,13 @@ func TestCanRenderPost(t *testing.T) {
 func TestRendererUsesBaseTemplate(t *testing.T) {
 	user := getTestUser()
 	post, _ := user.CreateNewPost("testpost")
-	result, _ := kiss.RenderPost(post)
+	result, err := kiss.RenderPost(post)
+
+	if err != nil {
+		t.Error("Error rendering post: " + err.Error())
+		return
+	}
+
 	if !strings.Contains(result, "<html") {
 		t.Error("Base template not used. Got: " + result)
 	}

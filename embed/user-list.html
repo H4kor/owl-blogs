@@ -1,0 +1,9 @@
+{{range .Users}}
+<ul>
+    <li>
+        <a href="{{ .Path() }}">
+            {{ .Name() }}
+        </a>
+    </li>
+</ul>
+{{end}}
