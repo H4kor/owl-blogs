@@ -108,3 +108,24 @@ func CanListRepoUsers(t *testing.T) {
 		}
 	}
 }
+
+func TestCanOpenRepository(t *testing.T) {
+	// Create a new user
+	repoName := testRepoName()
+	repo, _ := kiss.CreateRepository(repoName)
+	// Open the repository
+	repo2, err := kiss.OpenRepository(repoName)
+	if err != nil {
+		t.Error("Error opening repository: ", err)
+	}
+	if repo2.Dir() != repo.Dir() {
+		t.Error("Repository directories do not match")
+	}
+}
+
+func TestCannotOpenNonExisitingRepo(t *testing.T) {
+	_, err := kiss.OpenRepository(testRepoName())
+	if err == nil {
+		t.Error("No error returned when opening non-existing repository")
+	}
+}

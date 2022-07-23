@@ -8,22 +8,45 @@ import (
 func main() {
 	println("KISS Social")
 	println("Commands")
-	println("new <name> - Creates a new user")
+	println("init <repo> - Creates a new repository")
+	println("<repo> new-user <name> - Creates a new user")
 
-	args := os.Args[1:]
-	if len(args) == 0 {
-		println("No command given")
-		return
+	if len(os.Args) < 3 {
+		println("Please specify a repository and command")
+		os.Exit(1)
 	}
 
-	switch args[0] {
-	case "new":
-		if len(args) != 2 {
-			println("Invalid number of arguments")
-			return
+	if os.Args[1] == "init" {
+		repoName := os.Args[2]
+		_, err := kiss.CreateRepository(repoName)
+		if err != nil {
+			println("Error creating repository: ", err.Error())
 		}
-		kiss.CreateNewUser("users", args[1])
+		println("Repository created: ", repoName)
+		os.Exit(0)
+	}
+
+	repoName := os.Args[1]
+	repo, err := kiss.OpenRepository(repoName)
+	if err != nil {
+		println("Error opening repository: ", err.Error())
+		os.Exit(1)
+	}
+	switch os.Args[2] {
+	case "new-user":
+		if len(os.Args) < 4 {
+			println("Please specify a user name")
+			os.Exit(1)
+		}
+		userName := os.Args[3]
+		user, err := repo.CreateUser(userName)
+		if err != nil {
+			println("Error creating user: ", err.Error())
+			os.Exit(1)
+		}
+		println("User created: ", user.Name())
 	default:
-		println("Invalid command")
+		println("Unknown command: ", os.Args[2])
+		os.Exit(1)
 	}
 }

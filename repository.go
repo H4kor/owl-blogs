@@ -22,6 +22,17 @@ func CreateRepository(name string) (Repository, error) {
 	return newRepo, nil
 }
 
+func OpenRepository(name string) (Repository, error) {
+
+	repo := Repository{name: name}
+	if !dirExists(repo.Dir()) {
+		return Repository{}, fmt.Errorf("Repository does not exist")
+	}
+
+	return repo, nil
+
+}
+
 func (repo Repository) Dir() string {
 	return repo.name
 }
