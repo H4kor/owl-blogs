@@ -66,16 +66,40 @@ func RenderIndexPage(user User) (string, error) {
 
 	var html bytes.Buffer
 	t, err := template.New("index").Parse(baseTemplate)
+	if err != nil {
+		return "", err
+	}
 
 	t.Execute(&html, data)
 
-	return html.String(), err
+	return html.String(), nil
 
 }
 
-// func RenderUserList(user User) (string, error) {
-// 	base_template, _ := user.Template()
-// 	users, _ := user.repo.Users()
-// 	template.New("user_list").Parse()
-// 	return strings.Replace(template, "{{content}}", userHtml, -1), nil
-// }
+func RenderUserList(repo Repository) (string, error) {
+	baseTemplate, _ := repo.Template()
+	users, _ := repo.Users()
+	t, err := template.New("user_list").Parse(userListTemplateStr)
+	if err != nil {
+		return "", err
+	}
+
+	var userHtml bytes.Buffer
+	t.Execute(&userHtml, users)
+
+	data := PageContent{
+		Title:   "Index",
+		Content: template.HTML(userHtml.String()),
+	}
+
+	var html bytes.Buffer
+	t, err = template.New("index").Parse(baseTemplate)
+	if err != nil {
+		return "", err
+	}
+
+	t.Execute(&html, data)
+
+	return html.String(), nil
+
+}

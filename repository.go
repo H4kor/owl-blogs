@@ -4,6 +4,7 @@ import (
 	"embed"
 	_ "embed"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path"
 )
@@ -11,7 +12,7 @@ import (
 //go:embed embed/initial/base.html
 var base_template string
 
-//go:embed embed/initial/static/*
+//go:embed embed/*
 var static_files embed.FS
 
 var VERSION = "0.0.1"
@@ -40,6 +41,10 @@ func CreateRepository(name string) (Repository, error) {
 		src_data, _ := static_files.ReadFile(file.Name())
 		os.WriteFile(newRepo.StaticDir()+"/"+file.Name(), src_data, 0644)
 	}
+
+	// copy repo_base.html to base.html
+	src_data, _ := static_files.ReadFile("embed/initial/repo_base.html")
+	os.WriteFile(newRepo.Dir()+"/base.html", src_data, 0644)
 	return newRepo, nil
 }
 
@@ -64,6 +69,16 @@ func (repo Repository) StaticDir() string {
 
 func (repo Repository) UsersDir() string {
 	return path.Join(repo.Dir(), "users")
+}
+
+func (repo Repository) Template() (string, error) {
+	// load base.html
+	path := path.Join(repo.Dir(), "base.html")
+	base_html, err := ioutil.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+	return string(base_html), nil
 }
 
 func (repo Repository) Users() ([]User, error) {

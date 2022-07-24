@@ -50,19 +50,16 @@ func handler(repo kiss.Repository) func(http.ResponseWriter, *http.Request) {
 
 func indexHandler(repo kiss.Repository) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		users, err := repo.Users()
+		html, err := kiss.RenderUserList(repo)
+
 		if err != nil {
-			println("Error getting users: ", err.Error())
-			w.Write([]byte("Error getting users"))
+			println("Error rendering index: ", err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("Internal server error"))
 			return
 		}
-		w.Write([]byte("Index"))
-		w.Write([]byte("<ul>"))
-		for _, user := range users {
-			w.Write([]byte("<li>"))
-			w.Write([]byte(user.Name()))
-			w.Write([]byte("</li>"))
-		}
+		println("Rendering index")
+		w.Write([]byte(html))
 	}
 }
 

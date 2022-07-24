@@ -157,3 +157,24 @@ func TestNewRepoGetsStaticFiles(t *testing.T) {
 		t.Error("No static files found")
 	}
 }
+
+func TestNewRepoGetsBaseHtml(t *testing.T) {
+	// Create a new user
+	repo, _ := kiss.CreateRepository(testRepoName())
+	if _, err := os.Stat(path.Join(repo.Dir(), "/base.html")); err != nil {
+		t.Error("Base html file not found")
+	}
+}
+
+func TestCanGetRepoTemplate(t *testing.T) {
+	// Create a new user
+	repo, _ := kiss.CreateRepository(testRepoName())
+	// Get the user
+	template, err := repo.Template()
+	if err != nil {
+		t.Error("Error getting template: ", err.Error())
+	}
+	if template == "" {
+		t.Error("Template not returned")
+	}
+}

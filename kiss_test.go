@@ -30,6 +30,11 @@ func getTestUser() kiss.User {
 	return user
 }
 
+func getTestRepo() kiss.Repository {
+	repo, _ := kiss.CreateRepository(testRepoName())
+	return repo
+}
+
 func contains(s []string, e string) bool {
 	for _, a := range s {
 		if a == e {

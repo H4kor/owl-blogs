@@ -1,8 +1,8 @@
-{{range .Users}}
+{{range .}}
 <ul>
     <li>
-        <a href="{{ .Path() }}">
-            {{ .Name() }}
+        <a href="{{ .Path }}">
+            {{ .Name }}
         </a>
     </li>
 </ul>
