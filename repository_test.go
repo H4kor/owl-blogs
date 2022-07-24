@@ -152,3 +152,28 @@ func TestCannotGetNonexistingUser(t *testing.T) {
 		t.Error("No error returned when getting non-existing user")
 	}
 }
+
+func TestGetStaticDirOfRepo(t *testing.T) {
+	// Create a new user
+	repo, _ := kiss.CreateRepository(testRepoName())
+	// Get the user
+	staticDir := repo.StaticDir()
+	if staticDir == "" {
+		t.Error("Static dir not returned")
+	}
+}
+
+func TestNewRepoGetsStaticFiles(t *testing.T) {
+	// Create a new user
+	repo, _ := kiss.CreateRepository(testRepoName())
+	if _, err := os.Stat(repo.StaticDir()); err != nil {
+		t.Error("Static directory not found")
+	}
+	dir, _ := os.Open(repo.StaticDir())
+	defer dir.Close()
+	files, _ := dir.Readdirnames(-1)
+
+	if len(files) == 0 {
+		t.Error("No static files found")
+	}
+}

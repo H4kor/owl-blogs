@@ -56,7 +56,7 @@ func RenderIndexPage(user User) (string, error) {
 	postHtml := ""
 	for _, postId := range posts {
 		post, _ := user.GetPost(postId)
-		postHtml += "<h2><a href=\"" + post.Path() + "\">" + post.Title() + "</a></h2>\n"
+		postHtml += "<h2><a href=\"" + post.UrlPath() + "\">" + post.Title() + "</a></h2>\n"
 	}
 
 	data := PageContent{

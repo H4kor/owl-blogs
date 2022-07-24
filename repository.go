@@ -1,14 +1,19 @@
 package kiss
 
 import (
+	"embed"
 	_ "embed"
 	"fmt"
 	"os"
 	"path"
 )
 
-//go:embed embed/base.html
+//go:embed embed/initial/base.html
 var base_template string
+
+//go:embed embed/initial/static/*
+var static_files embed.FS
+
 var VERSION = "0.0.1"
 
 type Repository struct {
@@ -22,8 +27,19 @@ func CreateRepository(name string) (Repository, error) {
 		return Repository{}, fmt.Errorf("Repository already exists")
 	}
 
-	os.Mkdir(name, 0755)
-	os.Mkdir(path.Join(name, "users"), 0755)
+	os.Mkdir(newRepo.Dir(), 0755)
+	os.Mkdir(newRepo.UsersDir(), 0755)
+	os.Mkdir(newRepo.StaticDir(), 0755)
+
+	// copy all files from static_files embed.FS to StaticDir
+	staticFiles, _ := static_files.ReadDir("embed/initial/static")
+	for _, file := range staticFiles {
+		if file.IsDir() {
+			continue
+		}
+		src_data, _ := static_files.ReadFile(file.Name())
+		os.WriteFile(newRepo.StaticDir()+"/"+file.Name(), src_data, 0644)
+	}
 	return newRepo, nil
 }
 
@@ -40,6 +56,14 @@ func OpenRepository(name string) (Repository, error) {
 
 func (repo Repository) Dir() string {
 	return repo.name
+}
+
+func (repo Repository) StaticDir() string {
+	return path.Join(repo.Dir(), "static")
+}
+
+func (repo Repository) UsersDir() string {
+	return path.Join(repo.Dir(), "users")
 }
 
 func (repo Repository) Users() ([]User, error) {
