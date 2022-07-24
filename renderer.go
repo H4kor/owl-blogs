@@ -65,7 +65,7 @@ func RenderIndexPage(user User) (string, error) {
 	}
 
 	var html bytes.Buffer
-	t, err := template.New("post").Parse(baseTemplate)
+	t, err := template.New("index").Parse(baseTemplate)
 
 	t.Execute(&html, data)
 
