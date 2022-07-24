@@ -67,7 +67,7 @@ func (repo Repository) UsersDir() string {
 }
 
 func (repo Repository) Users() ([]User, error) {
-	userNames := listDir(path.Join(repo.Dir(), "users"))
+	userNames := listDir(repo.UsersDir())
 	users := make([]User, len(userNames))
 	for i, name := range userNames {
 		users[i] = User{repo: repo, name: name}

@@ -15,7 +15,7 @@ type User struct {
 }
 
 func (user User) Dir() string {
-	return path.Join(user.repo.Dir(), "users", user.name)
+	return path.Join(user.repo.UsersDir(), user.name)
 }
 
 func (user User) Path() string {

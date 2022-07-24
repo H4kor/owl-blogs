@@ -2,6 +2,7 @@ package main
 
 import (
 	"h4kor/kiss-social"
+	"h4kor/kiss-social/cmd/kiss-web/static"
 	"net/http"
 	"os"
 	"strconv"
@@ -143,6 +144,7 @@ func main() {
 		os.Exit(1)
 	}
 
+	http.Handle("/static/", static.StaticHandler(repo))
 	http.HandleFunc("/", handler(repo))
 
 	println("Listening on port", port)

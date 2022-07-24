@@ -2,30 +2,10 @@ package kiss_test
 
 import (
 	"h4kor/kiss-social"
-	"math/rand"
 	"os"
 	"path"
 	"testing"
-	"time"
 )
-
-func randomName() string {
-	rand.Seed(time.Now().UnixNano())
-	var letters = []rune("abcdefghijklmnopqrstuvwxyz")
-	b := make([]rune, 8)
-	for i := range b {
-		b[i] = letters[rand.Intn(len(letters))]
-	}
-	return string(b)
-}
-
-func testRepoName() string {
-	return "/tmp/" + randomName()
-}
-
-func randomUserName() string {
-	return randomName()
-}
 
 func TestCanCreateRepository(t *testing.T) {
 	repoName := testRepoName()
@@ -92,19 +72,19 @@ func TestCreateUserAddsPublicFolder(t *testing.T) {
 	}
 }
 
-func CanListRepoUsers(t *testing.T) {
+func TestCanListRepoUsers(t *testing.T) {
 	// Create a new user
 	repo, _ := kiss.CreateRepository(testRepoName())
 	user1, _ := repo.CreateUser(randomUserName())
 	user2, _ := repo.CreateUser(randomUserName())
 	// Create a new post
 	users, _ := repo.Users()
-	if len(users) == 2 {
-		t.Error("No users found")
+	if len(users) != 2 {
+		t.Error("Wrong number of users returned, expected 2, got ", len(users))
 	}
 	for _, user := range users {
-		if user.Name() == user1.Name() || user.Name() == user2.Name() {
-			t.Error("User found")
+		if user.Name() != user1.Name() && user.Name() != user2.Name() {
+			t.Error("User found: " + user.Name())
 		}
 	}
 }
