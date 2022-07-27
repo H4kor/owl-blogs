@@ -82,3 +82,24 @@ func TestRenderUserList(t *testing.T) {
 		t.Error("Post title not rendered. Got: " + result)
 	}
 }
+
+func TestRendersHeaderTitle(t *testing.T) {
+	user := getTestUser()
+	user.SetConfig(kiss.UserConfig{
+		Title:       "Test Title",
+		SubTitle:    "Test SubTitle",
+		HeaderColor: "#ff1337",
+	})
+	post, _ := user.CreateNewPost("testpost")
+
+	result, _ := kiss.RenderPost(post)
+	if !strings.Contains(result, "Test Title") {
+		t.Error("Header title not rendered. Got: " + result)
+	}
+	if !strings.Contains(result, "Test SubTitle") {
+		t.Error("Header subtitle not rendered. Got: " + result)
+	}
+	if !strings.Contains(result, "#ff1337") {
+		t.Error("Header color not rendered. Got: " + result)
+	}
+}

@@ -22,8 +22,35 @@ type PostRenderData struct {
 	Post  template.HTML
 }
 
+func renderIntoBaseTemplate(user User, data PageContent) (string, error) {
+	baseTemplate, _ := user.Template()
+	t, err := template.New("index").Parse(baseTemplate)
+	if err != nil {
+		return "", err
+	}
+
+	user_config, _ := user.Config()
+	full_data := struct {
+		Title        string
+		Content      template.HTML
+		UserTitle    string
+		UserSubtitle string
+		HeaderColor  string
+	}{
+		Title:        data.Title,
+		Content:      data.Content,
+		UserTitle:    user_config.Title,
+		UserSubtitle: user_config.SubTitle,
+		HeaderColor:  user_config.HeaderColor,
+	}
+
+	var html bytes.Buffer
+	t.Execute(&html, full_data)
+
+	return html.String(), nil
+}
+
 func RenderPost(post Post) (string, error) {
-	baseTemplate, _ := post.user.Template()
 	buf, _ := post.MarkdownData()
 
 	postTemplate, _ := template.New("post").Parse(postTemplateStr)
@@ -41,16 +68,10 @@ func RenderPost(post Post) (string, error) {
 		Content: template.HTML(postHtml.String()),
 	}
 
-	var html bytes.Buffer
-	t, err := template.New("page").Parse(baseTemplate)
-
-	t.Execute(&html, data)
-
-	return html.String(), err
+	return renderIntoBaseTemplate(post.user, data)
 }
 
 func RenderIndexPage(user User) (string, error) {
-	baseTemplate, _ := user.Template()
 	posts, _ := user.Posts()
 
 	postHtml := ""
@@ -64,15 +85,7 @@ func RenderIndexPage(user User) (string, error) {
 		Content: template.HTML(postHtml),
 	}
 
-	var html bytes.Buffer
-	t, err := template.New("index").Parse(baseTemplate)
-	if err != nil {
-		return "", err
-	}
-
-	t.Execute(&html, data)
-
-	return html.String(), nil
+	return renderIntoBaseTemplate(user, data)
 
 }
 

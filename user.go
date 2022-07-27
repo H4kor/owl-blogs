@@ -7,11 +7,19 @@ import (
 	"path"
 	"strings"
 	"time"
+
+	"gopkg.in/yaml.v2"
 )
 
 type User struct {
 	repo Repository
 	name string
+}
+
+type UserConfig struct {
+	Title       string `yaml:"title"`
+	SubTitle    string `yaml:"subtitle"`
+	HeaderColor string `yaml:"header_color"`
 }
 
 func (user User) Dir() string {
@@ -24,6 +32,14 @@ func (user User) Path() string {
 
 func (user User) PostDir() string {
 	return path.Join(user.Dir(), "public")
+}
+
+func (user User) MetaDir() string {
+	return path.Join(user.Dir(), "meta")
+}
+
+func (user User) ConfigFile() string {
+	return path.Join(user.MetaDir(), "config.yml")
 }
 
 func (user User) Name() string {
@@ -89,4 +105,31 @@ func (user User) Template() (string, error) {
 		return "", err
 	}
 	return string(base_html), nil
+}
+
+func (user User) Config() (UserConfig, error) {
+	config_path := user.ConfigFile()
+	config_data, err := ioutil.ReadFile(config_path)
+	if err != nil {
+		return UserConfig{}, err
+	}
+	var meta UserConfig
+	err = yaml.Unmarshal(config_data, &meta)
+	if err != nil {
+		return UserConfig{}, err
+	}
+	return meta, nil
+}
+
+func (user User) SetConfig(new_config UserConfig) error {
+	config_path := user.ConfigFile()
+	config_data, err := yaml.Marshal(new_config)
+	if err != nil {
+		return err
+	}
+	err = ioutil.WriteFile(config_path, config_data, 0644)
+	if err != nil {
+		return err
+	}
+	return nil
 }

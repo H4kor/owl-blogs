@@ -63,6 +63,15 @@ func TestCreateUserAddsBaseHtmlFile(t *testing.T) {
 	}
 }
 
+func TestCreateUserAddConfigYml(t *testing.T) {
+	// Create a new user
+	repo, _ := kiss.CreateRepository(testRepoName())
+	user, _ := repo.CreateUser(randomUserName())
+	if _, err := os.Stat(path.Join(user.Dir(), "/meta/config.yml")); err != nil {
+		t.Error("Config file not created")
+	}
+}
+
 func TestCreateUserAddsPublicFolder(t *testing.T) {
 	// Create a new user
 	repo, _ := kiss.CreateRepository(testRepoName())

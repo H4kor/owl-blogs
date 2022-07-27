@@ -7,10 +7,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ .Title }}</title>
     <link rel="stylesheet" href="/static/pico.min.css">
+    <style>
+        header {
+            background-color: {{.HeaderColor}};
+        }
+    </style>
 </head>
 
 <body>
+    <header>
+        <nav class="container">
+            <ul>
+                <li>
+                    <hgroup>
+                        <h2>{{ .UserTitle }}</h2>
+                        <h3>{{ .UserSubtitle }}</h3>
+                    </hgroup>
+                </li>
+            </ul>
 
+        </nav>
+    </header>
     <main class="container">
         {{ .Content }}
     </main>

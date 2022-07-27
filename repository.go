@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+
+	"gopkg.in/yaml.v2"
 )
 
 //go:embed embed/initial/base.html
@@ -107,6 +109,13 @@ func (repo Repository) CreateUser(name string) (User, error) {
 	// create Meta files
 	os.WriteFile(path.Join(user_dir, "meta", "VERSION"), []byte(VERSION), 0644)
 	os.WriteFile(path.Join(user_dir, "meta", "base.html"), []byte(base_template), 0644)
+
+	meta, _ := yaml.Marshal(UserConfig{
+		Title:       name,
+		SubTitle:    "",
+		HeaderColor: "#bdd6be",
+	})
+	os.WriteFile(new_user.ConfigFile(), meta, 0644)
 
 	return new_user, nil
 }
