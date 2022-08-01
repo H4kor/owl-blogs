@@ -26,7 +26,7 @@ func (post Post) MediaDir() string {
 }
 
 func (post Post) UrlPath() string {
-	return post.user.Path() + "/" + post.id
+	return post.user.Path() + "/posts/" + post.id
 }
 
 func (post Post) Title() string {

@@ -27,7 +27,7 @@ func (user User) Dir() string {
 }
 
 func (user User) Path() string {
-	return "/" + user.name
+	return "/user/" + user.name
 }
 
 func (user User) PostDir() string {

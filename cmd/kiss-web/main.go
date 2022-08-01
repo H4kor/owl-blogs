@@ -2,54 +2,54 @@ package main
 
 import (
 	"h4kor/kiss-social"
-	"h4kor/kiss-social/cmd/kiss-web/static"
 	"net/http"
 	"os"
 	"strconv"
-	"strings"
+
+	"github.com/julienschmidt/httprouter"
 )
 
-func handler(repo kiss.Repository) func(http.ResponseWriter, *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		// normalize the path
-		path := r.URL.Path
-		// remove leading '/'
-		if len(path) > 0 && path[0] == '/' {
-			path = path[1:]
-		}
-		// remove trailing '/'
-		if len(path) > 0 && path[len(path)-1] == '/' {
-			path = path[:len(path)-1]
-		}
+// func handler(repo kiss.Repository) func(http.ResponseWriter, *http.Request) {
+// 	return func(w http.ResponseWriter, r *http.Request) {
+// 		// normalize the path
+// 		path := r.URL.Path
+// 		// remove leading '/'
+// 		if len(path) > 0 && path[0] == '/' {
+// 			path = path[1:]
+// 		}
+// 		// remove trailing '/'
+// 		if len(path) > 0 && path[len(path)-1] == '/' {
+// 			path = path[:len(path)-1]
+// 		}
 
-		// index page
-		if path == "" {
-			println("Index page")
-			indexHandler(repo)(w, r)
-			return
-		}
+// 		// index page
+// 		if path == "" {
+// 			println("Index page")
+// 			indexHandler(repo)(w, r)
+// 			return
+// 		}
 
-		// parse the path
-		parts := strings.Split(path, "/")
-		userName := parts[0]
+// 		// parse the path
+// 		parts := strings.Split(path, "/")
+// 		userName := parts[0]
 
-		// only one part -> user page
-		if len(parts) == 1 {
-			println("User page")
-			userHandler(repo, userName)(w, r)
-			return
-		}
+// 		// only one part -> user page
+// 		if len(parts) == 1 {
+// 			println("User page")
+// 			userHandler(repo, userName)(w, r)
+// 			return
+// 		}
 
-		// multiple parts -> post page
-		println("Post page")
-		postId := strings.Join(parts[1:], "/")
-		postHandler(repo, userName, postId)(w, r)
+// 		// multiple parts -> post page
+// 		println("Post page")
+// 		postId := strings.Join(parts[1:], "/")
+// 		postHandler(repo, userName, postId)(w, r)
 
-	}
-}
+// 	}
+// }
 
-func indexHandler(repo kiss.Repository) func(http.ResponseWriter, *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
+func indexHandler(repo kiss.Repository) func(http.ResponseWriter, *http.Request, httprouter.Params) {
+	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		html, err := kiss.RenderUserList(repo)
 
 		if err != nil {
@@ -63,8 +63,9 @@ func indexHandler(repo kiss.Repository) func(http.ResponseWriter, *http.Request)
 	}
 }
 
-func userHandler(repo kiss.Repository, userName string) func(http.ResponseWriter, *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
+func userHandler(repo kiss.Repository) func(http.ResponseWriter, *http.Request, httprouter.Params) {
+	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		userName := ps.ByName("user")
 		user, err := repo.GetUser(userName)
 		if err != nil {
 			println("Error getting user: ", err.Error())
@@ -84,8 +85,10 @@ func userHandler(repo kiss.Repository, userName string) func(http.ResponseWriter
 	}
 }
 
-func postHandler(repo kiss.Repository, userName string, postId string) func(http.ResponseWriter, *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
+func postHandler(repo kiss.Repository) func(http.ResponseWriter, *http.Request, httprouter.Params) {
+	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		userName := ps.ByName("user")
+		postId := ps.ByName("post")
 		user, err := repo.GetUser(userName)
 		if err != nil {
 			println("Error getting user: ", err.Error())
@@ -141,10 +144,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	http.Handle("/static/", static.StaticHandler(repo))
-	http.HandleFunc("/", handler(repo))
+	router := httprouter.New()
+	router.ServeFiles("/static/*filepath", http.Dir(repo.StaticDir()))
+	router.GET("/", indexHandler(repo))
+	router.GET("/user/:user", userHandler(repo))
+	router.GET("/user/:user/posts/*post", postHandler(repo))
 
 	println("Listening on port", port)
-	http.ListenAndServe(":"+strconv.Itoa(port), nil)
+	http.ListenAndServe(":"+strconv.Itoa(port), router)
 
 }
