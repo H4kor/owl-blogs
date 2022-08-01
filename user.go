@@ -94,6 +94,8 @@ func (user User) CreateNewPost(title string) (Post, error) {
 	// create post file
 	os.Mkdir(post_dir, 0755)
 	os.WriteFile(post.ContentFile(), []byte(initial_content), 0644)
+	// create media dir
+	os.Mkdir(post.MediaDir(), 0755)
 	return post, nil
 }
 

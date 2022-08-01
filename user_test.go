@@ -24,6 +24,17 @@ func TestCreateNewPostCreatesEntryInPublic(t *testing.T) {
 	}
 }
 
+func TestCreateNewPostCreatesMediaDir(t *testing.T) {
+	// Create a new user
+	repo, _ := kiss.CreateRepository(testRepoName())
+	user, _ := repo.CreateUser(randomUserName())
+	// Create a new post
+	post, _ := user.CreateNewPost("testpost")
+	if _, err := os.Stat(post.MediaDir()); os.IsNotExist(err) {
+		t.Error("Media directory not created")
+	}
+}
+
 func TestCreateNewPostMultipleCalls(t *testing.T) {
 	// Create a new user
 	repo, _ := kiss.CreateRepository(testRepoName())
