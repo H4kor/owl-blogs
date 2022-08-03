@@ -26,7 +26,7 @@ func (user User) Dir() string {
 }
 
 func (user User) UrlPath() string {
-	return "/user/" + user.name + "/"
+	return user.repo.UserUrlPath(user)
 }
 
 func (user User) PostDir() string {

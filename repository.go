@@ -20,7 +20,9 @@ var static_files embed.FS
 var VERSION = "0.0.1"
 
 type Repository struct {
-	name string
+	name             string
+	single_user_mode bool
+	active_user      string
 }
 
 func CreateRepository(name string) (Repository, error) {
@@ -58,7 +60,16 @@ func OpenRepository(name string) (Repository, error) {
 	}
 
 	return repo, nil
+}
 
+func OpenSingleUserRepo(name string, user_name string) (Repository, error) {
+	repo, err := OpenRepository(name)
+	if err != nil {
+		return Repository{}, err
+	}
+	repo.single_user_mode = true
+	repo.active_user = user_name
+	return repo, nil
 }
 
 func (repo Repository) Dir() string {
@@ -73,6 +84,13 @@ func (repo Repository) UsersDir() string {
 	return path.Join(repo.Dir(), "users")
 }
 
+func (repo Repository) UserUrlPath(user User) string {
+	if repo.single_user_mode {
+		return "/"
+	}
+	return "/user/" + user.name + "/"
+}
+
 func (repo Repository) Template() (string, error) {
 	// load base.html
 	path := path.Join(repo.Dir(), "base.html")
@@ -84,6 +102,10 @@ func (repo Repository) Template() (string, error) {
 }
 
 func (repo Repository) Users() ([]User, error) {
+	if repo.single_user_mode {
+		return []User{{repo: repo, name: repo.active_user}}, nil
+	}
+
 	userNames := listDir(repo.UsersDir())
 	users := make([]User, len(userNames))
 	for i, name := range userNames {

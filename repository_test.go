@@ -187,3 +187,39 @@ func TestCanGetRepoTemplate(t *testing.T) {
 		t.Error("Template not returned")
 	}
 }
+
+func TestCanOpenRepositoryInSingleUserMode(t *testing.T) {
+	// Create a new user
+	repoName := testRepoName()
+	userName := randomUserName()
+	created_repo, _ := owl.CreateRepository(repoName)
+	created_repo.CreateUser(userName)
+	created_repo.CreateUser(randomUserName())
+	created_repo.CreateUser(randomUserName())
+
+	// Open the repository
+	repo, _ := owl.OpenSingleUserRepo(repoName, userName)
+
+	users, _ := repo.Users()
+	if len(users) != 1 {
+		t.Error("Wrong number of users returned, expected 1, got ", len(users))
+	}
+	if users[0].Name() != userName {
+		t.Error("User name does not match")
+	}
+}
+
+func TestSingleUserRepoUserUrlPathIsSimple(t *testing.T) {
+	// Create a new user
+	repoName := testRepoName()
+	userName := randomUserName()
+	created_repo, _ := owl.CreateRepository(repoName)
+	created_repo.CreateUser(userName)
+
+	// Open the repository
+	repo, _ := owl.OpenSingleUserRepo(repoName, userName)
+	user, _ := repo.GetUser(userName)
+	if user.UrlPath() != "/" {
+		t.Error("User url is not '/'. Got: ", user.UrlPath())
+	}
+}
