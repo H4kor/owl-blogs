@@ -1,4 +1,4 @@
-module h4kor/kiss-social
+module h4kor/owl-blogs
 
 go 1.18
 

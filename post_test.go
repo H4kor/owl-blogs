@@ -1,4 +1,4 @@
-package kiss_test
+package owl_test
 
 import (
 	"path"

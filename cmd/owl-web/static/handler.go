@@ -1,11 +1,11 @@
 package static
 
 import (
-	"h4kor/kiss-social"
+	"h4kor/owl-blogs"
 	"net/http"
 )
 
-func StaticHandler(repo kiss.Repository) http.Handler {
+func StaticHandler(repo owl.Repository) http.Handler {
 	return http.StripPrefix(
 		"/static/",
 		http.FileServer(http.Dir(repo.StaticDir())),

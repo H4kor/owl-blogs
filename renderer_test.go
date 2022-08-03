@@ -1,7 +1,7 @@
-package kiss_test
+package owl_test
 
 import (
-	"h4kor/kiss-social"
+	"h4kor/owl-blogs"
 	"os"
 	"path"
 	"strings"
@@ -11,7 +11,7 @@ import (
 func TestCanRenderPost(t *testing.T) {
 	user := getTestUser()
 	post, _ := user.CreateNewPost("testpost")
-	result, err := kiss.RenderPost(post)
+	result, err := owl.RenderPost(post)
 
 	if err != nil {
 		t.Error("Error rendering post: " + err.Error())
@@ -27,7 +27,7 @@ func TestCanRenderPost(t *testing.T) {
 func TestRendererUsesBaseTemplate(t *testing.T) {
 	user := getTestUser()
 	post, _ := user.CreateNewPost("testpost")
-	result, err := kiss.RenderPost(post)
+	result, err := owl.RenderPost(post)
 
 	if err != nil {
 		t.Error("Error rendering post: " + err.Error())
@@ -43,7 +43,7 @@ func TestCanRenderIndexPage(t *testing.T) {
 	user := getTestUser()
 	user.CreateNewPost("testpost1")
 	user.CreateNewPost("testpost2")
-	result, _ := kiss.RenderIndexPage(user)
+	result, _ := owl.RenderIndexPage(user)
 	if !strings.Contains(result, "testpost1") {
 		t.Error("Post title not rendered. Got: " + result)
 	}
@@ -59,7 +59,7 @@ func TestRenderIndexPageWithBrokenBaseTemplate(t *testing.T) {
 
 	os.WriteFile(path.Join(user.Dir(), "meta/base.html"), []byte("{{content}}"), 0644)
 
-	_, err := kiss.RenderIndexPage(user)
+	_, err := owl.RenderIndexPage(user)
 	if err == nil {
 		t.Error("Expected error rendering index page, got nil")
 	}
@@ -70,7 +70,7 @@ func TestRenderUserList(t *testing.T) {
 	repo.CreateUser("user1")
 	repo.CreateUser("user2")
 
-	result, err := kiss.RenderUserList(repo)
+	result, err := owl.RenderUserList(repo)
 	if err != nil {
 		t.Error("Error rendering user list: " + err.Error())
 	}
@@ -85,14 +85,14 @@ func TestRenderUserList(t *testing.T) {
 
 func TestRendersHeaderTitle(t *testing.T) {
 	user := getTestUser()
-	user.SetConfig(kiss.UserConfig{
+	user.SetConfig(owl.UserConfig{
 		Title:       "Test Title",
 		SubTitle:    "Test SubTitle",
 		HeaderColor: "#ff1337",
 	})
 	post, _ := user.CreateNewPost("testpost")
 
-	result, _ := kiss.RenderPost(post)
+	result, _ := owl.RenderPost(post)
 	if !strings.Contains(result, "Test Title") {
 		t.Error("Header title not rendered. Got: " + result)
 	}

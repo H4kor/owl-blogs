@@ -1,8 +1,8 @@
 package static_test
 
 import (
-	"h4kor/kiss-social"
-	"h4kor/kiss-social/cmd/kiss-web/static"
+	"h4kor/owl-blogs"
+	"h4kor/owl-blogs/cmd/owl-web/static"
 	"math/rand"
 	"net/http"
 	"net/http/httptest"
@@ -26,8 +26,8 @@ func testRepoName() string {
 	return "/tmp/" + randomName()
 }
 
-func getTestRepo() kiss.Repository {
-	repo, _ := kiss.CreateRepository(testRepoName())
+func getTestRepo() owl.Repository {
+	repo, _ := owl.CreateRepository(testRepoName())
 	return repo
 }
 

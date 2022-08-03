@@ -1,4 +1,4 @@
-package kiss
+package owl
 
 import (
 	"fmt"

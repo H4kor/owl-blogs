@@ -1,7 +1,7 @@
 package main
 
 import (
-	"h4kor/kiss-social"
+	"h4kor/owl-blogs"
 	"net/http"
 	"os"
 	"strconv"
@@ -9,7 +9,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-// func handler(repo kiss.Repository) func(http.ResponseWriter, *http.Request) {
+// func handler(repo owl.Repository) func(http.ResponseWriter, *http.Request) {
 // 	return func(w http.ResponseWriter, r *http.Request) {
 // 		// normalize the path
 // 		path := r.URL.Path
@@ -48,9 +48,9 @@ import (
 // 	}
 // }
 
-func indexHandler(repo kiss.Repository) func(http.ResponseWriter, *http.Request, httprouter.Params) {
+func indexHandler(repo owl.Repository) func(http.ResponseWriter, *http.Request, httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-		html, err := kiss.RenderUserList(repo)
+		html, err := owl.RenderUserList(repo)
 
 		if err != nil {
 			println("Error rendering index: ", err.Error())
@@ -63,7 +63,7 @@ func indexHandler(repo kiss.Repository) func(http.ResponseWriter, *http.Request,
 	}
 }
 
-func userHandler(repo kiss.Repository) func(http.ResponseWriter, *http.Request, httprouter.Params) {
+func userHandler(repo owl.Repository) func(http.ResponseWriter, *http.Request, httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		userName := ps.ByName("user")
 		user, err := repo.GetUser(userName)
@@ -73,7 +73,7 @@ func userHandler(repo kiss.Repository) func(http.ResponseWriter, *http.Request, 
 			w.Write([]byte("User not found"))
 			return
 		}
-		html, err := kiss.RenderIndexPage(user)
+		html, err := owl.RenderIndexPage(user)
 		if err != nil {
 			println("Error rendering index page: ", err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
@@ -85,7 +85,7 @@ func userHandler(repo kiss.Repository) func(http.ResponseWriter, *http.Request, 
 	}
 }
 
-func postHandler(repo kiss.Repository) func(http.ResponseWriter, *http.Request, httprouter.Params) {
+func postHandler(repo owl.Repository) func(http.ResponseWriter, *http.Request, httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		userName := ps.ByName("user")
 		postId := ps.ByName("post")
@@ -103,7 +103,7 @@ func postHandler(repo kiss.Repository) func(http.ResponseWriter, *http.Request, 
 			w.Write([]byte("Post not found"))
 			return
 		}
-		html, err := kiss.RenderPost(post)
+		html, err := owl.RenderPost(post)
 		if err != nil {
 			println("Error rendering post: ", err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
@@ -117,7 +117,7 @@ func postHandler(repo kiss.Repository) func(http.ResponseWriter, *http.Request, 
 }
 
 func main() {
-	println("KISS Web Server")
+	println("owl web server")
 	println("Parameters")
 	println("-repo <repo> - Specify the repository to use. Defaults to '.'")
 	println("-port <port> - Specify the port to use, Default is '8080'")
@@ -138,7 +138,7 @@ func main() {
 		port = 8080
 	}
 
-	repo, err := kiss.OpenRepository(repoName)
+	repo, err := owl.OpenRepository(repoName)
 	if err != nil {
 		println("Error opening repository: ", err.Error())
 		os.Exit(1)

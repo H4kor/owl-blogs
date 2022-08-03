@@ -1,7 +1,7 @@
-package kiss_test
+package owl_test
 
 import (
-	"h4kor/kiss-social"
+	"h4kor/owl-blogs"
 	"math/rand"
 	"time"
 )
@@ -24,14 +24,14 @@ func randomUserName() string {
 	return randomName()
 }
 
-func getTestUser() kiss.User {
-	repo, _ := kiss.CreateRepository(testRepoName())
+func getTestUser() owl.User {
+	repo, _ := owl.CreateRepository(testRepoName())
 	user, _ := repo.CreateUser(randomUserName())
 	return user
 }
 
-func getTestRepo() kiss.Repository {
-	repo, _ := kiss.CreateRepository(testRepoName())
+func getTestRepo() owl.Repository {
+	repo, _ := owl.CreateRepository(testRepoName())
 	return repo
 }
 

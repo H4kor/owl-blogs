@@ -1,8 +1,8 @@
-package kiss_test
+package owl_test
 
 import (
 	"fmt"
-	"h4kor/kiss-social"
+	"h4kor/owl-blogs"
 	"io/ioutil"
 	"os"
 	"path"
@@ -11,7 +11,7 @@ import (
 
 func TestCreateNewPostCreatesEntryInPublic(t *testing.T) {
 	// Create a new user
-	repo, _ := kiss.CreateRepository(testRepoName())
+	repo, _ := owl.CreateRepository(testRepoName())
 	user, _ := repo.CreateUser(randomUserName())
 	// Create a new post
 	user.CreateNewPost("testpost")
@@ -26,7 +26,7 @@ func TestCreateNewPostCreatesEntryInPublic(t *testing.T) {
 
 func TestCreateNewPostCreatesMediaDir(t *testing.T) {
 	// Create a new user
-	repo, _ := kiss.CreateRepository(testRepoName())
+	repo, _ := owl.CreateRepository(testRepoName())
 	user, _ := repo.CreateUser(randomUserName())
 	// Create a new post
 	post, _ := user.CreateNewPost("testpost")
@@ -37,7 +37,7 @@ func TestCreateNewPostCreatesMediaDir(t *testing.T) {
 
 func TestCreateNewPostMultipleCalls(t *testing.T) {
 	// Create a new user
-	repo, _ := kiss.CreateRepository(testRepoName())
+	repo, _ := owl.CreateRepository(testRepoName())
 	user, _ := repo.CreateUser(randomUserName())
 	// Create a new post
 	user.CreateNewPost("testpost")
@@ -54,7 +54,7 @@ func TestCreateNewPostMultipleCalls(t *testing.T) {
 
 func TestCanListUserPosts(t *testing.T) {
 	// Create a new user
-	repo, _ := kiss.CreateRepository(testRepoName())
+	repo, _ := owl.CreateRepository(testRepoName())
 	user, _ := repo.CreateUser(randomUserName())
 	// Create a new post
 	user.CreateNewPost("testpost")
@@ -71,7 +71,7 @@ func TestCanListUserPosts(t *testing.T) {
 
 func TestCanListUserPostsWithSubdirectories(t *testing.T) {
 	// Create a new user
-	repo, _ := kiss.CreateRepository(testRepoName())
+	repo, _ := owl.CreateRepository(testRepoName())
 	user, _ := repo.CreateUser(randomUserName())
 	// Create a new post
 	user.CreateNewPost("testpost")

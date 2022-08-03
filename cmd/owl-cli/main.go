@@ -1,12 +1,12 @@
 package main
 
 import (
-	"h4kor/kiss-social"
+	"h4kor/owl-blogs"
 	"os"
 )
 
 func main() {
-	println("KISS Social")
+	println("owl blogs")
 	println("Commands")
 	println("init <repo> - Creates a new repository")
 	println("<repo> new-user <name> - Creates a new user")
@@ -19,7 +19,7 @@ func main() {
 
 	if os.Args[1] == "init" {
 		repoName := os.Args[2]
-		_, err := kiss.CreateRepository(repoName)
+		_, err := owl.CreateRepository(repoName)
 		if err != nil {
 			println("Error creating repository: ", err.Error())
 		}
@@ -28,7 +28,7 @@ func main() {
 	}
 
 	repoName := os.Args[1]
-	repo, err := kiss.OpenRepository(repoName)
+	repo, err := owl.OpenRepository(repoName)
 	if err != nil {
 		println("Error opening repository: ", err.Error())
 		os.Exit(1)
