@@ -25,8 +25,8 @@ func (user User) Dir() string {
 	return path.Join(user.repo.UsersDir(), user.name)
 }
 
-func (user User) Path() string {
-	return "/user/" + user.name
+func (user User) UrlPath() string {
+	return "/user/" + user.name + "/"
 }
 
 func (user User) PostDir() string {

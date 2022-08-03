@@ -84,6 +84,12 @@ func postMediaHandler(repo owl.Repository) func(http.ResponseWriter, *http.Reque
 			return
 		}
 		filepath = path.Join(post.MediaDir(), filepath)
+		if _, err := os.Stat(filepath); err != nil {
+			println("Error getting file: ", err.Error())
+			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte("File not found"))
+			return
+		}
 		http.ServeFile(w, r, filepath)
 	}
 }

@@ -17,6 +17,10 @@ type Post struct {
 	title string
 }
 
+func (post Post) Id() string {
+	return post.id
+}
+
 func (post Post) Dir() string {
 	return path.Join(post.user.Dir(), "public", post.id)
 }
@@ -26,7 +30,11 @@ func (post Post) MediaDir() string {
 }
 
 func (post Post) UrlPath() string {
-	return post.user.Path() + "/posts/" + post.id
+	return post.user.UrlPath() + "posts/" + post.id + "/"
+}
+
+func (post Post) UrlMediaPath(filename string) string {
+	return post.UrlPath() + "media/" + filename
 }
 
 func (post Post) Title() string {

@@ -138,3 +138,10 @@ func TestCanLoadPost(t *testing.T) {
 		t.Error("Wrong title, Got: " + post.Title())
 	}
 }
+
+func TestUserUrlPath(t *testing.T) {
+	user := getTestUser()
+	if !(user.UrlPath() == "/user/"+user.Name()+"/") {
+		t.Error("Wrong url path, Expected: " + "/user/" + user.Name() + "/" + " Got: " + user.UrlPath())
+	}
+}
