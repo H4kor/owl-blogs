@@ -10,21 +10,6 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-func indexHandler(repo owl.Repository) func(http.ResponseWriter, *http.Request, httprouter.Params) {
-	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-		html, err := owl.RenderUserList(repo)
-
-		if err != nil {
-			println("Error rendering index: ", err.Error())
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("Internal server error"))
-			return
-		}
-		println("Rendering index")
-		w.Write([]byte(html))
-	}
-}
-
 func userHandler(repo owl.Repository) func(http.ResponseWriter, *http.Request, httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		userName := ps.ByName("user")
@@ -102,6 +87,17 @@ func postMediaHandler(repo owl.Repository) func(http.ResponseWriter, *http.Reque
 		http.ServeFile(w, r, filepath)
 	}
 }
+
+func Router(repo owl.Repository) http.Handler {
+	router := httprouter.New()
+	router.ServeFiles("/static/*filepath", http.Dir(repo.StaticDir()))
+	router.GET("/", RepoIndexHandler(repo))
+	router.GET("/user/:user/", userHandler(repo))
+	router.GET("/user/:user/posts/:post/", postHandler(repo))
+	router.GET("/user/:user/posts/:post/media/*filepath", postMediaHandler(repo))
+	return router
+}
+
 func main() {
 	println("owl web server")
 	println("Parameters")
@@ -130,13 +126,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	router := httprouter.New()
-	router.ServeFiles("/static/*filepath", http.Dir(repo.StaticDir()))
-	router.GET("/", indexHandler(repo))
-	router.GET("/user/:user/", userHandler(repo))
-	router.GET("/user/:user/posts/:post/", postHandler(repo))
-	router.GET("/user/:user/posts/:post/media/*filepath", postMediaHandler(repo))
-
+	router := Router(repo)
 	println("Listening on port", port)
 	http.ListenAndServe(":"+strconv.Itoa(port), router)
 
