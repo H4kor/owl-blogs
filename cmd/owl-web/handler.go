@@ -9,6 +9,18 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
+func getUserFromRepo(repo owl.Repository, ps httprouter.Params) (owl.User, error) {
+	if repo.SingleUserName() != "" {
+		return repo.GetUser(repo.SingleUserName())
+	}
+	userName := ps.ByName("user")
+	user, err := repo.GetUser(userName)
+	if err != nil {
+		return owl.User{}, err
+	}
+	return user, nil
+}
+
 func repoIndexHandler(repo owl.Repository) func(http.ResponseWriter, *http.Request, httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		html, err := owl.RenderUserList(repo)
@@ -26,8 +38,7 @@ func repoIndexHandler(repo owl.Repository) func(http.ResponseWriter, *http.Reque
 
 func userIndexHandler(repo owl.Repository) func(http.ResponseWriter, *http.Request, httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-		userName := ps.ByName("user")
-		user, err := repo.GetUser(userName)
+		user, err := getUserFromRepo(repo, ps)
 		if err != nil {
 			println("Error getting user: ", err.Error())
 			w.WriteHeader(http.StatusNotFound)
@@ -41,16 +52,16 @@ func userIndexHandler(repo owl.Repository) func(http.ResponseWriter, *http.Reque
 			w.Write([]byte("Internal server error"))
 			return
 		}
-		println("Rendering index page for user", userName)
+		println("Rendering index page for user", user.Name())
 		w.Write([]byte(html))
 	}
 }
 
 func postHandler(repo owl.Repository) func(http.ResponseWriter, *http.Request, httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-		userName := ps.ByName("user")
 		postId := ps.ByName("post")
-		user, err := repo.GetUser(userName)
+
+		user, err := getUserFromRepo(repo, ps)
 		if err != nil {
 			println("Error getting user: ", err.Error())
 			w.WriteHeader(http.StatusNotFound)
@@ -79,11 +90,10 @@ func postHandler(repo owl.Repository) func(http.ResponseWriter, *http.Request, h
 
 func postMediaHandler(repo owl.Repository) func(http.ResponseWriter, *http.Request, httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-		userName := ps.ByName("user")
 		postId := ps.ByName("post")
 		filepath := ps.ByName("filepath")
-		user, err := repo.GetUser(userName)
 
+		user, err := getUserFromRepo(repo, ps)
 		if err != nil {
 			println("Error getting user: ", err.Error())
 			w.WriteHeader(http.StatusNotFound)

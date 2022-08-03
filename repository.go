@@ -72,6 +72,10 @@ func OpenSingleUserRepo(name string, user_name string) (Repository, error) {
 	return repo, nil
 }
 
+func (repo Repository) SingleUserName() string {
+	return repo.active_user
+}
+
 func (repo Repository) Dir() string {
 	return repo.name
 }
