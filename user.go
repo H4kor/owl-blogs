@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
-	"strings"
 	"time"
 
 	"gopkg.in/yaml.v2"
@@ -47,11 +46,14 @@ func (user User) Name() string {
 }
 
 func (user User) Posts() ([]string, error) {
-	postFiles := walkDir(path.Join(user.Dir(), "public"))
+	postFiles := listDir(path.Join(user.Dir(), "public"))
 	posts := make([]string, 0)
 	for _, id := range postFiles {
-		if strings.HasSuffix(id, "/index.md") {
-			posts = append(posts, id[:len(id)-9])
+		// if is a directory and has index.md, add to posts
+		if dirExists(path.Join(user.Dir(), "public", id)) {
+			if fileExists(path.Join(user.Dir(), "public", id, "index.md")) {
+				posts = append(posts, id)
+			}
 		}
 	}
 	return posts, nil

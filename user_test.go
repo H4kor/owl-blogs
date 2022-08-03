@@ -69,7 +69,40 @@ func TestCanListUserPosts(t *testing.T) {
 	}
 }
 
-func TestCanListUserPostsWithSubdirectories(t *testing.T) {
+func TestCannotListUserPostsInSubdirectories(t *testing.T) {
+	// Create a new user
+	repo, _ := owl.CreateRepository(testRepoName())
+	user, _ := repo.CreateUser(randomUserName())
+	// Create a new post
+	user.CreateNewPost("testpost")
+	os.Mkdir(path.Join(user.PostDir(), "foo"), 0755)
+	os.Mkdir(path.Join(user.PostDir(), "foo/bar"), 0755)
+	content := ""
+	content += "---\n"
+	content += "title: test\n"
+	content += "---\n"
+	content += "\n"
+	content += "Write your post here.\n"
+
+	os.WriteFile(path.Join(user.PostDir(), "foo/index.md"), []byte(content), 0644)
+	os.WriteFile(path.Join(user.PostDir(), "foo/bar/index.md"), []byte(content), 0644)
+	posts, _ := user.Posts()
+	if !contains(posts, "foo") {
+		t.Error("Does not contain post: foo. Found:")
+		for _, p := range posts {
+			t.Error("\t" + p)
+		}
+	}
+
+	if contains(posts, "foo/bar") {
+		t.Error("Invalid post found: foo/bar. Found:")
+		for _, p := range posts {
+			t.Error("\t" + p)
+		}
+	}
+}
+
+func TestCannotListUserPostsWithoutIndexMd(t *testing.T) {
 	// Create a new user
 	repo, _ := owl.CreateRepository(testRepoName())
 	user, _ := repo.CreateUser(randomUserName())
@@ -87,14 +120,7 @@ func TestCanListUserPostsWithSubdirectories(t *testing.T) {
 	os.WriteFile(path.Join(user.PostDir(), "foo/bar/index.md"), []byte(content), 0644)
 	posts, _ := user.Posts()
 	if contains(posts, "foo") {
-		t.Error("Contains non-post name: foo")
-		for _, p := range posts {
-			t.Error("\t" + p)
-		}
-	}
-
-	if !contains(posts, "foo/bar") {
-		t.Error("Post not found. Found: ")
+		t.Error("Contains invalid post: foo. Found:")
 		for _, p := range posts {
 			t.Error("\t" + p)
 		}

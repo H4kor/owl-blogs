@@ -18,6 +18,11 @@ func listDir(path string) []string {
 	return files
 }
 
+func fileExists(path string) bool {
+	_, err := os.Stat(path)
+	return err == nil
+}
+
 // recursive list of all files in a directory
 func walkDir(path string) []string {
 	files := make([]string, 0)
