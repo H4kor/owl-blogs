@@ -4,49 +4,11 @@ import (
 	"h4kor/owl-blogs"
 	"net/http"
 	"os"
+	"path"
 	"strconv"
 
 	"github.com/julienschmidt/httprouter"
 )
-
-// func handler(repo owl.Repository) func(http.ResponseWriter, *http.Request) {
-// 	return func(w http.ResponseWriter, r *http.Request) {
-// 		// normalize the path
-// 		path := r.URL.Path
-// 		// remove leading '/'
-// 		if len(path) > 0 && path[0] == '/' {
-// 			path = path[1:]
-// 		}
-// 		// remove trailing '/'
-// 		if len(path) > 0 && path[len(path)-1] == '/' {
-// 			path = path[:len(path)-1]
-// 		}
-
-// 		// index page
-// 		if path == "" {
-// 			println("Index page")
-// 			indexHandler(repo)(w, r)
-// 			return
-// 		}
-
-// 		// parse the path
-// 		parts := strings.Split(path, "/")
-// 		userName := parts[0]
-
-// 		// only one part -> user page
-// 		if len(parts) == 1 {
-// 			println("User page")
-// 			userHandler(repo, userName)(w, r)
-// 			return
-// 		}
-
-// 		// multiple parts -> post page
-// 		println("Post page")
-// 		postId := strings.Join(parts[1:], "/")
-// 		postHandler(repo, userName, postId)(w, r)
-
-// 	}
-// }
 
 func indexHandler(repo owl.Repository) func(http.ResponseWriter, *http.Request, httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -116,6 +78,30 @@ func postHandler(repo owl.Repository) func(http.ResponseWriter, *http.Request, h
 	}
 }
 
+func postMediaHandler(repo owl.Repository) func(http.ResponseWriter, *http.Request, httprouter.Params) {
+	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		userName := ps.ByName("user")
+		postId := ps.ByName("post")
+		filepath := ps.ByName("filepath")
+		user, err := repo.GetUser(userName)
+
+		if err != nil {
+			println("Error getting user: ", err.Error())
+			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte("User not found"))
+			return
+		}
+		post, err := user.GetPost(postId)
+		if err != nil {
+			println("Error getting post: ", err.Error())
+			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte("Post not found"))
+			return
+		}
+		filepath = path.Join(post.MediaDir(), filepath)
+		http.ServeFile(w, r, filepath)
+	}
+}
 func main() {
 	println("owl web server")
 	println("Parameters")
@@ -147,8 +133,9 @@ func main() {
 	router := httprouter.New()
 	router.ServeFiles("/static/*filepath", http.Dir(repo.StaticDir()))
 	router.GET("/", indexHandler(repo))
-	router.GET("/user/:user", userHandler(repo))
-	router.GET("/user/:user/posts/*post", postHandler(repo))
+	router.GET("/user/:user/", userHandler(repo))
+	router.GET("/user/:user/posts/:post/", postHandler(repo))
+	router.GET("/user/:user/posts/:post/media/*filepath", postMediaHandler(repo))
 
 	println("Listening on port", port)
 	http.ListenAndServe(":"+strconv.Itoa(port), router)
