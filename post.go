@@ -12,7 +12,7 @@ import (
 )
 
 type Post struct {
-	user  User
+	user  *User
 	id    string
 	title string
 }

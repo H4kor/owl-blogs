@@ -68,7 +68,7 @@ func RenderPost(post Post) (string, error) {
 		Content: template.HTML(postHtml.String()),
 	}
 
-	return renderIntoBaseTemplate(post.user, data)
+	return renderIntoBaseTemplate(*post.user, data)
 }
 
 func RenderIndexPage(user User) (string, error) {

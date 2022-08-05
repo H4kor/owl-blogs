@@ -11,7 +11,7 @@ import (
 )
 
 type User struct {
-	repo Repository
+	repo *Repository
 	name string
 }
 
@@ -60,7 +60,7 @@ func (user User) Posts() ([]string, error) {
 }
 
 func (user User) GetPost(id string) (Post, error) {
-	post := Post{user: user, id: id}
+	post := Post{user: &user, id: id}
 	_, metaData := post.MarkdownData()
 	title := metaData["title"]
 	post.title = fmt.Sprint(title)
@@ -84,7 +84,7 @@ func (user User) CreateNewPost(title string) (Post, error) {
 			break
 		}
 	}
-	post := Post{user: user, id: folder_name, title: title}
+	post := Post{user: &user, id: folder_name, title: title}
 
 	initial_content := ""
 	initial_content += "---\n"

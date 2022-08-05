@@ -67,9 +67,17 @@ func OpenSingleUserRepo(name string, user_name string) (Repository, error) {
 	if err != nil {
 		return Repository{}, err
 	}
-	repo.single_user_mode = true
-	repo.active_user = user_name
+	user, err := repo.GetUser(user_name)
+	if err != nil {
+		return Repository{}, err
+	}
+	repo.SetSingleUser(user)
 	return repo, nil
+}
+
+func (repo *Repository) SetSingleUser(user User) {
+	repo.single_user_mode = true
+	repo.active_user = user.name
 }
 
 func (repo Repository) SingleUserName() string {
@@ -107,18 +115,18 @@ func (repo Repository) Template() (string, error) {
 
 func (repo Repository) Users() ([]User, error) {
 	if repo.single_user_mode {
-		return []User{{repo: repo, name: repo.active_user}}, nil
+		return []User{{repo: &repo, name: repo.active_user}}, nil
 	}
 
 	userNames := listDir(repo.UsersDir())
 	users := make([]User, len(userNames))
 	for i, name := range userNames {
-		users[i] = User{repo: repo, name: name}
+		users[i] = User{repo: &repo, name: name}
 	}
 	return users, nil
 }
 
-func (repo Repository) CreateUser(name string) (User, error) {
+func (repo *Repository) CreateUser(name string) (User, error) {
 	new_user := User{repo: repo, name: name}
 	// check if user already exists
 	if dirExists(new_user.Dir()) {
@@ -147,7 +155,7 @@ func (repo Repository) CreateUser(name string) (User, error) {
 }
 
 func (repo Repository) GetUser(name string) (User, error) {
-	user := User{repo: repo, name: name}
+	user := User{repo: &repo, name: name}
 	if !dirExists(user.Dir()) {
 		return User{}, fmt.Errorf("User does not exist")
 	}

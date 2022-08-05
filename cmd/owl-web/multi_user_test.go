@@ -32,7 +32,7 @@ func getTestRepo() owl.Repository {
 	return repo
 }
 
-func TestRepoIndexHandler(t *testing.T) {
+func TestMultiUserRepoIndexHandler(t *testing.T) {
 	repo := getTestRepo()
 	repo.CreateUser("user_1")
 	repo.CreateUser("user_2")
@@ -63,7 +63,7 @@ func TestRepoIndexHandler(t *testing.T) {
 	}
 }
 
-func TestUserIndexHandler(t *testing.T) {
+func TestMultiUserUserIndexHandler(t *testing.T) {
 	repo := getTestRepo()
 	user, _ := repo.CreateUser("test-1")
 	user.CreateNewPost("post-1")
@@ -90,7 +90,7 @@ func TestUserIndexHandler(t *testing.T) {
 	}
 }
 
-func TestPostHandler(t *testing.T) {
+func TestMultiUserPostHandler(t *testing.T) {
 	repo := getTestRepo()
 	user, _ := repo.CreateUser("test-1")
 	post, _ := user.CreateNewPost("post-1")
@@ -111,21 +111,19 @@ func TestPostHandler(t *testing.T) {
 	}
 }
 
-func TestPostMediaHandler(t *testing.T) {
+func TestMultiUserPostMediaHandler(t *testing.T) {
 	repo := getTestRepo()
 	user, _ := repo.CreateUser("test-1")
 	post, _ := user.CreateNewPost("post-1")
 
 	// Create test media file
 	path := path.Join(post.MediaDir(), "data.txt")
-	println("Creating test media file:", path)
 	err := os.WriteFile(path, []byte("test"), 0644)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Create Request and Response
-	println(post.UrlMediaPath("data.txt"))
 	req, err := http.NewRequest("GET", post.UrlMediaPath("data.txt"), nil)
 	if err != nil {
 		t.Fatal(err)
