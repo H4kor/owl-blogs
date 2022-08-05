@@ -42,7 +42,7 @@ func CreateRepository(name string) (Repository, error) {
 		if file.IsDir() {
 			continue
 		}
-		src_data, _ := static_files.ReadFile(file.Name())
+		src_data, _ := static_files.ReadFile("embed/initial/static/" + file.Name())
 		os.WriteFile(newRepo.StaticDir()+"/"+file.Name(), src_data, 0644)
 	}
 

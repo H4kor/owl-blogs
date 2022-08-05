@@ -167,6 +167,20 @@ func TestNewRepoGetsStaticFiles(t *testing.T) {
 	}
 }
 
+func TestNewRepoGetsStaticFilesPicoCSSWithContent(t *testing.T) {
+	// Create a new user
+	repo, _ := owl.CreateRepository(testRepoName())
+	file, err := os.Open(path.Join(repo.StaticDir(), "pico.min.css"))
+	if err != nil {
+		t.Error("Error opening pico.min.css")
+	}
+	// check that the file has content
+	stat, _ := file.Stat()
+	if stat.Size() == 0 {
+		t.Error("pico.min.css is empty")
+	}
+}
+
 func TestNewRepoGetsBaseHtml(t *testing.T) {
 	// Create a new user
 	repo, _ := owl.CreateRepository(testRepoName())
