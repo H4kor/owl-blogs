@@ -28,7 +28,7 @@ func TestRedirectOnAliases(t *testing.T) {
 		t.Fatal(err)
 	}
 	rr := httptest.NewRecorder()
-	router := main.Router(repo)
+	router := main.Router(&repo)
 	router.ServeHTTP(rr, req)
 
 	// Check the status code is what we expect.
@@ -66,7 +66,7 @@ func TestNoRedirectOnNonExistingAliases(t *testing.T) {
 		t.Fatal(err)
 	}
 	rr := httptest.NewRecorder()
-	router := main.Router(repo)
+	router := main.Router(&repo)
 	router.ServeHTTP(rr, req)
 
 	// Check the status code is what we expect.

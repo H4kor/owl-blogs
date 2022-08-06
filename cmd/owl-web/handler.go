@@ -9,7 +9,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-func getUserFromRepo(repo owl.Repository, ps httprouter.Params) (owl.User, error) {
+func getUserFromRepo(repo *owl.Repository, ps httprouter.Params) (owl.User, error) {
 	if repo.SingleUserName() != "" {
 		return repo.GetUser(repo.SingleUserName())
 	}
@@ -21,9 +21,9 @@ func getUserFromRepo(repo owl.Repository, ps httprouter.Params) (owl.User, error
 	return user, nil
 }
 
-func repoIndexHandler(repo owl.Repository) func(http.ResponseWriter, *http.Request, httprouter.Params) {
+func repoIndexHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Request, httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-		html, err := owl.RenderUserList(repo)
+		html, err := owl.RenderUserList(*repo)
 
 		if err != nil {
 			println("Error rendering index: ", err.Error())
@@ -36,7 +36,7 @@ func repoIndexHandler(repo owl.Repository) func(http.ResponseWriter, *http.Reque
 	}
 }
 
-func userIndexHandler(repo owl.Repository) func(http.ResponseWriter, *http.Request, httprouter.Params) {
+func userIndexHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Request, httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		user, err := getUserFromRepo(repo, ps)
 		if err != nil {
@@ -57,7 +57,7 @@ func userIndexHandler(repo owl.Repository) func(http.ResponseWriter, *http.Reque
 	}
 }
 
-func postHandler(repo owl.Repository) func(http.ResponseWriter, *http.Request, httprouter.Params) {
+func postHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Request, httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		postId := ps.ByName("post")
 
@@ -88,7 +88,7 @@ func postHandler(repo owl.Repository) func(http.ResponseWriter, *http.Request, h
 	}
 }
 
-func postMediaHandler(repo owl.Repository) func(http.ResponseWriter, *http.Request, httprouter.Params) {
+func postMediaHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Request, httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		postId := ps.ByName("post")
 		filepath := ps.ByName("filepath")
@@ -118,7 +118,7 @@ func postMediaHandler(repo owl.Repository) func(http.ResponseWriter, *http.Reque
 	}
 }
 
-func notFoundHandler(repo owl.Repository) func(http.ResponseWriter, *http.Request) {
+func notFoundHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path
 		aliases, _ := repo.PostAliases()

@@ -2,7 +2,7 @@ package main_test
 
 import (
 	"h4kor/owl-blogs"
-	"h4kor/owl-blogs/cmd/owl-web"
+	main "h4kor/owl-blogs/cmd/owl-web"
 	"math/rand"
 	"net/http"
 	"net/http/httptest"
@@ -43,7 +43,7 @@ func TestMultiUserRepoIndexHandler(t *testing.T) {
 		t.Fatal(err)
 	}
 	rr := httptest.NewRecorder()
-	router := main.Router(repo)
+	router := main.Router(&repo)
 	router.ServeHTTP(rr, req)
 
 	// Check the status code is what we expect.
@@ -74,7 +74,7 @@ func TestMultiUserUserIndexHandler(t *testing.T) {
 		t.Fatal(err)
 	}
 	rr := httptest.NewRecorder()
-	router := main.Router(repo)
+	router := main.Router(&repo)
 	router.ServeHTTP(rr, req)
 
 	// Check the status code is what we expect.
@@ -101,7 +101,7 @@ func TestMultiUserPostHandler(t *testing.T) {
 		t.Fatal(err)
 	}
 	rr := httptest.NewRecorder()
-	router := main.Router(repo)
+	router := main.Router(&repo)
 	router.ServeHTTP(rr, req)
 
 	// Check the status code is what we expect.
@@ -129,7 +129,7 @@ func TestMultiUserPostMediaHandler(t *testing.T) {
 		t.Fatal(err)
 	}
 	rr := httptest.NewRecorder()
-	router := main.Router(repo)
+	router := main.Router(&repo)
 	router.ServeHTTP(rr, req)
 
 	// Check the status code is what we expect.

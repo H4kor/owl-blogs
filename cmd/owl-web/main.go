@@ -9,7 +9,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-func Router(repo owl.Repository) http.Handler {
+func Router(repo *owl.Repository) http.Handler {
 	router := httprouter.New()
 	router.ServeFiles("/static/*filepath", http.Dir(repo.StaticDir()))
 	router.GET("/", repoIndexHandler(repo))
@@ -20,7 +20,7 @@ func Router(repo owl.Repository) http.Handler {
 	return router
 }
 
-func SingleUserRouter(repo owl.Repository) http.Handler {
+func SingleUserRouter(repo *owl.Repository) http.Handler {
 	router := httprouter.New()
 	router.ServeFiles("/static/*filepath", http.Dir(repo.StaticDir()))
 	router.GET("/", userIndexHandler(repo))
@@ -77,10 +77,10 @@ func main() {
 	var router http.Handler
 	if singleUserName == "" {
 		println("Multi user mode Router used")
-		router = Router(repo)
+		router = Router(&repo)
 	} else {
 		println("Single user mode Router used")
-		router = SingleUserRouter(repo)
+		router = SingleUserRouter(&repo)
 	}
 	println("Listening on port", port)
 	http.ListenAndServe(":"+strconv.Itoa(port), router)

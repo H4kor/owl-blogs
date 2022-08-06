@@ -28,7 +28,7 @@ func TestSingleUserUserIndexHandler(t *testing.T) {
 		t.Fatal(err)
 	}
 	rr := httptest.NewRecorder()
-	router := main.SingleUserRouter(repo)
+	router := main.SingleUserRouter(&repo)
 	router.ServeHTTP(rr, req)
 
 	// Check the status code is what we expect.
@@ -54,7 +54,7 @@ func TestSingleUserPostHandler(t *testing.T) {
 		t.Fatal(err)
 	}
 	rr := httptest.NewRecorder()
-	router := main.SingleUserRouter(repo)
+	router := main.SingleUserRouter(&repo)
 	router.ServeHTTP(rr, req)
 
 	// Check the status code is what we expect.
@@ -81,7 +81,7 @@ func TestSingleUserPostMediaHandler(t *testing.T) {
 		t.Fatal(err)
 	}
 	rr := httptest.NewRecorder()
-	router := main.SingleUserRouter(repo)
+	router := main.SingleUserRouter(&repo)
 	router.ServeHTTP(rr, req)
 
 	// Check the status code is what we expect.
