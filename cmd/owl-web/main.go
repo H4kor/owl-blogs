@@ -16,6 +16,7 @@ func Router(repo owl.Repository) http.Handler {
 	router.GET("/user/:user/", userIndexHandler(repo))
 	router.GET("/user/:user/posts/:post/", postHandler(repo))
 	router.GET("/user/:user/posts/:post/media/*filepath", postMediaHandler(repo))
+	router.NotFound = http.HandlerFunc(notFoundHandler(repo))
 	return router
 }
 

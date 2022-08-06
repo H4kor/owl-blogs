@@ -117,3 +117,16 @@ func postMediaHandler(repo owl.Repository) func(http.ResponseWriter, *http.Reque
 		http.ServeFile(w, r, filepath)
 	}
 }
+
+func notFoundHandler(repo owl.Repository) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		path := r.URL.Path
+		aliases, _ := repo.PostAliases()
+		if _, ok := aliases[path]; ok {
+			http.Redirect(w, r, aliases[path].UrlPath(), http.StatusMovedPermanently)
+			return
+		}
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("Not found"))
+	}
+}
