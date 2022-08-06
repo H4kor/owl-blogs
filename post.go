@@ -69,3 +69,16 @@ func (post Post) MarkdownData() (bytes.Buffer, map[string]interface{}) {
 	return buf, metaData
 
 }
+
+func (post Post) Aliases() []string {
+	_, metaData := post.MarkdownData()
+	if metaData["aliases"] != nil {
+		alias_data := metaData["aliases"].([]interface{})
+		aliases := make([]string, 0)
+		for _, alias := range alias_data {
+			aliases = append(aliases, alias.(string))
+		}
+		return aliases
+	}
+	return []string{}
+}

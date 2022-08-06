@@ -237,3 +237,40 @@ func TestSingleUserRepoUserUrlPathIsSimple(t *testing.T) {
 		t.Error("User url is not '/'. Got: ", user.UrlPath())
 	}
 }
+
+func TestCanGetMapWithAllPostAliases(t *testing.T) {
+	repo, _ := owl.CreateRepository(testRepoName())
+	user, _ := repo.CreateUser(randomUserName())
+	post, _ := user.CreateNewPost("test-1")
+
+	content := "---\n"
+	content += "title: Test\n"
+	content += "aliases: \n"
+	content += "  - /foo/bar\n"
+	content += "  - /foo/baz\n"
+	content += "---\n"
+	content += "This is a test"
+	os.WriteFile(post.ContentFile(), []byte(content), 0644)
+
+	posts, _ := user.Posts()
+	if len(posts) != 1 {
+		t.Error("Wrong number of posts returned, expected 1, got ", len(posts))
+	}
+
+	var aliases map[string]*owl.Post
+	aliases, err := repo.PostAliases()
+	if err != nil {
+		t.Error("Error getting post aliases: ", err.Error())
+	}
+	if len(aliases) != 2 {
+		t.Error("Wrong number of aliases returned, expected 2, got ", len(aliases))
+		t.Error("Aliases: ", aliases)
+	}
+	if aliases["/foo/bar"] == nil {
+		t.Error("Alias '/foo/bar' not found")
+	}
+	if aliases["/foo/baz"] == nil {
+		t.Error("Alias '/foo/baz' not found")
+	}
+
+}

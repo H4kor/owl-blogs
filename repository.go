@@ -161,3 +161,21 @@ func (repo Repository) GetUser(name string) (User, error) {
 	}
 	return user, nil
 }
+
+func (repo Repository) PostAliases() (map[string]*Post, error) {
+	users, err := repo.Users()
+	if err != nil {
+		return nil, err
+	}
+	aliases := make(map[string]*Post)
+	for _, user := range users {
+		user_aliases, err := user.PostAliases()
+		if err != nil {
+			return nil, err
+		}
+		for alias, post := range user_aliases {
+			aliases[alias] = post
+		}
+	}
+	return aliases, nil
+}

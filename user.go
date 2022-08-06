@@ -137,3 +137,21 @@ func (user User) SetConfig(new_config UserConfig) error {
 	}
 	return nil
 }
+
+func (user User) PostAliases() (map[string]*Post, error) {
+	post_aliases := make(map[string]*Post)
+	posts, err := user.Posts()
+	if err != nil {
+		return post_aliases, err
+	}
+	for _, id := range posts {
+		post, err := user.GetPost(id)
+		if err != nil {
+			return post_aliases, err
+		}
+		for _, alias := range post.Aliases() {
+			post_aliases[alias] = &post
+		}
+	}
+	return post_aliases, nil
+}
