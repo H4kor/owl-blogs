@@ -2,14 +2,13 @@
 
 A simple web server for blogs generated from Markdown files
 
-
 ## Repository
 
 A repository holds all data for a web server. It contains multiple users.
 
 ## User
 
-A user has a collection of posts. 
+A user has a collection of posts.
 Each directory in the `/users/` directory of a repository is considered a user.
 
 ### User Directory structure
@@ -18,7 +17,7 @@ Each directory in the `/users/` directory of a repository is considered a user.
 <user-name>/
   \- public/
        \- <post-name>
-            \- index.md 
+            \- index.md
                 -- This will be rendered as the blog post.
                 -- Must be present for the blog post to be valid.
                 -- All other folders will be ignored
@@ -34,3 +33,23 @@ Each directory in the `/users/` directory of a repository is considered a user.
   \- config.yml
         -- Contains settings global to the user.
         -- For example: page title and style options
+```
+
+### Post
+
+Posts are Markdown files with a mandatory metadata head.
+
+- The `title` will be added to the web page and does not have to be reapeated in the body. It will be used in any lists of posts.
+- `aliases` are optional. They are used as permanent redirects to the actual blog page.
+
+```
+---
+title: My new Post
+aliases:
+     - /my/new/post
+     - /old_blog_path/
+---
+
+Actual post
+
+```
