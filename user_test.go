@@ -145,3 +145,10 @@ func TestUserUrlPath(t *testing.T) {
 		t.Error("Wrong url path, Expected: " + "/user/" + user.Name() + "/" + " Got: " + user.UrlPath())
 	}
 }
+
+func TestUserFullUrl(t *testing.T) {
+	user := getTestUser()
+	if !(user.FullUrl() == "http://localhost:8080/user/"+user.Name()+"/") {
+		t.Error("Wrong url path, Expected: " + "http://localhost:8080/user/" + user.Name() + "/" + " Got: " + user.FullUrl())
+	}
+}

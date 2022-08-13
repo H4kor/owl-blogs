@@ -3,6 +3,7 @@ package owl
 import (
 	"fmt"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"path"
 	"time"
@@ -27,6 +28,11 @@ func (user User) Dir() string {
 
 func (user User) UrlPath() string {
 	return user.repo.UserUrlPath(user)
+}
+
+func (user User) FullUrl() string {
+	url, _ := url.JoinPath(user.repo.FullUrl(), user.UrlPath())
+	return url
 }
 
 func (user User) PostDir() string {

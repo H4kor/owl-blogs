@@ -19,10 +19,10 @@ type RSSChannel struct {
 }
 
 type RSSItem struct {
-	Title       string `xml:"title"`
-	Link        string `xml:"link"`
-	Description string `xml:"description"`
-	PubDate     string `xml:"pubDate"`
+	Guid    string `xml:"guid"`
+	Title   string `xml:"title"`
+	Link    string `xml:"link"`
+	PubDate string `xml:"pubDate"`
 }
 
 func RenderRSSFeed(user User) (string, error) {
@@ -33,21 +33,27 @@ func RenderRSSFeed(user User) (string, error) {
 		Version: "2.0",
 		Channel: RSSChannel{
 			Title:       config.Title,
-			Link:        user.repo.FullUserUrl(user),
+			Link:        user.FullUrl(),
 			Description: config.SubTitle,
 			Items:       make([]RSSItem, 0),
 		},
 	}
 
-	// posts, _ := user.Posts()
-	// for _, post := range posts {
-	// 	rss.Channel.Items = append(rss.Channel.Items, RSSItem{
-	// 		Title:       post.Title(),
-	// 		Link:        post.Link(),
-	// 		Description: post.Description(),
-	// 		PubDate:     post.PubDate(),
-	// 	})
-	// }
+	posts, _ := user.Posts()
+	for _, postId := range posts {
+		post, _ := user.GetPost(postId)
+		_, meta := post.MarkdownData()
+		date, ok := meta["date"]
+		if !ok {
+			date = ""
+		}
+		rss.Channel.Items = append(rss.Channel.Items, RSSItem{
+			Guid:    postId,
+			Title:   post.Title(),
+			Link:    post.FullUrl(),
+			PubDate: date.(string),
+		})
+	}
 
 	buf := new(bytes.Buffer)
 	err := xml.NewEncoder(buf).Encode(rss)

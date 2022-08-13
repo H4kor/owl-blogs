@@ -34,6 +34,17 @@ func TestPostUrlPath(t *testing.T) {
 	}
 }
 
+func TestPostFullUrl(t *testing.T) {
+	user := getTestUser()
+	post, _ := user.CreateNewPost("testpost")
+	expected := "http://localhost:8080/user/" + user.Name() + "/posts/" + post.Id() + "/"
+	if !(post.FullUrl() == expected) {
+		t.Error("Wrong url path")
+		t.Error("Expected: " + expected)
+		t.Error("     Got: " + post.FullUrl())
+	}
+}
+
 func TestPostUrlMediaPath(t *testing.T) {
 	user := getTestUser()
 	post, _ := user.CreateNewPost("testpost")

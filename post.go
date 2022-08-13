@@ -33,6 +33,10 @@ func (post Post) UrlPath() string {
 	return post.user.UrlPath() + "posts/" + post.id + "/"
 }
 
+func (post Post) FullUrl() string {
+	return post.user.FullUrl() + "posts/" + post.id + "/"
+}
+
 func (post Post) UrlMediaPath(filename string) string {
 	return post.UrlPath() + "media/" + filename
 }

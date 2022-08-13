@@ -113,9 +113,9 @@ func (repo Repository) UserUrlPath(user User) string {
 	return "/user/" + user.name + "/"
 }
 
-func (repo Repository) FullUserUrl(user User) string {
+func (repo Repository) FullUrl() string {
 	config, _ := repo.Config()
-	return config.Domain + repo.UserUrlPath(user)
+	return config.Domain
 }
 
 func (repo Repository) Template() (string, error) {
