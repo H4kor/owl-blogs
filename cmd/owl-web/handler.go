@@ -56,6 +56,26 @@ func userIndexHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Requ
 	}
 }
 
+func userRSSHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Request, httprouter.Params) {
+	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		user, err := getUserFromRepo(repo, ps)
+		if err != nil {
+			println("Error getting user: ", err.Error())
+			notFoundHandler(repo)(w, r)
+			return
+		}
+		html, err := owl.RenderRSSFeed(user)
+		if err != nil {
+			println("Error rendering index page: ", err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("Internal server error"))
+			return
+		}
+		println("Rendering index page for user", user.Name())
+		w.Write([]byte(html))
+	}
+}
+
 func postHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Request, httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		postId := ps.ByName("post")

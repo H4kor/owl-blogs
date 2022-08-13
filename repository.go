@@ -25,6 +25,10 @@ type Repository struct {
 	active_user      string
 }
 
+type RepoConfig struct {
+	Domain string `yaml:"domain"`
+}
+
 func CreateRepository(name string) (Repository, error) {
 	newRepo := Repository{name: name}
 	// check if repository already exists
@@ -46,9 +50,15 @@ func CreateRepository(name string) (Repository, error) {
 		os.WriteFile(newRepo.StaticDir()+"/"+file.Name(), src_data, 0644)
 	}
 
-	// copy repo_base.html to base.html
-	src_data, _ := static_files.ReadFile("embed/initial/repo_base.html")
-	os.WriteFile(newRepo.Dir()+"/base.html", src_data, 0644)
+	// copy repo/ to newRepo.Dir()
+	init_files, _ := static_files.ReadDir("embed/initial/repo")
+	for _, file := range init_files {
+		if file.IsDir() {
+			continue
+		}
+		src_data, _ := static_files.ReadFile("embed/initial/repo/" + file.Name())
+		os.WriteFile(newRepo.Dir()+"/"+file.Name(), src_data, 0644)
+	}
 	return newRepo, nil
 }
 
@@ -101,6 +111,11 @@ func (repo Repository) UserUrlPath(user User) string {
 		return "/"
 	}
 	return "/user/" + user.name + "/"
+}
+
+func (repo Repository) FullUserUrl(user User) string {
+	config, _ := repo.Config()
+	return config.Domain + repo.UserUrlPath(user)
 }
 
 func (repo Repository) Template() (string, error) {
@@ -178,4 +193,18 @@ func (repo Repository) PostAliases() (map[string]*Post, error) {
 		}
 	}
 	return aliases, nil
+}
+
+func (repo Repository) Config() (RepoConfig, error) {
+	config_path := path.Join(repo.Dir(), "config.yml")
+	config_data, err := ioutil.ReadFile(config_path)
+	if err != nil {
+		return RepoConfig{}, err
+	}
+	var meta RepoConfig
+	err = yaml.Unmarshal(config_data, &meta)
+	if err != nil {
+		return RepoConfig{}, err
+	}
+	return meta, nil
 }
