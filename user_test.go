@@ -35,6 +35,18 @@ func TestCreateNewPostCreatesMediaDir(t *testing.T) {
 	}
 }
 
+func TestCreateNewPostAddsDateToMetaBlock(t *testing.T) {
+	user := getTestUser()
+	// Create a new post
+	user.CreateNewPost("testpost")
+	posts, _ := user.Posts()
+	post, _ := user.GetPost(posts[0])
+	_, meta := post.MarkdownData()
+	if meta.Date == "" {
+		t.Error("Found no date. Got: " + meta.Date)
+	}
+}
+
 func TestCreateNewPostMultipleCalls(t *testing.T) {
 	// Create a new user
 	repo, _ := owl.CreateRepository(testRepoName())

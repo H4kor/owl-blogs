@@ -43,15 +43,11 @@ func RenderRSSFeed(user User) (string, error) {
 	for _, postId := range posts {
 		post, _ := user.GetPost(postId)
 		_, meta := post.MarkdownData()
-		date, ok := meta["date"]
-		if !ok {
-			date = ""
-		}
 		rss.Channel.Items = append(rss.Channel.Items, RSSItem{
 			Guid:    postId,
 			Title:   post.Title(),
 			Link:    post.FullUrl(),
-			PubDate: date.(string),
+			PubDate: meta.Date,
 		})
 	}
 

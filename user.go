@@ -73,7 +73,7 @@ func (user User) GetPost(id string) (Post, error) {
 
 	post := Post{user: &user, id: id}
 	_, metaData := post.MarkdownData()
-	title := metaData["title"]
+	title := metaData.Title
 	post.title = fmt.Sprint(title)
 
 	return post, nil
@@ -100,6 +100,7 @@ func (user User) CreateNewPost(title string) (Post, error) {
 	initial_content := ""
 	initial_content += "---\n"
 	initial_content += "title: " + title + "\n"
+	initial_content += "date: " + time.Now().UTC().Format(time.RFC3339) + "\n"
 	initial_content += "---\n"
 	initial_content += "\n"
 	initial_content += "Write your post here.\n"
