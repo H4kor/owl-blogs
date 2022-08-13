@@ -60,6 +60,11 @@ func (user User) Posts() ([]string, error) {
 }
 
 func (user User) GetPost(id string) (Post, error) {
+	// check if posts index.md exists
+	if !fileExists(path.Join(user.Dir(), "public", id, "index.md")) {
+		return Post{}, fmt.Errorf("post %s does not exist", id)
+	}
+
 	post := Post{user: &user, id: id}
 	_, metaData := post.MarkdownData()
 	title := metaData["title"]

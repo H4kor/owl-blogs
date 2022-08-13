@@ -41,8 +41,7 @@ func userIndexHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Requ
 		user, err := getUserFromRepo(repo, ps)
 		if err != nil {
 			println("Error getting user: ", err.Error())
-			w.WriteHeader(http.StatusNotFound)
-			w.Write([]byte("User not found"))
+			notFoundHandler(repo)(w, r)
 			return
 		}
 		html, err := owl.RenderIndexPage(user)
@@ -64,15 +63,13 @@ func postHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Request, 
 		user, err := getUserFromRepo(repo, ps)
 		if err != nil {
 			println("Error getting user: ", err.Error())
-			w.WriteHeader(http.StatusNotFound)
-			w.Write([]byte("User not found"))
+			notFoundHandler(repo)(w, r)
 			return
 		}
 		post, err := user.GetPost(postId)
 		if err != nil {
 			println("Error getting post: ", err.Error())
-			w.WriteHeader(http.StatusNotFound)
-			w.Write([]byte("Post not found"))
+			notFoundHandler(repo)(w, r)
 			return
 		}
 		html, err := owl.RenderPost(post)
@@ -96,22 +93,19 @@ func postMediaHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Requ
 		user, err := getUserFromRepo(repo, ps)
 		if err != nil {
 			println("Error getting user: ", err.Error())
-			w.WriteHeader(http.StatusNotFound)
-			w.Write([]byte("User not found"))
+			notFoundHandler(repo)(w, r)
 			return
 		}
 		post, err := user.GetPost(postId)
 		if err != nil {
 			println("Error getting post: ", err.Error())
-			w.WriteHeader(http.StatusNotFound)
-			w.Write([]byte("Post not found"))
+			notFoundHandler(repo)(w, r)
 			return
 		}
 		filepath = path.Join(post.MediaDir(), filepath)
 		if _, err := os.Stat(filepath); err != nil {
 			println("Error getting file: ", err.Error())
-			w.WriteHeader(http.StatusNotFound)
-			w.Write([]byte("File not found"))
+			notFoundHandler(repo)(w, r)
 			return
 		}
 		http.ServeFile(w, r, filepath)
