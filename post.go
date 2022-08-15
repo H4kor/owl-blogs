@@ -6,15 +6,21 @@ import (
 	"path"
 
 	"github.com/yuin/goldmark"
-	meta "github.com/yuin/goldmark-meta"
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/parser"
+	"gopkg.in/yaml.v2"
 )
 
 type Post struct {
 	user  *User
 	id    string
 	title string
+}
+
+type PostMeta struct {
+	Title   string   `yaml:"title"`
+	Aliases []string `yaml:"aliases"`
+	Date    string   `yaml:"date"`
 }
 
 func (post Post) Id() string {
@@ -31,6 +37,10 @@ func (post Post) MediaDir() string {
 
 func (post Post) UrlPath() string {
 	return post.user.UrlPath() + "posts/" + post.id + "/"
+}
+
+func (post Post) FullUrl() string {
+	return post.user.FullUrl() + "posts/" + post.id + "/"
 }
 
 func (post Post) UrlMediaPath(filename string) string {
@@ -51,11 +61,27 @@ func (post Post) Content() []byte {
 	return data
 }
 
-func (post Post) MarkdownData() (bytes.Buffer, map[string]interface{}) {
+func (post Post) MarkdownData() (bytes.Buffer, PostMeta) {
 	data := post.Content()
+
+	// get yaml metadata block
+	meta := PostMeta{}
+	trimmedData := bytes.TrimSpace(data)
+	// check first line is ---
+	if string(trimmedData[0:4]) == "---\n" {
+		trimmedData = trimmedData[4:]
+		// find --- end
+		end := bytes.Index(trimmedData, []byte("\n---\n"))
+		if end != -1 {
+			metaData := trimmedData[:end]
+			yaml.Unmarshal(metaData, &meta)
+			data = trimmedData[end+5:]
+		}
+	}
+
 	markdown := goldmark.New(
 		goldmark.WithExtensions(
-			meta.Meta,
+			// meta.Meta,
 			extension.GFM,
 		),
 	)
@@ -64,21 +90,13 @@ func (post Post) MarkdownData() (bytes.Buffer, map[string]interface{}) {
 	if err := markdown.Convert(data, &buf, parser.WithContext(context)); err != nil {
 		panic(err)
 	}
-	metaData := meta.Get(context)
+	// metaData := meta.Get(context)
 
-	return buf, metaData
+	return buf, meta
 
 }
 
 func (post Post) Aliases() []string {
 	_, metaData := post.MarkdownData()
-	if metaData["aliases"] != nil {
-		alias_data := metaData["aliases"].([]interface{})
-		aliases := make([]string, 0)
-		for _, alias := range alias_data {
-			aliases = append(aliases, alias.(string))
-		}
-		return aliases
-	}
-	return []string{}
+	return metaData.Aliases
 }

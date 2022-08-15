@@ -35,6 +35,18 @@ func TestCreateNewPostCreatesMediaDir(t *testing.T) {
 	}
 }
 
+func TestCreateNewPostAddsDateToMetaBlock(t *testing.T) {
+	user := getTestUser()
+	// Create a new post
+	user.CreateNewPost("testpost")
+	posts, _ := user.Posts()
+	post, _ := user.GetPost(posts[0])
+	_, meta := post.MarkdownData()
+	if meta.Date == "" {
+		t.Error("Found no date. Got: " + meta.Date)
+	}
+}
+
 func TestCreateNewPostMultipleCalls(t *testing.T) {
 	// Create a new user
 	repo, _ := owl.CreateRepository(testRepoName())
@@ -143,5 +155,12 @@ func TestUserUrlPath(t *testing.T) {
 	user := getTestUser()
 	if !(user.UrlPath() == "/user/"+user.Name()+"/") {
 		t.Error("Wrong url path, Expected: " + "/user/" + user.Name() + "/" + " Got: " + user.UrlPath())
+	}
+}
+
+func TestUserFullUrl(t *testing.T) {
+	user := getTestUser()
+	if !(user.FullUrl() == "http://localhost:8080/user/"+user.Name()+"/") {
+		t.Error("Wrong url path, Expected: " + "http://localhost:8080/user/" + user.Name() + "/" + " Got: " + user.FullUrl())
 	}
 }

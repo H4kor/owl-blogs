@@ -3,6 +3,7 @@ package owl
 import (
 	"fmt"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"path"
 	"time"
@@ -27,6 +28,11 @@ func (user User) Dir() string {
 
 func (user User) UrlPath() string {
 	return user.repo.UserUrlPath(user)
+}
+
+func (user User) FullUrl() string {
+	url, _ := url.JoinPath(user.repo.FullUrl(), user.UrlPath())
+	return url
 }
 
 func (user User) PostDir() string {
@@ -60,9 +66,14 @@ func (user User) Posts() ([]string, error) {
 }
 
 func (user User) GetPost(id string) (Post, error) {
+	// check if posts index.md exists
+	if !fileExists(path.Join(user.Dir(), "public", id, "index.md")) {
+		return Post{}, fmt.Errorf("post %s does not exist", id)
+	}
+
 	post := Post{user: &user, id: id}
 	_, metaData := post.MarkdownData()
-	title := metaData["title"]
+	title := metaData.Title
 	post.title = fmt.Sprint(title)
 
 	return post, nil
@@ -89,6 +100,7 @@ func (user User) CreateNewPost(title string) (Post, error) {
 	initial_content := ""
 	initial_content += "---\n"
 	initial_content += "title: " + title + "\n"
+	initial_content += "date: " + time.Now().UTC().Format("02 Jan 2006 15:04 MST") + "\n"
 	initial_content += "---\n"
 	initial_content += "\n"
 	initial_content += "Write your post here.\n"
