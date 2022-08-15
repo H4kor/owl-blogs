@@ -45,7 +45,7 @@ Posts are Markdown files with a mandatory metadata head.
 ```
 ---
 title: My new Post
-date: 13 Aug 22 17:07 UTC
+date: 13 Aug 2022 17:07 UTC
 aliases:
      - /my/new/post
      - /old_blog_path/
