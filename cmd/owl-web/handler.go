@@ -64,7 +64,7 @@ func userRSSHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Reques
 			notFoundHandler(repo)(w, r)
 			return
 		}
-		html, err := owl.RenderRSSFeed(user)
+		xml, err := owl.RenderRSSFeed(user)
 		if err != nil {
 			println("Error rendering index page: ", err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
@@ -72,7 +72,8 @@ func userRSSHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Reques
 			return
 		}
 		println("Rendering index page for user", user.Name())
-		w.Write([]byte(html))
+		w.Header().Set("Content-Type", "application/rss+xml")
+		w.Write([]byte(xml))
 	}
 }
 
