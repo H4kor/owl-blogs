@@ -100,7 +100,7 @@ func (user User) CreateNewPost(title string) (Post, error) {
 	initial_content := ""
 	initial_content += "---\n"
 	initial_content += "title: " + title + "\n"
-	initial_content += "date: " + time.Now().UTC().Format("02 Jan 2006 15:04 MST") + "\n"
+	initial_content += "date: " + time.Now().UTC().Format(time.RFC1123Z) + "\n"
 	initial_content += "---\n"
 	initial_content += "\n"
 	initial_content += "Write your post here.\n"
