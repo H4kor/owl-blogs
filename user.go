@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"os"
 	"path"
+	"sort"
 	"time"
 
 	"gopkg.in/yaml.v2"
@@ -51,17 +52,37 @@ func (user User) Name() string {
 	return user.name
 }
 
-func (user User) Posts() ([]string, error) {
+func (user User) Posts() ([]Post, error) {
 	postFiles := listDir(path.Join(user.Dir(), "public"))
-	posts := make([]string, 0)
+	posts := make([]Post, 0)
 	for _, id := range postFiles {
 		// if is a directory and has index.md, add to posts
 		if dirExists(path.Join(user.Dir(), "public", id)) {
 			if fileExists(path.Join(user.Dir(), "public", id, "index.md")) {
-				posts = append(posts, id)
+				post, _ := user.GetPost(id)
+				posts = append(posts, post)
 			}
 		}
 	}
+
+	// sort posts by date
+	sort.Slice(posts, func(i, j int) bool {
+		_, markdownData_i := posts[i].MarkdownData()
+		_, markdownData_j := posts[j].MarkdownData()
+
+		date_i, err := time.Parse(time.RFC1123Z, markdownData_i.Date)
+		if err != nil {
+			// invalid date -> use 1970-01-01
+			date_i = time.Time{}
+		}
+		date_j, err := time.Parse(time.RFC1123Z, markdownData_j.Date)
+		if err != nil {
+			// invalid date -> use 1970-01-01
+			date_j = time.Time{}
+		}
+		return date_i.After(date_j)
+	})
+
 	return posts, nil
 }
 
@@ -156,8 +177,7 @@ func (user User) PostAliases() (map[string]*Post, error) {
 	if err != nil {
 		return post_aliases, err
 	}
-	for _, id := range posts {
-		post, err := user.GetPost(id)
+	for _, post := range posts {
 		if err != nil {
 			return post_aliases, err
 		}
