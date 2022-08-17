@@ -202,6 +202,29 @@ func TestPostsSortedByPublishingDateLatestFirst(t *testing.T) {
 	}
 }
 
+func TestPostsSortedByPublishingDateLatestFirst2(t *testing.T) {
+	user := getTestUser()
+	// Create a new post
+	posts := []*owl.Post{}
+	for i := 59; i >= 0; i-- {
+		post, _ := user.CreateNewPost("testpost")
+		content := "---\n"
+		content += "title: Test Post\n"
+		content += fmt.Sprintf("date: Wed, 17 Aug 2022 10:%02d:02 +0000\n", i)
+		content += "---\n"
+		content += "This is a test"
+		os.WriteFile(post.ContentFile(), []byte(content), 0644)
+		posts = append(posts, &post)
+	}
+
+	retPosts, _ := user.Posts()
+	for i, p := range retPosts {
+		if p.Id() != posts[i].Id() {
+			t.Error("Wrong Id, Got: " + p.Id())
+		}
+	}
+}
+
 func TestPostsSortedByPublishingDateBrokenAtBottom(t *testing.T) {
 	user := getTestUser()
 	// Create a new post

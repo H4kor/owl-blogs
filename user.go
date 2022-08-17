@@ -65,23 +65,30 @@ func (user User) Posts() ([]Post, error) {
 		}
 	}
 
-	// sort posts by date
-	sort.Slice(posts, func(i, j int) bool {
-		_, markdownData_i := posts[i].MarkdownData()
-		_, markdownData_j := posts[j].MarkdownData()
+	type PostWithDate struct {
+		post Post
+		date time.Time
+	}
 
-		date_i, err := time.Parse(time.RFC1123Z, markdownData_i.Date)
+	postDates := make([]PostWithDate, len(posts))
+	for i, post := range posts {
+		_, meta := post.MarkdownData()
+		date, err := time.Parse(time.RFC1123Z, meta.Date)
 		if err != nil {
 			// invalid date -> use 1970-01-01
-			date_i = time.Time{}
+			date = time.Time{}
 		}
-		date_j, err := time.Parse(time.RFC1123Z, markdownData_j.Date)
-		if err != nil {
-			// invalid date -> use 1970-01-01
-			date_j = time.Time{}
-		}
-		return date_i.After(date_j)
+		postDates[i] = PostWithDate{post: post, date: date}
+	}
+
+	// sort posts by date
+	sort.Slice(postDates, func(i, j int) bool {
+		return postDates[i].date.After(postDates[j].date)
 	})
+
+	for i, post := range postDates {
+		posts[i] = post.post
+	}
 
 	return posts, nil
 }
