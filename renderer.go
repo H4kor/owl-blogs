@@ -75,12 +75,10 @@ func RenderPost(post Post) (string, error) {
 		return "", err
 	}
 
-	data := PageContent{
+	return renderIntoBaseTemplate(*post.user, PageContent{
 		Title:   post.Title(),
 		Content: template.HTML(postHtml),
-	}
-
-	return renderIntoBaseTemplate(*post.user, data)
+	})
 }
 
 func RenderIndexPage(user User) (string, error) {
@@ -91,12 +89,10 @@ func RenderIndexPage(user User) (string, error) {
 		return "", err
 	}
 
-	data := PageContent{
+	return renderIntoBaseTemplate(user, PageContent{
 		Title:   "Index",
 		Content: template.HTML(postHtml),
-	}
-
-	return renderIntoBaseTemplate(user, data)
+	})
 
 }
 
