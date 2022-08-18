@@ -86,9 +86,9 @@ func RenderPost(post Post) (string, error) {
 func RenderIndexPage(user User) (string, error) {
 	posts, _ := user.Posts()
 
-	postHtml := ""
-	for _, post := range posts {
-		postHtml += "<h2><a href=\"" + post.UrlPath() + "\">" + post.Title() + "</a></h2>\n"
+	postHtml, err := renderEmbedTemplate("embed/post-list.html", posts)
+	if err != nil {
+		return "", err
 	}
 
 	data := PageContent{
