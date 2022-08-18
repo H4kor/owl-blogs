@@ -18,8 +18,24 @@ func TestCanRenderPost(t *testing.T) {
 		return
 	}
 
-	if !strings.Contains(result, "<h1>testpost</h1>") {
+	if !strings.Contains(result, "<h1 class=\"p-name\">testpost</h1>") {
 		t.Error("Post title not rendered as h1. Got: " + result)
+	}
+
+}
+
+func TestRenderPostHEntry(t *testing.T) {
+	user := getTestUser()
+	post, _ := user.CreateNewPost("testpost")
+	result, _ := owl.RenderPost(post)
+	if !strings.Contains(result, "class=\"h-entry\"") {
+		t.Error("h-entry container not rendered. Got: " + result)
+	}
+	if !strings.Contains(result, "class=\"p-name\"") {
+		t.Error("p-name not rendered. Got: " + result)
+	}
+	if !strings.Contains(result, "class=\"e-content\"") {
+		t.Error("e-content not rendered. Got: " + result)
 	}
 
 }
@@ -50,6 +66,30 @@ func TestCanRenderIndexPage(t *testing.T) {
 	if !strings.Contains(result, "testpost2") {
 		t.Error("Post title not rendered. Got: " + result)
 	}
+}
+
+func TestIndexPageContainsHFeedContainer(t *testing.T) {
+	user := getTestUser()
+	user.CreateNewPost("testpost1")
+
+	result, _ := owl.RenderIndexPage(user)
+	if !strings.Contains(result, "<div class=\"h-feed\">") {
+		t.Error("h-feed container not rendered. Got: " + result)
+	}
+}
+
+func TestIndexPageContainsHEntryAndUUrl(t *testing.T) {
+	user := getTestUser()
+	user.CreateNewPost("testpost1")
+
+	result, _ := owl.RenderIndexPage(user)
+	if !strings.Contains(result, "class=\"h-entry\"") {
+		t.Error("h-entry container not rendered. Got: " + result)
+	}
+	if !strings.Contains(result, "class=\"u-url\"") {
+		t.Error("u-url not rendered. Got: " + result)
+	}
+
 }
 
 func TestRenderIndexPageWithBrokenBaseTemplate(t *testing.T) {

@@ -1,3 +1,7 @@
+<div class="h-feed">
 {{range .}}
-    <h2><a href="{{.UrlPath}}">{{.Title}}</a></h2>
+<div class="h-entry">
+    <h2><a class="u-url" href="{{.UrlPath}}">{{.Title}}</a></h2>
+</div>
 {{end}}
+</div>
