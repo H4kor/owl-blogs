@@ -6,12 +6,6 @@ import (
 	"html/template"
 )
 
-//go:embed embed/user-list.html
-var userListTemplateStr string
-
-//go:embed embed/post.html
-var postTemplateStr string
-
 type PageContent struct {
 	Title   string
 	Content template.HTML
@@ -20,6 +14,27 @@ type PageContent struct {
 type PostRenderData struct {
 	Title string
 	Post  template.HTML
+}
+
+func renderEmbedTemplate(templateFile string, data interface{}) (string, error) {
+	templateStr, err := embed_files.ReadFile(templateFile)
+	if err != nil {
+		return "", err
+	}
+	return renderTemplateStr(templateStr, data)
+}
+
+func renderTemplateStr(templateStr []byte, data interface{}) (string, error) {
+	t, err := template.New("_").Parse(string(templateStr))
+	if err != nil {
+		return "", err
+	}
+	var html bytes.Buffer
+	err = t.Execute(&html, data)
+	if err != nil {
+		return "", err
+	}
+	return html.String(), nil
 }
 
 func renderIntoBaseTemplate(user User, data PageContent) (string, error) {
@@ -52,10 +67,7 @@ func renderIntoBaseTemplate(user User, data PageContent) (string, error) {
 
 func RenderPost(post Post) (string, error) {
 	buf, _ := post.MarkdownData()
-
-	postTemplate, _ := template.New("post").Parse(postTemplateStr)
-	var postHtml bytes.Buffer
-	err := postTemplate.Execute(&postHtml, PostRenderData{
+	postHtml, err := renderEmbedTemplate("embed/post.html", PostRenderData{
 		Title: post.Title(),
 		Post:  template.HTML(buf.String()),
 	})
@@ -65,7 +77,7 @@ func RenderPost(post Post) (string, error) {
 
 	data := PageContent{
 		Title:   post.Title(),
-		Content: template.HTML(postHtml.String()),
+		Content: template.HTML(postHtml),
 	}
 
 	return renderIntoBaseTemplate(*post.user, data)
@@ -91,27 +103,15 @@ func RenderIndexPage(user User) (string, error) {
 func RenderUserList(repo Repository) (string, error) {
 	baseTemplate, _ := repo.Template()
 	users, _ := repo.Users()
-	t, err := template.New("user_list").Parse(userListTemplateStr)
+	userHtml, err := renderEmbedTemplate("embed/user-list.html", users)
 	if err != nil {
 		return "", err
 	}
-
-	var userHtml bytes.Buffer
-	t.Execute(&userHtml, users)
 
 	data := PageContent{
 		Title:   "Index",
-		Content: template.HTML(userHtml.String()),
+		Content: template.HTML(userHtml),
 	}
 
-	var html bytes.Buffer
-	t, err = template.New("index").Parse(baseTemplate)
-	if err != nil {
-		return "", err
-	}
-
-	t.Execute(&html, data)
-
-	return html.String(), nil
-
+	return renderTemplateStr([]byte(baseTemplate), data)
 }

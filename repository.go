@@ -1,7 +1,6 @@
 package owl
 
 import (
-	"embed"
 	_ "embed"
 	"fmt"
 	"io/ioutil"
@@ -13,9 +12,6 @@ import (
 
 //go:embed embed/initial/base.html
 var base_template string
-
-//go:embed embed/*
-var static_files embed.FS
 
 var VERSION = "0.0.1"
 
@@ -41,22 +37,22 @@ func CreateRepository(name string) (Repository, error) {
 	os.Mkdir(newRepo.StaticDir(), 0755)
 
 	// copy all files from static_files embed.FS to StaticDir
-	staticFiles, _ := static_files.ReadDir("embed/initial/static")
+	staticFiles, _ := embed_files.ReadDir("embed/initial/static")
 	for _, file := range staticFiles {
 		if file.IsDir() {
 			continue
 		}
-		src_data, _ := static_files.ReadFile("embed/initial/static/" + file.Name())
+		src_data, _ := embed_files.ReadFile("embed/initial/static/" + file.Name())
 		os.WriteFile(newRepo.StaticDir()+"/"+file.Name(), src_data, 0644)
 	}
 
 	// copy repo/ to newRepo.Dir()
-	init_files, _ := static_files.ReadDir("embed/initial/repo")
+	init_files, _ := embed_files.ReadDir("embed/initial/repo")
 	for _, file := range init_files {
 		if file.IsDir() {
 			continue
 		}
-		src_data, _ := static_files.ReadFile("embed/initial/repo/" + file.Name())
+		src_data, _ := embed_files.ReadFile("embed/initial/repo/" + file.Name())
 		os.WriteFile(newRepo.Dir()+"/"+file.Name(), src_data, 0644)
 	}
 	return newRepo, nil
