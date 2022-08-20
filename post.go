@@ -21,6 +21,7 @@ type PostMeta struct {
 	Title   string   `yaml:"title"`
 	Aliases []string `yaml:"aliases"`
 	Date    string   `yaml:"date"`
+	Draft   bool     `yaml:"draft"`
 }
 
 func (post Post) Id() string {

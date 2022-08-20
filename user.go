@@ -65,6 +65,14 @@ func (user User) Posts() ([]Post, error) {
 		}
 	}
 
+	// remove drafts
+	for i, post := range posts {
+		_, meta := post.MarkdownData()
+		if meta.Draft {
+			posts = append(posts[:i], posts[i+1:]...)
+		}
+	}
+
 	type PostWithDate struct {
 		post Post
 		date time.Time

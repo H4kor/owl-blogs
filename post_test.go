@@ -1,6 +1,7 @@
 package owl_test
 
 import (
+	"os"
 	"path"
 	"testing"
 )
@@ -65,4 +66,21 @@ func TestPostUrlMediaPathWithSubDir(t *testing.T) {
 		t.Error("Expected: " + expected)
 		t.Error("     Got: " + post.UrlPath())
 	}
+}
+
+func TestDraftInMetaData(t *testing.T) {
+	user := getTestUser()
+	post, _ := user.CreateNewPost("testpost")
+	content := "---\n"
+	content += "title: test\n"
+	content += "draft: true\n"
+	content += "---\n"
+	content += "\n"
+	content += "Write your post here.\n"
+	os.WriteFile(post.ContentFile(), []byte(content), 0644)
+	_, meta := post.MarkdownData()
+	if !meta.Draft {
+		t.Error("Draft should be true")
+	}
+
 }

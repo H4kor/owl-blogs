@@ -147,6 +147,27 @@ func TestCannotListUserPostsWithoutIndexMd(t *testing.T) {
 	}
 }
 
+func TestListUserPostsDoesNotIncludeDrafts(t *testing.T) {
+	// Create a new user
+	repo, _ := owl.CreateRepository(testRepoName())
+	user, _ := repo.CreateUser(randomUserName())
+	// Create a new post
+	post, _ := user.CreateNewPost("testpost")
+	content := ""
+	content += "---\n"
+	content += "title: test\n"
+	content += "draft: true\n"
+	content += "---\n"
+	content += "\n"
+	content += "Write your post here.\n"
+	os.WriteFile(post.ContentFile(), []byte(content), 0644)
+
+	posts, _ := user.Posts()
+	if len(posts) != 0 {
+		t.Error("Found draft post")
+	}
+}
+
 func TestCanLoadPost(t *testing.T) {
 	user := getTestUser()
 	// Create a new post
