@@ -11,6 +11,8 @@
         header {
             background-color: {{.HeaderColor}};
         }
+
+        hgroup h2 a { color: inherit; } 
     </style>
 </head>
 
@@ -20,7 +22,7 @@
             <ul>
                 <li>
                     <hgroup>
-                        <a href="{{ .User.UrlPath }}"><h2>{{ .UserTitle }}</h2></a>
+                        <h2><a href="{{ .User.UrlPath }}">{{ .UserTitle }}</a></h2>
                         <h3>{{ .UserSubtitle }}</h3>
                     </hgroup>
                 </li>
