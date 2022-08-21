@@ -48,12 +48,14 @@ func renderIntoBaseTemplate(user User, data PageContent) (string, error) {
 	full_data := struct {
 		Title        string
 		Content      template.HTML
+		User         User
 		UserTitle    string
 		UserSubtitle string
 		HeaderColor  string
 	}{
 		Title:        data.Title,
 		Content:      data.Content,
+		User:         user,
 		UserTitle:    user_config.Title,
 		UserSubtitle: user_config.SubTitle,
 		HeaderColor:  user_config.HeaderColor,
