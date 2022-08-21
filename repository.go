@@ -19,6 +19,7 @@ type Repository struct {
 	name             string
 	single_user_mode bool
 	active_user      string
+	allow_raw_html   bool
 }
 
 type RepoConfig struct {
@@ -79,6 +80,14 @@ func OpenSingleUserRepo(name string, user_name string) (Repository, error) {
 	}
 	repo.SetSingleUser(user)
 	return repo, nil
+}
+
+func (repo Repository) AllowRawHtml() bool {
+	return repo.allow_raw_html
+}
+
+func (repo *Repository) SetAllowRawHtml(allow bool) {
+	repo.allow_raw_html = allow
 }
 
 func (repo *Repository) SetSingleUser(user User) {

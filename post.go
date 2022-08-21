@@ -8,6 +8,7 @@ import (
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/parser"
+	"github.com/yuin/goldmark/renderer/html"
 	"gopkg.in/yaml.v2"
 )
 
@@ -80,7 +81,15 @@ func (post Post) MarkdownData() (bytes.Buffer, PostMeta) {
 		}
 	}
 
+	options := goldmark.WithRendererOptions()
+	if post.user.repo.AllowRawHtml() {
+		options = goldmark.WithRendererOptions(
+			html.WithUnsafe(),
+		)
+	}
+
 	markdown := goldmark.New(
+		options,
 		goldmark.WithExtensions(
 			// meta.Meta,
 			extension.GFM,

@@ -3,6 +3,7 @@ package owl_test
 import (
 	"os"
 	"path"
+	"strings"
 	"testing"
 )
 
@@ -83,4 +84,41 @@ func TestDraftInMetaData(t *testing.T) {
 		t.Error("Draft should be true")
 	}
 
+}
+
+func TestNoRawHTMLIfDisallowedByRepo(t *testing.T) {
+	repo := getTestRepo()
+	user, _ := repo.CreateUser("testuser")
+	post, _ := user.CreateNewPost("testpost")
+	content := "---\n"
+	content += "title: test\n"
+	content += "draft: true\n"
+	content += "---\n"
+	content += "\n"
+	content += "<script>alert('foo')</script>\n"
+	os.WriteFile(post.ContentFile(), []byte(content), 0644)
+	html, _ := post.MarkdownData()
+	html_str := html.String()
+	if strings.Contains(html_str, "<script>") {
+		t.Error("HTML should not be allowed")
+	}
+}
+
+func TestRawHTMLIfAllowedByRepo(t *testing.T) {
+	repo := getTestRepo()
+	repo.SetAllowRawHtml(true)
+	user, _ := repo.CreateUser("testuser")
+	post, _ := user.CreateNewPost("testpost")
+	content := "---\n"
+	content += "title: test\n"
+	content += "draft: true\n"
+	content += "---\n"
+	content += "\n"
+	content += "<script>alert('foo')</script>\n"
+	os.WriteFile(post.ContentFile(), []byte(content), 0644)
+	html, _ := post.MarkdownData()
+	html_str := html.String()
+	if !strings.Contains(html_str, "<script>") {
+		t.Error("HTML should be allowed")
+	}
 }
