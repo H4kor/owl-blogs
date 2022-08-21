@@ -52,15 +52,15 @@ func (user User) Name() string {
 	return user.name
 }
 
-func (user User) Posts() ([]Post, error) {
+func (user User) Posts() ([]*Post, error) {
 	postFiles := listDir(path.Join(user.Dir(), "public"))
-	posts := make([]Post, 0)
+	posts := make([]*Post, 0)
 	for _, id := range postFiles {
 		// if is a directory and has index.md, add to posts
 		if dirExists(path.Join(user.Dir(), "public", id)) {
 			if fileExists(path.Join(user.Dir(), "public", id, "index.md")) {
 				post, _ := user.GetPost(id)
-				posts = append(posts, post)
+				posts = append(posts, &post)
 			}
 		}
 	}
@@ -74,7 +74,7 @@ func (user User) Posts() ([]Post, error) {
 	}
 
 	type PostWithDate struct {
-		post Post
+		post *Post
 		date time.Time
 	}
 
@@ -197,7 +197,7 @@ func (user User) PostAliases() (map[string]*Post, error) {
 			return post_aliases, err
 		}
 		for _, alias := range post.Aliases() {
-			post_aliases[alias] = &post
+			post_aliases[alias] = post
 		}
 	}
 	return post_aliases, nil

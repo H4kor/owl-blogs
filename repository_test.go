@@ -274,3 +274,48 @@ func TestCanGetMapWithAllPostAliases(t *testing.T) {
 	}
 
 }
+
+func TestAliasesHaveCorrectPost(t *testing.T) {
+	repo, _ := owl.CreateRepository(testRepoName())
+	user, _ := repo.CreateUser(randomUserName())
+	post1, _ := user.CreateNewPost("test-1")
+	post2, _ := user.CreateNewPost("test-2")
+
+	content := "---\n"
+	content += "title: Test\n"
+	content += "aliases: \n"
+	content += "  - /foo/1\n"
+	content += "---\n"
+	content += "This is a test"
+	os.WriteFile(post1.ContentFile(), []byte(content), 0644)
+
+	content = "---\n"
+	content += "title: Test\n"
+	content += "aliases: \n"
+	content += "  - /foo/2\n"
+	content += "---\n"
+	content += "This is a test"
+	os.WriteFile(post2.ContentFile(), []byte(content), 0644)
+
+	posts, _ := user.Posts()
+	if len(posts) != 2 {
+		t.Error("Wrong number of posts returned, expected 1, got ", len(posts))
+	}
+
+	var aliases map[string]*owl.Post
+	aliases, err := repo.PostAliases()
+	if err != nil {
+		t.Error("Error getting post aliases: ", err.Error())
+	}
+	if len(aliases) != 2 {
+		t.Error("Wrong number of aliases returned, expected 2, got ", len(aliases))
+		t.Error("Aliases: ", aliases)
+	}
+	if aliases["/foo/1"].Id() != post1.Id() {
+		t.Error("Alias '/foo/1' points to wrong post: ", aliases["/foo/1"].Id())
+	}
+	if aliases["/foo/2"].Id() != post2.Id() {
+		t.Error("Alias '/foo/2' points to wrong post: ", aliases["/foo/2"].Id())
+	}
+
+}
