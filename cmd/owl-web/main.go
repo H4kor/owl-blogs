@@ -37,18 +37,35 @@ func main() {
 	println("-repo <repo> - Specify the repository to use. Defaults to '.'")
 	println("-port <port> - Specify the port to use, Default is '8080'")
 	println("-user <name> - Start server in single user mode.")
+	println("-unsafe - Allow unsafe html.")
 	var repoName string
 	var port int
 	var singleUserName string
-	for i, arg := range os.Args[0 : len(os.Args)-1] {
+	var allowRawHTML bool = false
+	for i, arg := range os.Args[0:len(os.Args)] {
 		if arg == "-port" {
+			if i+1 >= len(os.Args) {
+				println("-port requires a port number")
+				os.Exit(1)
+			}
 			port, _ = strconv.Atoi(os.Args[i+1])
 		}
 		if arg == "-repo" {
+			if i+1 >= len(os.Args) {
+				println("-repo requires a repopath")
+				os.Exit(1)
+			}
 			repoName = os.Args[i+1]
 		}
 		if arg == "-user" {
+			if i+1 >= len(os.Args) {
+				println("-user requires a username")
+				os.Exit(1)
+			}
 			singleUserName = os.Args[i+1]
+		}
+		if arg == "-unsafe" {
+			allowRawHTML = true
 		}
 	}
 	if repoName == "" {
@@ -70,6 +87,7 @@ func main() {
 		println("Repository:", repoName)
 		repo, err = owl.OpenRepository(repoName)
 	}
+	repo.SetAllowRawHtml(allowRawHTML)
 
 	if err != nil {
 		println("Error opening repository: ", err.Error())
