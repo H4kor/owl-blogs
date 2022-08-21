@@ -28,6 +28,7 @@ func SingleUserRouter(repo *owl.Repository) http.Handler {
 	router.GET("/index.xml", userRSSHandler(repo))
 	router.GET("/posts/:post/", postHandler(repo))
 	router.GET("/posts/:post/media/*filepath", postMediaHandler(repo))
+	router.NotFound = http.HandlerFunc(notFoundHandler(repo))
 	return router
 }
 

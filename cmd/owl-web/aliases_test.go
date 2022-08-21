@@ -197,3 +197,42 @@ func TestRedirectIfInvalidMediaUrl(t *testing.T) {
 	}
 
 }
+
+func TestDeepAliasInSingleUserMode(t *testing.T) {
+	repo := getTestRepo()
+	user, _ := repo.CreateUser("test-1")
+	repo.SetSingleUser(user)
+	post, _ := user.CreateNewPost("post-1")
+
+	content := "---\n"
+	content += "title: Create tileable textures with GIMP\n"
+	content += "author: h4kor\n"
+	content += "type: post\n"
+	content += "date: Tue, 13 Sep 2016 16:19:09 +0000\n"
+	content += "aliases:\n"
+	content += "  - /2016/09/13/create-tileable-textures-with-gimp/\n"
+	content += "categories:\n"
+	content += "  - GameDev\n"
+	content += "tags:\n"
+	content += "  - gamedev\n"
+	content += "  - textures\n"
+	content += "---\n"
+	content += "This is a test"
+	os.WriteFile(post.ContentFile(), []byte(content), 0644)
+
+	// Create Request and Response
+	req, err := http.NewRequest("GET", "/2016/09/13/create-tileable-textures-with-gimp/", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rr := httptest.NewRecorder()
+	router := main.SingleUserRouter(&repo)
+	router.ServeHTTP(rr, req)
+
+	// Check the status code is what we expect.
+	if status := rr.Code; status != http.StatusMovedPermanently {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusMovedPermanently)
+	}
+
+}
