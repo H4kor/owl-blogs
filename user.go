@@ -66,12 +66,15 @@ func (user User) Posts() ([]*Post, error) {
 	}
 
 	// remove drafts
-	for i, post := range posts {
+	n := 0
+	for _, post := range posts {
 		_, meta := post.MarkdownData()
-		if meta.Draft {
-			posts = append(posts[:i], posts[i+1:]...)
+		if !meta.Draft {
+			posts[n] = post
+			n++
 		}
 	}
+	posts = posts[:n]
 
 	type PostWithDate struct {
 		post *Post
