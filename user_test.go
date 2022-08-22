@@ -168,6 +168,34 @@ func TestListUserPostsDoesNotIncludeDrafts(t *testing.T) {
 	}
 }
 
+func TestListUsersDraftsExcludedRealWorld(t *testing.T) {
+	// Create a new user
+	repo, _ := owl.CreateRepository(testRepoName())
+	user, _ := repo.CreateUser(randomUserName())
+	// Create a new post
+	post, _ := user.CreateNewPost("testpost")
+	content := ""
+	content += "---\n"
+	content += "title: Articles September 2019\n"
+	content += "author: h4kor\n"
+	content += "type: post\n"
+	content += "date: -001-11-30T00:00:00+00:00\n"
+	content += "draft: true\n"
+	content += "url: /?p=426\n"
+	content += "categories:\n"
+	content += "  - Uncategorised\n"
+	content += "\n"
+	content += "---\n"
+	content += "<https://nesslabs.com/time-anxiety>\n"
+
+	os.WriteFile(post.ContentFile(), []byte(content), 0644)
+
+	posts, _ := user.Posts()
+	if len(posts) != 0 {
+		t.Error("Found draft post")
+	}
+}
+
 func TestCanLoadPost(t *testing.T) {
 	user := getTestUser()
 	// Create a new post
