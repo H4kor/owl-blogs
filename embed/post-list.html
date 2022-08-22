@@ -1,7 +1,10 @@
 <div class="h-feed">
 {{range .}}
 <div class="h-entry">
-    <h3><a class="u-url" href="{{.UrlPath}}">{{.Title}}</a></h3>
+    <h3 style="margin-bottom:0;"><a class="u-url" href="{{.UrlPath}}">{{.Title}}</a></h3>
+    <div>Published: {{.Meta.Date}}</div> 
 </div>
+<hr>
+<br>
 {{end}}
 </div>
