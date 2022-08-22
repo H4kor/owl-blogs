@@ -68,7 +68,7 @@ func (user User) Posts() ([]*Post, error) {
 	// remove drafts
 	n := 0
 	for _, post := range posts {
-		_, meta := post.MarkdownData()
+		meta := post.Meta()
 		if !meta.Draft {
 			posts[n] = post
 			n++
@@ -83,7 +83,7 @@ func (user User) Posts() ([]*Post, error) {
 
 	postDates := make([]PostWithDate, len(posts))
 	for i, post := range posts {
-		_, meta := post.MarkdownData()
+		meta := post.Meta()
 		date, err := time.Parse(time.RFC1123Z, meta.Date)
 		if err != nil {
 			// invalid date -> use 1970-01-01
@@ -111,8 +111,9 @@ func (user User) GetPost(id string) (Post, error) {
 	}
 
 	post := Post{user: &user, id: id}
-	_, metaData := post.MarkdownData()
-	title := metaData.Title
+	// post.loadMeta()
+	meta := post.Meta()
+	title := meta.Title
 	post.title = fmt.Sprint(title)
 
 	return post, nil

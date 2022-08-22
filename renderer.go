@@ -68,7 +68,7 @@ func renderIntoBaseTemplate(user User, data PageContent) (string, error) {
 }
 
 func RenderPost(post Post) (string, error) {
-	buf, _ := post.MarkdownData()
+	buf := post.RenderedContent()
 	postHtml, err := renderEmbedTemplate("embed/post.html", PostRenderData{
 		Title: post.Title(),
 		Post:  template.HTML(buf.String()),

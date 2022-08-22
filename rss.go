@@ -41,7 +41,7 @@ func RenderRSSFeed(user User) (string, error) {
 
 	posts, _ := user.Posts()
 	for _, post := range posts {
-		_, meta := post.MarkdownData()
+		meta := post.Meta()
 		rss.Channel.Items = append(rss.Channel.Items, RSSItem{
 			Guid:    post.FullUrl(),
 			Title:   post.Title(),
