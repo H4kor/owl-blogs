@@ -1,6 +1,16 @@
 <div class="h-entry">
-    <h1 class="p-name">{{.Title}}</h1>
+    <hgroup>
+        <h1 class="p-name">{{.Title}}</h1>
+        <small>
+            Published:
+            <time class="dt-published" datetime="{{.Post.Meta.Date}}">
+                {{.Post.Meta.Date}}
+            </time>
+        </small> 
+    </hgroup>
+    <hr>
+    <br>
     <div class="e-content">
-        {{.Post}}
+        {{.Content}}
     </div>
 </div>
