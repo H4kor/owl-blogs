@@ -85,6 +85,24 @@ func userWebmentionHandler(repo *owl.Repository) func(http.ResponseWriter, *http
 			return
 		}
 
+		if len(target[0]) < 7 || (target[0][:7] != "http://" && target[0][:8] != "https://") {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("Not a valid target"))
+			return
+		}
+
+		if len(source[0]) < 7 || (source[0][:7] != "http://" && source[0][:8] != "https://") {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("Not a valid source"))
+			return
+		}
+
+		if source[0] == target[0] {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("target and source are equal"))
+			return
+		}
+
 		parts := strings.Split(target[0], "/")
 		if len(parts) < 2 {
 			w.WriteHeader(http.StatusNotFound)
