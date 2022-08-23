@@ -2,7 +2,10 @@ package owl
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/base64"
 	"io/ioutil"
+	"os"
 	"path"
 
 	"github.com/yuin/goldmark"
@@ -37,6 +40,10 @@ func (post Post) Dir() string {
 
 func (post Post) MediaDir() string {
 	return path.Join(post.Dir(), "media")
+}
+
+func (post Post) WebmentionDir() string {
+	return path.Join(post.Dir(), "webmention")
 }
 
 func (post Post) UrlPath() string {
@@ -138,4 +145,15 @@ func (post *Post) LoadMeta() error {
 
 	post.meta = meta
 	return nil
+}
+
+func (post *Post) AddWebmention(source string) error {
+	hash := sha256.Sum256([]byte(source))
+	hashStr := base64.URLEncoding.EncodeToString(hash[:])
+	data := "source: " + source
+	return os.WriteFile(path.Join(post.WebmentionDir(), hashStr+".yml"), []byte(data), 0644)
+}
+
+func (post *Post) Webmentions() []string {
+	return listDir(post.WebmentionDir())
 }

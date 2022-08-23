@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"strings"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -53,6 +54,59 @@ func userIndexHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Requ
 		}
 		println("Rendering index page for user", user.Name())
 		w.Write([]byte(html))
+	}
+}
+
+func userWebmentionHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Request, httprouter.Params) {
+	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		user, err := getUserFromRepo(repo, ps)
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte("User not found"))
+			return
+		}
+		err = r.ParseForm()
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("Unable to parse form data"))
+			return
+		}
+		params := r.PostForm
+		target := params["target"]
+		source := params["source"]
+		if len(target) == 0 {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("No target provided"))
+			return
+		}
+		if len(source) == 0 {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("No source provided"))
+			return
+		}
+
+		parts := strings.Split(target[0], "/")
+		if len(parts) < 2 {
+			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte("Not found"))
+			return
+		}
+		postId := parts[len(parts)-2]
+		post, err := user.GetPost(postId)
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte("Post not found"))
+			return
+		}
+		err = post.AddWebmention(source[0])
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("Unable to process webmention"))
+			return
+		}
+
+		w.WriteHeader(http.StatusAccepted)
+		w.Write([]byte(""))
 	}
 }
 

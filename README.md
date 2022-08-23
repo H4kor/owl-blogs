@@ -26,6 +26,9 @@ Each directory in the `/users/` directory of a repository is considered a user.
             \- media/
                 -- Contains all media files used in the blog post.
                 -- All files in this folder will be publicly available
+            \- webmention/
+               \- <hash>.yml
+                    -- Contains data for a received webmention
   \- meta/
        \- base.html
             -- The template used to render all sites
