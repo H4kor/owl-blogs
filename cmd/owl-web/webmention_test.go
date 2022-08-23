@@ -157,7 +157,7 @@ func TestValidationOfTarget(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	assertStatus(t, rr, http.StatusNotFound)
+	assertStatus(t, rr, http.StatusBadRequest)
 }
 
 //

@@ -61,7 +61,7 @@ func userWebmentionHandler(repo *owl.Repository) func(http.ResponseWriter, *http
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		user, err := getUserFromRepo(repo, ps)
 		if err != nil {
-			w.WriteHeader(http.StatusNotFound)
+			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte("User not found"))
 			return
 		}
@@ -105,14 +105,14 @@ func userWebmentionHandler(repo *owl.Repository) func(http.ResponseWriter, *http
 
 		parts := strings.Split(target[0], "/")
 		if len(parts) < 2 {
-			w.WriteHeader(http.StatusNotFound)
+			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte("Not found"))
 			return
 		}
 		postId := parts[len(parts)-2]
 		post, err := user.GetPost(postId)
 		if err != nil {
-			w.WriteHeader(http.StatusNotFound)
+			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte("Post not found"))
 			return
 		}
