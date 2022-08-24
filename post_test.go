@@ -163,3 +163,48 @@ func TestLoadMeta(t *testing.T) {
 	}
 
 }
+
+func TestAddWebmentionCreatesFile(t *testing.T) {
+	repo := getTestRepo()
+	repo.SetAllowRawHtml(true)
+	user, _ := repo.CreateUser("testuser")
+	post, _ := user.CreateNewPost("testpost")
+
+	post.AddWebmention("https://example.com")
+	dir, _ := os.Open(post.WebmentionDir())
+	defer dir.Close()
+	files, _ := dir.Readdirnames(-1)
+
+	if len(files) != 1 {
+		t.Error("No file created for webmention")
+	}
+}
+
+func TestAddWebmentionNotOverwritingFile(t *testing.T) {
+	repo := getTestRepo()
+	repo.SetAllowRawHtml(true)
+	user, _ := repo.CreateUser("testuser")
+	post, _ := user.CreateNewPost("testpost")
+
+	post.AddWebmention("https://example.com")
+	dir, _ := os.Open(post.WebmentionDir())
+	defer dir.Close()
+	files, _ := dir.Readdirnames(-1)
+
+	if len(files) != 1 {
+		t.Error("No file created for webmention")
+	}
+
+	content := "url: https://example.com\n"
+	content += "verified: true"
+	os.WriteFile(path.Join(post.WebmentionDir(), files[0]), []byte(content), 0644)
+
+	post.AddWebmention("https://example.com")
+
+	fileContent, _ := os.ReadFile(path.Join(post.WebmentionDir(), files[0]))
+	if string(fileContent) != content {
+		t.Error("File content was modified.")
+		t.Errorf("Got: %v", fileContent)
+		t.Errorf("Expected: %v", content)
+	}
+}

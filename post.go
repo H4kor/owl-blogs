@@ -151,7 +151,12 @@ func (post *Post) AddWebmention(source string) error {
 	hash := sha256.Sum256([]byte(source))
 	hashStr := base64.URLEncoding.EncodeToString(hash[:])
 	data := "source: " + source
-	return os.WriteFile(path.Join(post.WebmentionDir(), hashStr+".yml"), []byte(data), 0644)
+	// Check if file already exists
+	fileName := path.Join(post.WebmentionDir(), hashStr+".yml")
+	if fileExists(fileName) {
+		return nil
+	}
+	return os.WriteFile(fileName, []byte(data), 0644)
 }
 
 func (post *Post) Webmentions() []string {
