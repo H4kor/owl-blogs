@@ -79,7 +79,7 @@ func TestDraftInMetaData(t *testing.T) {
 	content += "\n"
 	content += "Write your post here.\n"
 	os.WriteFile(post.ContentFile(), []byte(content), 0644)
-	_, meta := post.MarkdownData()
+	meta := post.Meta()
 	if !meta.Draft {
 		t.Error("Draft should be true")
 	}
@@ -97,7 +97,7 @@ func TestNoRawHTMLIfDisallowedByRepo(t *testing.T) {
 	content += "\n"
 	content += "<script>alert('foo')</script>\n"
 	os.WriteFile(post.ContentFile(), []byte(content), 0644)
-	html, _ := post.MarkdownData()
+	html := post.RenderedContent()
 	html_str := html.String()
 	if strings.Contains(html_str, "<script>") {
 		t.Error("HTML should not be allowed")
@@ -116,9 +116,50 @@ func TestRawHTMLIfAllowedByRepo(t *testing.T) {
 	content += "\n"
 	content += "<script>alert('foo')</script>\n"
 	os.WriteFile(post.ContentFile(), []byte(content), 0644)
-	html, _ := post.MarkdownData()
+	html := post.RenderedContent()
 	html_str := html.String()
 	if !strings.Contains(html_str, "<script>") {
 		t.Error("HTML should be allowed")
 	}
+}
+
+func TestLoadMeta(t *testing.T) {
+	repo := getTestRepo()
+	repo.SetAllowRawHtml(true)
+	user, _ := repo.CreateUser("testuser")
+	post, _ := user.CreateNewPost("testpost")
+
+	content := "---\n"
+	content += "title: test\n"
+	content += "draft: true\n"
+	content += "date: Wed, 17 Aug 2022 10:50:02 +0000\n"
+	content += "aliases:\n"
+	content += "  - foo/bar/\n"
+	content += "---\n"
+	content += "\n"
+	content += "<script>alert('foo')</script>\n"
+	os.WriteFile(post.ContentFile(), []byte(content), 0644)
+
+	err := post.LoadMeta()
+
+	if err != nil {
+		t.Errorf("Got Error: %v", err)
+	}
+
+	if post.Meta().Title != "test" {
+		t.Errorf("Expected title: %s, got %s", "test", post.Meta().Title)
+	}
+
+	if len(post.Meta().Aliases) != 1 || post.Meta().Aliases[0] != "foo/bar/" {
+		t.Errorf("Expected title: %v, got %v", []string{"foo/bar/"}, post.Meta().Aliases)
+	}
+
+	if post.Meta().Date != "Wed, 17 Aug 2022 10:50:02 +0000" {
+		t.Errorf("Expected title: %s, got %s", "Wed, 17 Aug 2022 10:50:02 +0000", post.Meta().Title)
+	}
+
+	if post.Meta().Draft != true {
+		t.Errorf("Expected title: %v, got %v", true, post.Meta().Draft)
+	}
+
 }

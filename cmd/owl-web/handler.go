@@ -95,14 +95,14 @@ func postHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Request, 
 			return
 		}
 
-		_, meta := post.MarkdownData()
+		meta := post.Meta()
 		if meta.Draft {
 			println("Post is a draft")
 			notFoundHandler(repo)(w, r)
 			return
 		}
 
-		html, err := owl.RenderPost(post)
+		html, err := owl.RenderPost(&post)
 		if err != nil {
 			println("Error rendering post: ", err.Error())
 			w.WriteHeader(http.StatusInternalServerError)

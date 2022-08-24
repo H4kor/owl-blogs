@@ -13,9 +13,11 @@ import (
 )
 
 type Post struct {
-	user  *User
-	id    string
-	title string
+	user       *User
+	id         string
+	title      string
+	metaLoaded bool
+	meta       PostMeta
 }
 
 type PostMeta struct {
@@ -57,17 +59,24 @@ func (post Post) ContentFile() string {
 	return path.Join(post.Dir(), "index.md")
 }
 
+func (post *Post) Meta() PostMeta {
+	if !post.metaLoaded {
+		post.LoadMeta()
+	}
+	return post.meta
+}
+
 func (post Post) Content() []byte {
 	// read file
 	data, _ := ioutil.ReadFile(post.ContentFile())
 	return data
 }
 
-func (post Post) MarkdownData() (bytes.Buffer, PostMeta) {
+func (post Post) RenderedContent() bytes.Buffer {
 	data := post.Content()
 
-	// get yaml metadata block
-	meta := PostMeta{}
+	// trim yaml block
+	// TODO this can be done nicer
 	trimmedData := bytes.TrimSpace(data)
 	// check first line is ---
 	if string(trimmedData[0:4]) == "---\n" {
@@ -75,8 +84,6 @@ func (post Post) MarkdownData() (bytes.Buffer, PostMeta) {
 		// find --- end
 		end := bytes.Index(trimmedData, []byte("\n---\n"))
 		if end != -1 {
-			metaData := trimmedData[:end]
-			yaml.Unmarshal(metaData, &meta)
 			data = trimmedData[end+5:]
 		}
 	}
@@ -100,13 +107,35 @@ func (post Post) MarkdownData() (bytes.Buffer, PostMeta) {
 	if err := markdown.Convert(data, &buf, parser.WithContext(context)); err != nil {
 		panic(err)
 	}
-	// metaData := meta.Get(context)
 
-	return buf, meta
+	return buf
 
 }
 
 func (post Post) Aliases() []string {
-	_, metaData := post.MarkdownData()
-	return metaData.Aliases
+	return post.Meta().Aliases
+}
+
+func (post *Post) LoadMeta() error {
+	data := post.Content()
+
+	// get yaml metadata block
+	meta := PostMeta{}
+	trimmedData := bytes.TrimSpace(data)
+	// check first line is ---
+	if string(trimmedData[0:4]) == "---\n" {
+		trimmedData = trimmedData[4:]
+		// find --- end
+		end := bytes.Index(trimmedData, []byte("\n---\n"))
+		if end != -1 {
+			metaData := trimmedData[:end]
+			err := yaml.Unmarshal(metaData, &meta)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	post.meta = meta
+	return nil
 }
