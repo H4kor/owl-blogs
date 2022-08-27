@@ -161,8 +161,11 @@ func TestLoadMeta(t *testing.T) {
 	if post.Meta().Draft != true {
 		t.Errorf("Expected title: %v, got %v", true, post.Meta().Draft)
 	}
-
 }
+
+///
+/// Webmention
+///
 
 func TestAddWebmentionCreatesFile(t *testing.T) {
 	repo := getTestRepo()

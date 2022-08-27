@@ -159,7 +159,3 @@ func TestValidationOfTarget(t *testing.T) {
 
 	assertStatus(t, rr, http.StatusBadRequest)
 }
-
-//
-// https://www.w3.org/TR/webmention/#h-webmention-verification
-//
