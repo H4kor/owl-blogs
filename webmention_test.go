@@ -11,8 +11,8 @@ import (
 
 func TestParseValidHEntry(t *testing.T) {
 	html := []byte("<div class=\"h-entry\"><div class=\"p-name\">Foo</div></div>")
-
-	entry, err := owl.ParseHEntry(html)
+	parser := &owl.OwlMicroformatParser{}
+	entry, err := parser.ParseHEntry(html)
 
 	if err != nil {
 		t.Errorf("Unable to parse feed: %v", err)
@@ -24,8 +24,8 @@ func TestParseValidHEntry(t *testing.T) {
 
 func TestParseValidHEntryWithoutTitle(t *testing.T) {
 	html := []byte("<div class=\"h-entry\"></div><div class=\"p-name\">Foo</div>")
-
-	entry, err := owl.ParseHEntry(html)
+	parser := &owl.OwlMicroformatParser{}
+	entry, err := parser.ParseHEntry(html)
 
 	if err != nil {
 		t.Errorf("Unable to parse feed: %v", err)

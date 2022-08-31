@@ -6,6 +6,18 @@ import (
 	"time"
 )
 
+type MockMicroformatParser struct{}
+
+func (*MockMicroformatParser) ParseHEntry(data []byte) (owl.ParsedHEntry, error) {
+	return owl.ParsedHEntry{Title: "Mock Title"}, nil
+}
+
+type MockHttpRetriever struct{}
+
+func (*MockHttpRetriever) Get(url string) ([]byte, error) {
+	return []byte(""), nil
+}
+
 func randomName() string {
 	rand.Seed(time.Now().UnixNano())
 	var letters = []rune("abcdefghijklmnopqrstuvwxyz")

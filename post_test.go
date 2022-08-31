@@ -169,7 +169,8 @@ func TestLoadMeta(t *testing.T) {
 
 func TestAddWebmentionCreatesFile(t *testing.T) {
 	repo := getTestRepo()
-	repo.SetAllowRawHtml(true)
+	repo.Retriever = &MockHttpRetriever{}
+	repo.Parser = &MockMicroformatParser{}
 	user, _ := repo.CreateUser("testuser")
 	post, _ := user.CreateNewPost("testpost")
 
@@ -185,7 +186,8 @@ func TestAddWebmentionCreatesFile(t *testing.T) {
 
 func TestAddWebmentionNotOverwritingFile(t *testing.T) {
 	repo := getTestRepo()
-	repo.SetAllowRawHtml(true)
+	repo.Retriever = &MockHttpRetriever{}
+	repo.Parser = &MockMicroformatParser{}
 	user, _ := repo.CreateUser("testuser")
 	post, _ := user.CreateNewPost("testpost")
 
@@ -209,5 +211,28 @@ func TestAddWebmentionNotOverwritingFile(t *testing.T) {
 		t.Error("File content was modified.")
 		t.Errorf("Got: %v", fileContent)
 		t.Errorf("Expected: %v", content)
+	}
+}
+
+func TestAddWebmentionAddsParsedTitle(t *testing.T) {
+	repo := getTestRepo()
+	repo.Retriever = &MockHttpRetriever{}
+	repo.Parser = &MockMicroformatParser{}
+	user, _ := repo.CreateUser("testuser")
+	post, _ := user.CreateNewPost("testpost")
+
+	post.AddWebmention("https://example.com")
+	dir, _ := os.Open(post.WebmentionDir())
+	defer dir.Close()
+	files, _ := dir.Readdirnames(-1)
+
+	if len(files) != 1 {
+		t.Error("No file created for webmention")
+	}
+
+	fileContent, _ := os.ReadFile(path.Join(post.WebmentionDir(), files[0]))
+	if !strings.Contains(string(fileContent), "Mock Title") {
+		t.Error("File not containing the title.")
+		t.Errorf("Got: %v", string(fileContent))
 	}
 }

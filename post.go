@@ -150,12 +150,20 @@ func (post *Post) LoadMeta() error {
 func (post *Post) AddWebmention(source string) error {
 	hash := sha256.Sum256([]byte(source))
 	hashStr := base64.URLEncoding.EncodeToString(hash[:])
-	data := "source: " + source
 	// Check if file already exists
 	fileName := path.Join(post.WebmentionDir(), hashStr+".yml")
 	if fileExists(fileName) {
 		return nil
 	}
+	data := "source: " + source + "\n"
+	html, err := post.user.repo.Retriever.Get(source)
+	if err == nil {
+		entry, err := post.user.repo.Parser.ParseHEntry(html)
+		if err == nil {
+			data += "title: " + entry.Title + "\n"
+		}
+	}
+
 	return os.WriteFile(fileName, []byte(data), 0644)
 }
 

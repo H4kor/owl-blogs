@@ -13,13 +13,19 @@ type HttpRetriever interface {
 	Get(url string) ([]byte, error)
 }
 
+type MicroformatParser interface {
+	ParseHEntry(data []byte) (ParsedHEntry, error)
+}
+
 type OwlHttpRetriever struct{}
+
+type OwlMicroformatParser struct{}
 
 type ParsedHEntry struct {
 	Title string
 }
 
-func (ret *OwlHttpRetriever) Get(url string) ([]byte, error) {
+func (OwlHttpRetriever) Get(url string) ([]byte, error) {
 	resp, err := http.Get(url)
 	if err != nil {
 		return []byte{}, err
@@ -39,7 +45,7 @@ func collectText(n *html.Node, buf *bytes.Buffer) {
 	}
 }
 
-func ParseHEntry(data []byte) (ParsedHEntry, error) {
+func (OwlMicroformatParser) ParseHEntry(data []byte) (ParsedHEntry, error) {
 	doc, err := html.Parse(strings.NewReader(string(data)))
 	if err != nil {
 		return ParsedHEntry{}, err
