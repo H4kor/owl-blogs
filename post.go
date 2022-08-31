@@ -148,6 +148,9 @@ func (post *Post) LoadMeta() error {
 }
 
 func (post *Post) AddWebmention(source string) error {
+	// ensure dir exists
+	os.MkdirAll(post.WebmentionDir(), 0755)
+
 	hash := sha256.Sum256([]byte(source))
 	hashStr := base64.URLEncoding.EncodeToString(hash[:])
 	// Check if file already exists
@@ -168,5 +171,8 @@ func (post *Post) AddWebmention(source string) error {
 }
 
 func (post *Post) Webmentions() []string {
+	// ensure dir exists
+	os.MkdirAll(post.WebmentionDir(), 0755)
+
 	return listDir(post.WebmentionDir())
 }
