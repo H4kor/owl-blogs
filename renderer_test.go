@@ -143,3 +143,17 @@ func TestRendersHeaderTitle(t *testing.T) {
 		t.Error("Header color not rendered. Got: " + result)
 	}
 }
+
+func TestRenderPostIncludesRelToWebMention(t *testing.T) {
+	user := getTestUser()
+	post, _ := user.CreateNewPost("testpost")
+
+	result, _ := owl.RenderPost(&post)
+	if !strings.Contains(result, "rel=\"webmention\"") {
+		t.Error("webmention rel not rendered. Got: " + result)
+	}
+
+	if !strings.Contains(result, "href=\""+user.WebmentionUrl()+"\"") {
+		t.Error("webmention href not rendered. Got: " + result)
+	}
+}

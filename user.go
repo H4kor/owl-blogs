@@ -36,6 +36,11 @@ func (user User) FullUrl() string {
 	return url
 }
 
+func (user User) WebmentionUrl() string {
+	url, _ := url.JoinPath(user.FullUrl(), "webmention/")
+	return url
+}
+
 func (user User) PostDir() string {
 	return path.Join(user.Dir(), "public")
 }
