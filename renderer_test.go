@@ -6,6 +6,7 @@ import (
 	"path"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestCanRenderPost(t *testing.T) {
@@ -156,4 +157,45 @@ func TestRenderPostIncludesRelToWebMention(t *testing.T) {
 	if !strings.Contains(result, "href=\""+user.WebmentionUrl()+"\"") {
 		t.Error("webmention href not rendered. Got: " + result)
 	}
+}
+
+func TestRenderPostAddsLinksToApprovedWebmention(t *testing.T) {
+	user := getTestUser()
+	post, _ := user.CreateNewPost("testpost")
+	webmention := owl.Webmention{
+		Source:         "http://example.com/source3",
+		Title:          "Test Title",
+		ApprovalStatus: "approved",
+		RetrievedAt:    time.Now().Add(time.Hour * -2),
+	}
+	post.PersistWebmention(webmention)
+	webmention = owl.Webmention{
+		Source:         "http://example.com/source4",
+		ApprovalStatus: "rejected",
+		RetrievedAt:    time.Now().Add(time.Hour * -3),
+	}
+	post.PersistWebmention(webmention)
+
+	result, _ := owl.RenderPost(&post)
+	if !strings.Contains(result, "http://example.com/source3") {
+		t.Error("webmention not rendered. Got: " + result)
+	}
+	if !strings.Contains(result, "Test Title") {
+		t.Error("webmention title not rendered. Got: " + result)
+	}
+	if strings.Contains(result, "http://example.com/source4") {
+		t.Error("unapproved webmention rendered. Got: " + result)
+	}
+
+}
+
+func TestRenderPostNotMentioningWebmentionsIfNoAvail(t *testing.T) {
+	user := getTestUser()
+	post, _ := user.CreateNewPost("testpost")
+	result, _ := owl.RenderPost(&post)
+
+	if strings.Contains(result, "Webmention") {
+		t.Error("Webmention mentioned. Got: " + result)
+	}
+
 }

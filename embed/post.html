@@ -13,4 +13,24 @@
     <div class="e-content">
         {{.Content}}
     </div>
+
+    <hr>
+    {{if .Post.ApprovedWebmentions}}
+    <h3>
+        Webmentions
+    </h3>
+    <ul>
+        {{range .Post.ApprovedWebmentions}}
+        <li>
+            <a href="{{.Source}}">
+                {{if .Title}}
+                    {{.Title}}
+                {{else}}
+                    {{.Source}}
+                {{end}}
+            </a>
+        </li>
+        {{end}}
+    </ul>
+    {{end}}
 </div>
