@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"sort"
 
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/extension"
@@ -241,4 +242,20 @@ func (post *Post) Webmentions() []Webmention {
 	}
 
 	return webmentions
+}
+
+func (post *Post) ApprovedWebmentions() []Webmention {
+	webmentions := post.Webmentions()
+	approved := []Webmention{}
+	for _, webmention := range webmentions {
+		if webmention.ApprovalStatus == "approved" {
+			approved = append(approved, webmention)
+		}
+	}
+
+	// sort by retrieved date
+	sort.Slice(approved, func(i, j int) bool {
+		return approved[i].RetrievedAt.After(approved[j].RetrievedAt)
+	})
+	return approved
 }

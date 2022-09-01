@@ -6,6 +6,7 @@ import (
 	"path"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestCanGetPostTitle(t *testing.T) {
@@ -258,4 +259,47 @@ func TestAddWebmentionAddsParsedTitle(t *testing.T) {
 		t.Error("File not containing the title.")
 		t.Errorf("Got: %v", string(fileContent))
 	}
+}
+
+func TestApprovedWebmentions(t *testing.T) {
+	repo := getTestRepo()
+	user, _ := repo.CreateUser("testuser")
+	post, _ := user.CreateNewPost("testpost")
+	webmention := owl.Webmention{
+		Source:         "http://example.com/source",
+		ApprovalStatus: "approved",
+		RetrievedAt:    time.Now(),
+	}
+	post.PersistWebmention(webmention)
+	webmention = owl.Webmention{
+		Source:         "http://example.com/source2",
+		ApprovalStatus: "",
+		RetrievedAt:    time.Now().Add(time.Hour * -1),
+	}
+	post.PersistWebmention(webmention)
+	webmention = owl.Webmention{
+		Source:         "http://example.com/source3",
+		ApprovalStatus: "approved",
+		RetrievedAt:    time.Now().Add(time.Hour * -2),
+	}
+	post.PersistWebmention(webmention)
+	webmention = owl.Webmention{
+		Source:         "http://example.com/source4",
+		ApprovalStatus: "rejected",
+		RetrievedAt:    time.Now().Add(time.Hour * -3),
+	}
+	post.PersistWebmention(webmention)
+
+	webmentions := post.ApprovedWebmentions()
+	if len(webmentions) != 2 {
+		t.Errorf("Expected 2 webmentions, got %d", len(webmentions))
+	}
+
+	if webmentions[0].Source != "http://example.com/source" {
+		t.Errorf("Expected source: %s, got %s", "http://example.com/source", webmentions[0].Source)
+	}
+	if webmentions[1].Source != "http://example.com/source3" {
+		t.Errorf("Expected source: %s, got %s", "http://example.com/source3", webmentions[1].Source)
+	}
+
 }

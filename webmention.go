@@ -5,14 +5,16 @@ import (
 	"errors"
 	"net/http"
 	"strings"
+	"time"
 
 	"golang.org/x/net/html"
 )
 
 type Webmention struct {
-	Source   string `yaml:"source"`
-	Title    string `yaml:"title"`
-	Approved bool   `yaml:"approved"`
+	Source         string    `yaml:"source"`
+	Title          string    `yaml:"title"`
+	ApprovalStatus string    `yaml:"approval_status"`
+	RetrievedAt    time.Time `yaml:"retrieved_at"`
 }
 
 type HttpRetriever interface {
