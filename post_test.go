@@ -1,6 +1,7 @@
 package owl_test
 
 import (
+	"h4kor/owl-blogs"
 	"os"
 	"path"
 	"strings"
@@ -167,6 +168,27 @@ func TestLoadMeta(t *testing.T) {
 /// Webmention
 ///
 
+func TestPersistWebmention(t *testing.T) {
+	repo := getTestRepo()
+	user, _ := repo.CreateUser("testuser")
+	post, _ := user.CreateNewPost("testpost")
+	webmention := owl.Webmention{
+		Source: "http://example.com/source",
+	}
+	err := post.PersistWebmention(webmention)
+	if err != nil {
+		t.Errorf("Got error: %v", err)
+	}
+	mentions := post.Webmentions()
+	if len(mentions) != 1 {
+		t.Errorf("Expected 1 webmention, got %d", len(mentions))
+	}
+
+	if mentions[0].Source != webmention.Source {
+		t.Errorf("Expected source: %s, got %s", webmention.Source, mentions[0].Source)
+	}
+}
+
 func TestAddWebmentionCreatesFile(t *testing.T) {
 	repo := getTestRepo()
 	repo.Retriever = &MockHttpRetriever{}
@@ -174,13 +196,14 @@ func TestAddWebmentionCreatesFile(t *testing.T) {
 	user, _ := repo.CreateUser("testuser")
 	post, _ := user.CreateNewPost("testpost")
 
-	post.AddWebmention("https://example.com")
-	dir, _ := os.Open(post.WebmentionDir())
-	defer dir.Close()
-	files, _ := dir.Readdirnames(-1)
+	err := post.AddWebmention("https://example.com")
+	if err != nil {
+		t.Errorf("Got Error: %v", err)
+	}
 
-	if len(files) != 1 {
-		t.Error("No file created for webmention")
+	mentions := post.Webmentions()
+	if len(mentions) != 1 {
+		t.Errorf("Expected 1 webmention, got %d", len(mentions))
 	}
 }
 

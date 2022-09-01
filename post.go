@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/base64"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
@@ -147,32 +148,97 @@ func (post *Post) LoadMeta() error {
 	return nil
 }
 
-func (post *Post) AddWebmention(source string) error {
-	// ensure dir exists
-	os.MkdirAll(post.WebmentionDir(), 0755)
+func (post *Post) WebmentionFile(source string) string {
 
 	hash := sha256.Sum256([]byte(source))
 	hashStr := base64.URLEncoding.EncodeToString(hash[:])
-	// Check if file already exists
-	fileName := path.Join(post.WebmentionDir(), hashStr+".yml")
-	if fileExists(fileName) {
-		return nil
-	}
-	data := "source: " + source + "\n"
-	html, err := post.user.repo.Retriever.Get(source)
-	if err == nil {
-		entry, err := post.user.repo.Parser.ParseHEntry(html)
-		if err == nil {
-			data += "title: " + entry.Title + "\n"
-		}
-	}
-
-	return os.WriteFile(fileName, []byte(data), 0644)
+	return path.Join(post.WebmentionDir(), hashStr+".yml")
 }
 
-func (post *Post) Webmentions() []string {
+func (post *Post) PersistWebmention(webmention Webmention) error {
 	// ensure dir exists
 	os.MkdirAll(post.WebmentionDir(), 0755)
 
-	return listDir(post.WebmentionDir())
+	// write to file
+	fileName := post.WebmentionFile(webmention.Source)
+	data, err := yaml.Marshal(webmention)
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(fileName, data, 0644)
+}
+
+func (post *Post) Webmention(source string) (Webmention, error) {
+	// ensure dir exists
+	os.MkdirAll(post.WebmentionDir(), 0755)
+
+	// Check if file exists
+	fileName := post.WebmentionFile(source)
+	if !fileExists(fileName) {
+		// return error if file doesn't exist
+		return Webmention{}, fmt.Errorf("Webmention file not found: %s", source)
+	}
+
+	data, err := os.ReadFile(fileName)
+	if err != nil {
+		return Webmention{}, err
+	}
+
+	mention := Webmention{}
+	err = yaml.Unmarshal(data, &mention)
+	if err != nil {
+		return Webmention{}, err
+	}
+
+	return mention, nil
+}
+
+func (post *Post) AddWebmention(source string) error {
+	// Check if file already exists
+	_, err := post.Webmention(source)
+	if err != nil {
+		webmention := Webmention{
+			Source: source,
+		}
+		defer post.EnrichWebmention(source)
+		return post.PersistWebmention(webmention)
+	}
+	return nil
+}
+
+func (post *Post) EnrichWebmention(source string) error {
+	html, err := post.user.repo.Retriever.Get(source)
+	if err == nil {
+		webmention, err := post.Webmention(source)
+		if err != nil {
+			return err
+		}
+		entry, err := post.user.repo.Parser.ParseHEntry(html)
+		if err == nil {
+			webmention.Title = entry.Title
+			return post.PersistWebmention(webmention)
+		}
+	}
+	return err
+}
+
+func (post *Post) Webmentions() []Webmention {
+	// ensure dir exists
+	os.MkdirAll(post.WebmentionDir(), 0755)
+	files := listDir(post.WebmentionDir())
+	webmentions := []Webmention{}
+	for _, file := range files {
+		data, err := os.ReadFile(path.Join(post.WebmentionDir(), file))
+		if err != nil {
+			continue
+		}
+		mention := Webmention{}
+		err = yaml.Unmarshal(data, &mention)
+		if err != nil {
+			continue
+		}
+		webmentions = append(webmentions, mention)
+	}
+
+	return webmentions
 }
