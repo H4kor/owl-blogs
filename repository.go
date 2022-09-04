@@ -20,8 +20,8 @@ type Repository struct {
 	single_user_mode bool
 	active_user      string
 	allow_raw_html   bool
-	Retriever        HttpRetriever
-	Parser           HttpParser
+	HttpClient       HttpClient
+	Parser           HtmlParser
 }
 
 type RepoConfig struct {
@@ -29,7 +29,7 @@ type RepoConfig struct {
 }
 
 func CreateRepository(name string) (Repository, error) {
-	newRepo := Repository{name: name, Parser: OwlMicroformatParser{}, Retriever: OwlHttpRetriever{}}
+	newRepo := Repository{name: name, Parser: OwlHtmlParser{}, HttpClient: OwlHttpClient{}}
 	// check if repository already exists
 	if dirExists(newRepo.Dir()) {
 		return Repository{}, fmt.Errorf("Repository already exists")
@@ -63,7 +63,7 @@ func CreateRepository(name string) (Repository, error) {
 
 func OpenRepository(name string) (Repository, error) {
 
-	repo := Repository{name: name, Parser: OwlMicroformatParser{}, Retriever: OwlHttpRetriever{}}
+	repo := Repository{name: name, Parser: OwlHtmlParser{}, HttpClient: OwlHttpClient{}}
 	if !dirExists(repo.Dir()) {
 		return Repository{}, fmt.Errorf("Repository does not exist: " + repo.Dir())
 	}

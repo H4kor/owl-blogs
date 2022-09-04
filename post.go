@@ -6,9 +6,11 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"path"
 	"sort"
+	"time"
 
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/extension"
@@ -272,8 +274,28 @@ func (post *Post) AddOutgoingWebmention(target string) error {
 	return post.PersistStatus(status)
 }
 
+func (post *Post) UpdateOutgoingWebmention(webmention *WebmentionOut) error {
+	status := post.Status()
+
+	// if target is not in status, add it
+	replaced := false
+	for i, t := range status.Webmentions {
+		if t.Target == webmention.Target {
+			status.Webmentions[i] = *webmention
+			replaced = true
+			break
+		}
+	}
+
+	if !replaced {
+		status.Webmentions = append(status.Webmentions, *webmention)
+	}
+
+	return post.PersistStatus(status)
+}
+
 func (post *Post) EnrichWebmention(source string) error {
-	html, err := post.user.repo.Retriever.Get(source)
+	html, err := post.user.repo.HttpClient.Get(source)
 	if err == nil {
 		webmention, err := post.Webmention(source)
 		if err != nil {
@@ -344,5 +366,39 @@ func (post *Post) ScanForLinks() error {
 	for _, link := range links {
 		post.AddOutgoingWebmention(link)
 	}
+	return nil
+}
+
+func (post *Post) SendWebmention(webmention WebmentionOut) error {
+	defer post.UpdateOutgoingWebmention(&webmention)
+	webmention.ScannedAt = time.Now()
+
+	html, err := post.user.repo.HttpClient.Get(webmention.Target)
+	if err != nil {
+		// TODO handle error
+		webmention.Supported = false
+		return err
+	}
+	endpoint, err := post.user.repo.Parser.GetWebmentionEndpoint(html)
+	if err != nil {
+		// TODO handle error
+		webmention.Supported = false
+		return err
+	}
+	webmention.Supported = true
+
+	// send webmention
+	payload := url.Values{}
+	payload.Set("source", post.FullUrl())
+	payload.Set("target", webmention.Target)
+	_, err = post.user.repo.HttpClient.Post(endpoint, payload)
+
+	if err != nil {
+		// TODO handle error
+		return err
+	}
+
+	// update webmention status
+	webmention.LastSentAt = time.Now()
 	return nil
 }

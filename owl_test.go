@@ -3,6 +3,7 @@ package owl_test
 import (
 	"h4kor/owl-blogs"
 	"math/rand"
+	"net/url"
 	"time"
 )
 
@@ -16,9 +17,17 @@ func (*MockHttpParser) ParseLinks(data []byte) ([]string, error) {
 	return []string{"http://example.com"}, nil
 }
 
+func (*MockHttpParser) GetWebmentionEndpoint(data []byte) (string, error) {
+	return "http://example.com/webmention", nil
+}
+
 type MockHttpRetriever struct{}
 
 func (*MockHttpRetriever) Get(url string) ([]byte, error) {
+	return []byte(""), nil
+}
+
+func (m *MockHttpRetriever) Post(url string, data url.Values) ([]byte, error) {
 	return []byte(""), nil
 }
 

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -24,24 +25,26 @@ type WebmentionOut struct {
 	LastSentAt time.Time `yaml:"last_sent_at"`
 }
 
-type HttpRetriever interface {
+type HttpClient interface {
 	Get(url string) ([]byte, error)
+	Post(url string, data url.Values) ([]byte, error)
 }
 
-type HttpParser interface {
+type HtmlParser interface {
 	ParseHEntry(data []byte) (ParsedHEntry, error)
 	ParseLinks(data []byte) ([]string, error)
+	GetWebmentionEndpoint(data []byte) (string, error)
 }
 
-type OwlHttpRetriever struct{}
+type OwlHttpClient struct{}
 
-type OwlMicroformatParser struct{}
+type OwlHtmlParser struct{}
 
 type ParsedHEntry struct {
 	Title string
 }
 
-func (OwlHttpRetriever) Get(url string) ([]byte, error) {
+func (OwlHttpClient) Get(url string) ([]byte, error) {
 	resp, err := http.Get(url)
 	if err != nil {
 		return []byte{}, err
@@ -50,6 +53,17 @@ func (OwlHttpRetriever) Get(url string) ([]byte, error) {
 	_, err = resp.Body.Read(data)
 	// TODO: encoding
 	return data, err
+}
+
+func (OwlHttpClient) Post(url string, data url.Values) ([]byte, error) {
+	resp, err := http.Post(url, "application/x-www-form-urlencoded", strings.NewReader(data.Encode()))
+	if err != nil {
+		return []byte{}, err
+	}
+	var respData []byte
+	_, err = resp.Body.Read(respData)
+
+	return respData, err
 }
 
 func collectText(n *html.Node, buf *bytes.Buffer) {
@@ -61,7 +75,7 @@ func collectText(n *html.Node, buf *bytes.Buffer) {
 	}
 }
 
-func (OwlMicroformatParser) ParseHEntry(data []byte) (ParsedHEntry, error) {
+func (OwlHtmlParser) ParseHEntry(data []byte) (ParsedHEntry, error) {
 	doc, err := html.Parse(strings.NewReader(string(data)))
 	if err != nil {
 		return ParsedHEntry{}, err
@@ -104,7 +118,7 @@ func (OwlMicroformatParser) ParseHEntry(data []byte) (ParsedHEntry, error) {
 	return findHFeed(doc)
 }
 
-func (OwlMicroformatParser) ParseLinks(data []byte) ([]string, error) {
+func (OwlHtmlParser) ParseLinks(data []byte) ([]string, error) {
 	doc, err := html.Parse(strings.NewReader(string(data)))
 	if err != nil {
 		return make([]string, 0), err
@@ -128,4 +142,34 @@ func (OwlMicroformatParser) ParseLinks(data []byte) ([]string, error) {
 	}
 	return findLinks(doc)
 
+}
+
+func (OwlHtmlParser) GetWebmentionEndpoint(data []byte) (string, error) {
+	doc, err := html.Parse(strings.NewReader(string(data)))
+	if err != nil {
+		return "", err
+	}
+
+	var findEndpoint func(*html.Node) (string, error)
+	findEndpoint = func(n *html.Node) (string, error) {
+		if n.Type == html.ElementNode && n.Data == "link" {
+			for _, attr := range n.Attr {
+				if attr.Key == "rel" && attr.Val == "webmention" {
+					for _, attr := range n.Attr {
+						if attr.Key == "href" {
+							return attr.Val, nil
+						}
+					}
+				}
+			}
+		}
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			endpoint, err := findEndpoint(c)
+			if err == nil {
+				return endpoint, nil
+			}
+		}
+		return "", errors.New("no webmention endpoint found")
+	}
+	return findEndpoint(doc)
 }

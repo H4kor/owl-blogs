@@ -11,7 +11,7 @@ import (
 
 func TestParseValidHEntry(t *testing.T) {
 	html := []byte("<div class=\"h-entry\"><div class=\"p-name\">Foo</div></div>")
-	parser := &owl.OwlMicroformatParser{}
+	parser := &owl.OwlHtmlParser{}
 	entry, err := parser.ParseHEntry(html)
 
 	if err != nil {
@@ -24,7 +24,7 @@ func TestParseValidHEntry(t *testing.T) {
 
 func TestParseValidHEntryWithoutTitle(t *testing.T) {
 	html := []byte("<div class=\"h-entry\"></div><div class=\"p-name\">Foo</div>")
-	parser := &owl.OwlMicroformatParser{}
+	parser := &owl.OwlHtmlParser{}
 	entry, err := parser.ParseHEntry(html)
 
 	if err != nil {

@@ -192,7 +192,7 @@ func TestPersistWebmention(t *testing.T) {
 
 func TestAddWebmentionCreatesFile(t *testing.T) {
 	repo := getTestRepo()
-	repo.Retriever = &MockHttpRetriever{}
+	repo.HttpClient = &MockHttpRetriever{}
 	repo.Parser = &MockHttpParser{}
 	user, _ := repo.CreateUser("testuser")
 	post, _ := user.CreateNewPost("testpost")
@@ -210,7 +210,7 @@ func TestAddWebmentionCreatesFile(t *testing.T) {
 
 func TestAddWebmentionNotOverwritingFile(t *testing.T) {
 	repo := getTestRepo()
-	repo.Retriever = &MockHttpRetriever{}
+	repo.HttpClient = &MockHttpRetriever{}
 	repo.Parser = &MockHttpParser{}
 	user, _ := repo.CreateUser("testuser")
 	post, _ := user.CreateNewPost("testpost")
@@ -240,7 +240,7 @@ func TestAddWebmentionNotOverwritingFile(t *testing.T) {
 
 func TestAddWebmentionAddsParsedTitle(t *testing.T) {
 	repo := getTestRepo()
-	repo.Retriever = &MockHttpRetriever{}
+	repo.HttpClient = &MockHttpRetriever{}
 	repo.Parser = &MockHttpParser{}
 	user, _ := repo.CreateUser("testuser")
 	post, _ := user.CreateNewPost("testpost")
@@ -350,5 +350,36 @@ func TestScanningForLinksDoesNotAddDuplicates(t *testing.T) {
 	}
 	if webmentions[0].Target != "https://example.com/hello" {
 		t.Errorf("Expected target: %s, got %s", "https://example.com/hello", webmentions[0].Target)
+	}
+}
+
+func TestCanSendWebmention(t *testing.T) {
+	repo := getTestRepo()
+	repo.HttpClient = &MockHttpRetriever{}
+	repo.Parser = &MockHttpParser{}
+	user, _ := repo.CreateUser("testuser")
+	post, _ := user.CreateNewPost("testpost")
+
+	webmention := owl.WebmentionOut{
+		Target: "http://example.com",
+	}
+
+	err := post.SendWebmention(webmention)
+	if err != nil {
+		t.Errorf("Error sending webmention: %v", err)
+	}
+
+	webmentions := post.OutgoingWebmentions()
+
+	if len(webmentions) != 1 {
+		t.Errorf("Expected 1 webmention, got %d", len(webmentions))
+	}
+
+	if webmentions[0].Target != "http://example.com" {
+		t.Errorf("Expected target: %s, got %s", "http://example.com", webmentions[0].Target)
+	}
+
+	if webmentions[0].LastSentAt.IsZero() {
+		t.Errorf("Expected LastSentAt to be set")
 	}
 }
