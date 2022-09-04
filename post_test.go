@@ -173,7 +173,7 @@ func TestPersistWebmention(t *testing.T) {
 	repo := getTestRepo()
 	user, _ := repo.CreateUser("testuser")
 	post, _ := user.CreateNewPost("testpost")
-	webmention := owl.Webmention{
+	webmention := owl.WebmentionIn{
 		Source: "http://example.com/source",
 	}
 	err := post.PersistWebmention(webmention)
@@ -265,25 +265,25 @@ func TestApprovedWebmentions(t *testing.T) {
 	repo := getTestRepo()
 	user, _ := repo.CreateUser("testuser")
 	post, _ := user.CreateNewPost("testpost")
-	webmention := owl.Webmention{
+	webmention := owl.WebmentionIn{
 		Source:         "http://example.com/source",
 		ApprovalStatus: "approved",
 		RetrievedAt:    time.Now(),
 	}
 	post.PersistWebmention(webmention)
-	webmention = owl.Webmention{
+	webmention = owl.WebmentionIn{
 		Source:         "http://example.com/source2",
 		ApprovalStatus: "",
 		RetrievedAt:    time.Now().Add(time.Hour * -1),
 	}
 	post.PersistWebmention(webmention)
-	webmention = owl.Webmention{
+	webmention = owl.WebmentionIn{
 		Source:         "http://example.com/source3",
 		ApprovalStatus: "approved",
 		RetrievedAt:    time.Now().Add(time.Hour * -2),
 	}
 	post.PersistWebmention(webmention)
-	webmention = owl.Webmention{
+	webmention = owl.WebmentionIn{
 		Source:         "http://example.com/source4",
 		ApprovalStatus: "rejected",
 		RetrievedAt:    time.Now().Add(time.Hour * -3),

@@ -10,11 +10,18 @@ import (
 	"golang.org/x/net/html"
 )
 
-type Webmention struct {
+type WebmentionIn struct {
 	Source         string    `yaml:"source"`
 	Title          string    `yaml:"title"`
 	ApprovalStatus string    `yaml:"approval_status"`
 	RetrievedAt    time.Time `yaml:"retrieved_at"`
+}
+
+type WebmentionOut struct {
+	Target     string    `yaml:"target"`
+	Supported  bool      `yaml:"supported"`
+	ScannedAt  time.Time `yaml:"scanned_at"`
+	LastSentAt time.Time `yaml:"last_sent_at"`
 }
 
 type HttpRetriever interface {

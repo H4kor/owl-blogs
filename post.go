@@ -32,6 +32,10 @@ type PostMeta struct {
 	Draft   bool     `yaml:"draft"`
 }
 
+type PostStatus struct {
+	Webmentions []WebmentionOut
+}
+
 func (post Post) Id() string {
 	return post.id
 }
@@ -156,7 +160,7 @@ func (post *Post) WebmentionFile(source string) string {
 	return path.Join(post.WebmentionDir(), hashStr+".yml")
 }
 
-func (post *Post) PersistWebmention(webmention Webmention) error {
+func (post *Post) PersistWebmention(webmention WebmentionIn) error {
 	// ensure dir exists
 	os.MkdirAll(post.WebmentionDir(), 0755)
 
@@ -169,7 +173,7 @@ func (post *Post) PersistWebmention(webmention Webmention) error {
 	return os.WriteFile(fileName, data, 0644)
 }
 
-func (post *Post) Webmention(source string) (Webmention, error) {
+func (post *Post) Webmention(source string) (WebmentionIn, error) {
 	// ensure dir exists
 	os.MkdirAll(post.WebmentionDir(), 0755)
 
@@ -177,18 +181,18 @@ func (post *Post) Webmention(source string) (Webmention, error) {
 	fileName := post.WebmentionFile(source)
 	if !fileExists(fileName) {
 		// return error if file doesn't exist
-		return Webmention{}, fmt.Errorf("Webmention file not found: %s", source)
+		return WebmentionIn{}, fmt.Errorf("Webmention file not found: %s", source)
 	}
 
 	data, err := os.ReadFile(fileName)
 	if err != nil {
-		return Webmention{}, err
+		return WebmentionIn{}, err
 	}
 
-	mention := Webmention{}
+	mention := WebmentionIn{}
 	err = yaml.Unmarshal(data, &mention)
 	if err != nil {
-		return Webmention{}, err
+		return WebmentionIn{}, err
 	}
 
 	return mention, nil
@@ -198,7 +202,7 @@ func (post *Post) AddWebmention(source string) error {
 	// Check if file already exists
 	_, err := post.Webmention(source)
 	if err != nil {
-		webmention := Webmention{
+		webmention := WebmentionIn{
 			Source: source,
 		}
 		defer post.EnrichWebmention(source)
@@ -223,17 +227,17 @@ func (post *Post) EnrichWebmention(source string) error {
 	return err
 }
 
-func (post *Post) Webmentions() []Webmention {
+func (post *Post) Webmentions() []WebmentionIn {
 	// ensure dir exists
 	os.MkdirAll(post.WebmentionDir(), 0755)
 	files := listDir(post.WebmentionDir())
-	webmentions := []Webmention{}
+	webmentions := []WebmentionIn{}
 	for _, file := range files {
 		data, err := os.ReadFile(path.Join(post.WebmentionDir(), file))
 		if err != nil {
 			continue
 		}
-		mention := Webmention{}
+		mention := WebmentionIn{}
 		err = yaml.Unmarshal(data, &mention)
 		if err != nil {
 			continue
@@ -244,9 +248,9 @@ func (post *Post) Webmentions() []Webmention {
 	return webmentions
 }
 
-func (post *Post) ApprovedWebmentions() []Webmention {
+func (post *Post) ApprovedWebmentions() []WebmentionIn {
 	webmentions := post.Webmentions()
-	approved := []Webmention{}
+	approved := []WebmentionIn{}
 	for _, webmention := range webmentions {
 		if webmention.ApprovalStatus == "approved" {
 			approved = append(approved, webmention)
