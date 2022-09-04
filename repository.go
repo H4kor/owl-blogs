@@ -21,7 +21,7 @@ type Repository struct {
 	active_user      string
 	allow_raw_html   bool
 	Retriever        HttpRetriever
-	Parser           MicroformatParser
+	Parser           HttpParser
 }
 
 type RepoConfig struct {

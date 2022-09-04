@@ -28,8 +28,9 @@ type HttpRetriever interface {
 	Get(url string) ([]byte, error)
 }
 
-type MicroformatParser interface {
+type HttpParser interface {
 	ParseHEntry(data []byte) (ParsedHEntry, error)
+	ParseLinks(data []byte) ([]string, error)
 }
 
 type OwlHttpRetriever struct{}
@@ -101,4 +102,30 @@ func (OwlMicroformatParser) ParseHEntry(data []byte) (ParsedHEntry, error) {
 		return ParsedHEntry{}, errors.New("no h-entry found")
 	}
 	return findHFeed(doc)
+}
+
+func (OwlMicroformatParser) ParseLinks(data []byte) ([]string, error) {
+	doc, err := html.Parse(strings.NewReader(string(data)))
+	if err != nil {
+		return make([]string, 0), err
+	}
+
+	var findLinks func(*html.Node) ([]string, error)
+	findLinks = func(n *html.Node) ([]string, error) {
+		links := make([]string, 0)
+		if n.Type == html.ElementNode && n.Data == "a" {
+			for _, attr := range n.Attr {
+				if attr.Key == "href" {
+					links = append(links, attr.Val)
+				}
+			}
+		}
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			childLinks, _ := findLinks(c)
+			links = append(links, childLinks...)
+		}
+		return links, nil
+	}
+	return findLinks(doc)
+
 }

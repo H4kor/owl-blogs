@@ -44,6 +44,10 @@ func (post Post) Dir() string {
 	return path.Join(post.user.Dir(), "public", post.id)
 }
 
+func (post Post) StatusFile() string {
+	return path.Join(post.Dir(), "status.yml")
+}
+
 func (post Post) MediaDir() string {
 	return path.Join(post.Dir(), "media")
 }
@@ -83,6 +87,42 @@ func (post Post) Content() []byte {
 	// read file
 	data, _ := ioutil.ReadFile(post.ContentFile())
 	return data
+}
+
+func (post Post) Status() PostStatus {
+	// read status file
+	// return parsed webmentions
+	fileName := post.StatusFile()
+	if !fileExists(fileName) {
+		return PostStatus{}
+	}
+
+	data, err := os.ReadFile(fileName)
+	if err != nil {
+		return PostStatus{}
+	}
+
+	status := PostStatus{}
+	err = yaml.Unmarshal(data, &status)
+	if err != nil {
+		return PostStatus{}
+	}
+
+	return status
+}
+
+func (post Post) PersistStatus(status PostStatus) error {
+	data, err := yaml.Marshal(status)
+	if err != nil {
+		return err
+	}
+
+	err = os.WriteFile(post.StatusFile(), data, 0644)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (post Post) RenderedContent() bytes.Buffer {
@@ -211,6 +251,27 @@ func (post *Post) AddWebmention(source string) error {
 	return nil
 }
 
+func (post *Post) AddOutgoingWebmention(target string) error {
+	status := post.Status()
+
+	// Check if file already exists
+	_, err := post.Webmention(target)
+	if err != nil {
+		webmention := WebmentionOut{
+			Target: target,
+		}
+		// if target is not in status, add it
+		for _, t := range status.Webmentions {
+			if t.Target == webmention.Target {
+				return nil
+			}
+		}
+		status.Webmentions = append(status.Webmentions, webmention)
+	}
+
+	return post.PersistStatus(status)
+}
+
 func (post *Post) EnrichWebmention(source string) error {
 	html, err := post.user.repo.Retriever.Get(source)
 	if err == nil {
@@ -262,4 +323,26 @@ func (post *Post) ApprovedWebmentions() []WebmentionIn {
 		return approved[i].RetrievedAt.After(approved[j].RetrievedAt)
 	})
 	return approved
+}
+
+func (post *Post) OutgoingWebmentions() []WebmentionOut {
+	status := post.Status()
+	return status.Webmentions
+
+}
+
+// ScanForLinks scans the post content for links and adds them to the
+// `status.yml` file for the post. The links are not scanned by this function.
+func (post *Post) ScanForLinks() error {
+	// this could be done in markdown parsing, but I don't want to
+	// rely on goldmark for this (yet)
+	postHtml, err := renderPostContent(post)
+	if err != nil {
+		return err
+	}
+	links, _ := post.user.repo.Parser.ParseLinks([]byte(postHtml))
+	for _, link := range links {
+		post.AddOutgoingWebmention(link)
+	}
+	return nil
 }

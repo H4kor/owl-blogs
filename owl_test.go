@@ -6,10 +6,14 @@ import (
 	"time"
 )
 
-type MockMicroformatParser struct{}
+type MockHttpParser struct{}
 
-func (*MockMicroformatParser) ParseHEntry(data []byte) (owl.ParsedHEntry, error) {
+func (*MockHttpParser) ParseHEntry(data []byte) (owl.ParsedHEntry, error) {
 	return owl.ParsedHEntry{Title: "Mock Title"}, nil
+}
+
+func (*MockHttpParser) ParseLinks(data []byte) ([]string, error) {
+	return []string{"http://example.com"}, nil
 }
 
 type MockHttpRetriever struct{}

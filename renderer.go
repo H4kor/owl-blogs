@@ -68,13 +68,18 @@ func renderIntoBaseTemplate(user User, data PageContent) (string, error) {
 	return html.String(), nil
 }
 
-func RenderPost(post *Post) (string, error) {
+func renderPostContent(post *Post) (string, error) {
 	buf := post.RenderedContent()
 	postHtml, err := renderEmbedTemplate("embed/post.html", PostRenderData{
 		Title:   post.Title(),
 		Post:    post,
 		Content: template.HTML(buf.String()),
 	})
+	return postHtml, err
+}
+
+func RenderPost(post *Post) (string, error) {
+	postHtml, err := renderPostContent(post)
 	if err != nil {
 		return "", err
 	}
