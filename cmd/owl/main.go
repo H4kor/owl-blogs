@@ -25,6 +25,7 @@ func Execute() {
 func init() {
 
 	rootCmd.PersistentFlags().StringVar(&repoPath, "repo", ".", "Path to the repository to use.")
+	rootCmd.PersistentFlags().StringVar(&user, "user", "", "Username")
 
 }
 
