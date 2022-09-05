@@ -11,8 +11,6 @@ var repoPath string
 var rootCmd = &cobra.Command{
 	Use:   "owl",
 	Short: "Owl Blogs is a not so static blog generator",
-	// Run: func(cmd *cobra.Command, args []string) {
-	// },
 }
 
 func Execute() {
@@ -25,7 +23,7 @@ func Execute() {
 func init() {
 
 	rootCmd.PersistentFlags().StringVar(&repoPath, "repo", ".", "Path to the repository to use.")
-	rootCmd.PersistentFlags().StringVar(&user, "user", "", "Username")
+	rootCmd.PersistentFlags().StringVar(&user, "user", "", "Username. Required for some commands.")
 
 }
 
