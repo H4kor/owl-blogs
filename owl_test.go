@@ -50,13 +50,13 @@ func randomUserName() string {
 }
 
 func getTestUser() owl.User {
-	repo, _ := owl.CreateRepository(testRepoName())
+	repo, _ := owl.CreateRepository(testRepoName(), owl.RepoConfig{})
 	user, _ := repo.CreateUser(randomUserName())
 	return user
 }
 
-func getTestRepo() owl.Repository {
-	repo, _ := owl.CreateRepository(testRepoName())
+func getTestRepo(config owl.RepoConfig) owl.Repository {
+	repo, _ := owl.CreateRepository(testRepoName(), config)
 	return repo
 }
 

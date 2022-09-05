@@ -107,7 +107,7 @@ func TestRenderIndexPageWithBrokenBaseTemplate(t *testing.T) {
 }
 
 func TestRenderUserList(t *testing.T) {
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	repo.CreateUser("user1")
 	repo.CreateUser("user2")
 

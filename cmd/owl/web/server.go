@@ -34,20 +34,10 @@ func SingleUserRouter(repo *owl.Repository) http.Handler {
 	return router
 }
 
-func StartServer(repoPath string, port int, unsafe bool, user string) {
+func StartServer(repoPath string, port int) {
 	var repo owl.Repository
 	var err error
-	if user != "" {
-		println("Single user mode")
-		println("Repository:", repoPath)
-		println("User:", user)
-		repo, err = owl.OpenSingleUserRepo(repoPath, user)
-	} else {
-		println("Multi user mode")
-		println("Repository:", repoPath)
-		repo, err = owl.OpenRepository(repoPath)
-	}
-	repo.SetAllowRawHtml(unsafe)
+	repo, err = owl.OpenRepository(repoPath)
 
 	if err != nil {
 		println("Error opening repository: ", err.Error())
@@ -55,13 +45,12 @@ func StartServer(repoPath string, port int, unsafe bool, user string) {
 	}
 
 	var router http.Handler
-	if user == "" {
-		println("Multi user mode Router used")
-		router = Router(&repo)
-	} else {
-		println("Single user mode Router used")
+	if config, _ := repo.Config(); config.SingleUser != "" {
 		router = SingleUserRouter(&repo)
+	} else {
+		router = Router(&repo)
 	}
+
 	println("Listening on port", port)
 	http.ListenAndServe(":"+strconv.Itoa(port), router)
 

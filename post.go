@@ -144,7 +144,7 @@ func (post Post) RenderedContent() bytes.Buffer {
 	}
 
 	options := goldmark.WithRendererOptions()
-	if post.user.repo.AllowRawHtml() {
+	if config, _ := post.user.repo.Config(); config.AllowRawHtml {
 		options = goldmark.WithRendererOptions(
 			html.WithUnsafe(),
 		)

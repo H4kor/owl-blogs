@@ -12,9 +12,8 @@ import (
 )
 
 func getSingleUserTestRepo() (owl.Repository, owl.User) {
-	repo, _ := owl.CreateRepository(testRepoName())
+	repo, _ := owl.CreateRepository(testRepoName(), owl.RepoConfig{SingleUser: "test-1"})
 	user, _ := repo.CreateUser("test-1")
-	repo.SetSingleUser(user)
 	return repo, user
 }
 

@@ -16,19 +16,18 @@ var base_template string
 var VERSION = "0.0.1"
 
 type Repository struct {
-	name             string
-	single_user_mode bool
-	active_user      string
-	allow_raw_html   bool
-	HttpClient       HttpClient
-	Parser           HtmlParser
+	name       string
+	HttpClient HttpClient
+	Parser     HtmlParser
 }
 
 type RepoConfig struct {
-	Domain string `yaml:"domain"`
+	Domain       string `yaml:"domain"`
+	SingleUser   string `yaml:"single_user"`
+	AllowRawHtml bool   `yaml:"allow_raw_html"`
 }
 
-func CreateRepository(name string) (Repository, error) {
+func CreateRepository(name string, config RepoConfig) (Repository, error) {
 	newRepo := Repository{name: name, Parser: OwlHtmlParser{}, HttpClient: OwlHttpClient{}}
 	// check if repository already exists
 	if dirExists(newRepo.Dir()) {
@@ -38,6 +37,13 @@ func CreateRepository(name string) (Repository, error) {
 	os.Mkdir(newRepo.Dir(), 0755)
 	os.Mkdir(newRepo.UsersDir(), 0755)
 	os.Mkdir(newRepo.StaticDir(), 0755)
+
+	// create config file
+	if config.Domain == "" {
+		config.Domain = "http://localhost:8080"
+	}
+	config_data, _ := yaml.Marshal(config)
+	os.WriteFile(path.Join(newRepo.Dir(), "config.yml"), config_data, 0644)
 
 	// copy all files from static_files embed.FS to StaticDir
 	staticFiles, _ := embed_files.ReadDir("embed/initial/static")
@@ -71,36 +77,6 @@ func OpenRepository(name string) (Repository, error) {
 	return repo, nil
 }
 
-func OpenSingleUserRepo(name string, user_name string) (Repository, error) {
-	repo, err := OpenRepository(name)
-	if err != nil {
-		return Repository{}, err
-	}
-	user, err := repo.GetUser(user_name)
-	if err != nil {
-		return Repository{}, err
-	}
-	repo.SetSingleUser(user)
-	return repo, nil
-}
-
-func (repo Repository) AllowRawHtml() bool {
-	return repo.allow_raw_html
-}
-
-func (repo *Repository) SetAllowRawHtml(allow bool) {
-	repo.allow_raw_html = allow
-}
-
-func (repo *Repository) SetSingleUser(user User) {
-	repo.single_user_mode = true
-	repo.active_user = user.name
-}
-
-func (repo Repository) SingleUserName() string {
-	return repo.active_user
-}
-
 func (repo Repository) Dir() string {
 	return repo.name
 }
@@ -114,7 +90,8 @@ func (repo Repository) UsersDir() string {
 }
 
 func (repo Repository) UserUrlPath(user User) string {
-	if repo.single_user_mode {
+	config, _ := repo.Config()
+	if config.SingleUser != "" {
 		return "/"
 	}
 	return "/user/" + user.name + "/"
@@ -136,8 +113,9 @@ func (repo Repository) Template() (string, error) {
 }
 
 func (repo Repository) Users() ([]User, error) {
-	if repo.single_user_mode {
-		return []User{{repo: &repo, name: repo.active_user}}, nil
+	config, _ := repo.Config()
+	if config.SingleUser != "" {
+		return []User{{repo: &repo, name: config.SingleUser}}, nil
 	}
 
 	userNames := listDir(repo.UsersDir())

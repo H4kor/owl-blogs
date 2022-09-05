@@ -89,7 +89,7 @@ func TestDraftInMetaData(t *testing.T) {
 }
 
 func TestNoRawHTMLIfDisallowedByRepo(t *testing.T) {
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("testuser")
 	post, _ := user.CreateNewPost("testpost")
 	content := "---\n"
@@ -107,8 +107,7 @@ func TestNoRawHTMLIfDisallowedByRepo(t *testing.T) {
 }
 
 func TestRawHTMLIfAllowedByRepo(t *testing.T) {
-	repo := getTestRepo()
-	repo.SetAllowRawHtml(true)
+	repo := getTestRepo(owl.RepoConfig{AllowRawHtml: true})
 	user, _ := repo.CreateUser("testuser")
 	post, _ := user.CreateNewPost("testpost")
 	content := "---\n"
@@ -126,8 +125,7 @@ func TestRawHTMLIfAllowedByRepo(t *testing.T) {
 }
 
 func TestLoadMeta(t *testing.T) {
-	repo := getTestRepo()
-	repo.SetAllowRawHtml(true)
+	repo := getTestRepo(owl.RepoConfig{AllowRawHtml: true})
 	user, _ := repo.CreateUser("testuser")
 	post, _ := user.CreateNewPost("testpost")
 
@@ -170,7 +168,7 @@ func TestLoadMeta(t *testing.T) {
 ///
 
 func TestPersistWebmention(t *testing.T) {
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("testuser")
 	post, _ := user.CreateNewPost("testpost")
 	webmention := owl.WebmentionIn{
@@ -191,7 +189,7 @@ func TestPersistWebmention(t *testing.T) {
 }
 
 func TestAddWebmentionCreatesFile(t *testing.T) {
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	repo.HttpClient = &MockHttpRetriever{}
 	repo.Parser = &MockHttpParser{}
 	user, _ := repo.CreateUser("testuser")
@@ -209,7 +207,7 @@ func TestAddWebmentionCreatesFile(t *testing.T) {
 }
 
 func TestAddWebmentionNotOverwritingFile(t *testing.T) {
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	repo.HttpClient = &MockHttpRetriever{}
 	repo.Parser = &MockHttpParser{}
 	user, _ := repo.CreateUser("testuser")
@@ -239,7 +237,7 @@ func TestAddWebmentionNotOverwritingFile(t *testing.T) {
 }
 
 func TestAddWebmentionAddsParsedTitle(t *testing.T) {
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	repo.HttpClient = &MockHttpRetriever{}
 	repo.Parser = &MockHttpParser{}
 	user, _ := repo.CreateUser("testuser")
@@ -262,7 +260,7 @@ func TestAddWebmentionAddsParsedTitle(t *testing.T) {
 }
 
 func TestApprovedWebmentions(t *testing.T) {
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("testuser")
 	post, _ := user.CreateNewPost("testpost")
 	webmention := owl.WebmentionIn{
@@ -305,7 +303,7 @@ func TestApprovedWebmentions(t *testing.T) {
 }
 
 func TestScanningForLinks(t *testing.T) {
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("testuser")
 	post, _ := user.CreateNewPost("testpost")
 
@@ -328,7 +326,7 @@ func TestScanningForLinks(t *testing.T) {
 }
 
 func TestScanningForLinksDoesNotAddDuplicates(t *testing.T) {
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("testuser")
 	post, _ := user.CreateNewPost("testpost")
 
@@ -354,7 +352,7 @@ func TestScanningForLinksDoesNotAddDuplicates(t *testing.T) {
 }
 
 func TestCanSendWebmention(t *testing.T) {
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	repo.HttpClient = &MockHttpRetriever{}
 	repo.Parser = &MockHttpParser{}
 	user, _ := repo.CreateUser("testuser")

@@ -42,7 +42,7 @@ func assertStatus(t *testing.T, rr *httptest.ResponseRecorder, expStatus int) {
 }
 
 func TestWebmentionHandleAccepts(t *testing.T) {
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("test-1")
 	post, _ := user.CreateNewPost("post-1")
 
@@ -60,7 +60,7 @@ func TestWebmentionHandleAccepts(t *testing.T) {
 
 func TestWebmentionWrittenToPost(t *testing.T) {
 
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("test-1")
 	post, _ := user.CreateNewPost("post-1")
 
@@ -89,7 +89,7 @@ func TestWebmentionWrittenToPost(t *testing.T) {
 // (Most commonly this means checking that the source and target schemes are http or https).
 func TestWebmentionSourceValidation(t *testing.T) {
 
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("test-1")
 	post, _ := user.CreateNewPost("post-1")
 
@@ -106,7 +106,7 @@ func TestWebmentionSourceValidation(t *testing.T) {
 
 func TestWebmentionTargetValidation(t *testing.T) {
 
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("test-1")
 	post, _ := user.CreateNewPost("post-1")
 
@@ -125,7 +125,7 @@ func TestWebmentionTargetValidation(t *testing.T) {
 
 func TestWebmentionSameTargetAndSource(t *testing.T) {
 
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("test-1")
 	post, _ := user.CreateNewPost("post-1")
 
@@ -144,7 +144,7 @@ func TestWebmentionSameTargetAndSource(t *testing.T) {
 // This check SHOULD happen synchronously to reject invalid Webmentions before more in-depth verification begins.
 // What a "valid resource" means is up to the receiver.
 func TestValidationOfTarget(t *testing.T) {
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("test-1")
 	post, _ := user.CreateNewPost("post-1")
 

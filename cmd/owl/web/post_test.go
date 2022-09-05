@@ -1,6 +1,7 @@
 package web_test
 
 import (
+	"h4kor/owl-blogs"
 	main "h4kor/owl-blogs/cmd/owl/web"
 	"net/http"
 	"net/http/httptest"
@@ -9,7 +10,7 @@ import (
 )
 
 func TestPostHandlerReturns404OnDrafts(t *testing.T) {
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("test-1")
 	post, _ := user.CreateNewPost("post-1")
 
