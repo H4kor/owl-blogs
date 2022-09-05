@@ -173,7 +173,7 @@ func TestPersistWebmention(t *testing.T) {
 	repo := getTestRepo()
 	user, _ := repo.CreateUser("testuser")
 	post, _ := user.CreateNewPost("testpost")
-	webmention := owl.Webmention{
+	webmention := owl.WebmentionIn{
 		Source: "http://example.com/source",
 	}
 	err := post.PersistWebmention(webmention)
@@ -192,8 +192,8 @@ func TestPersistWebmention(t *testing.T) {
 
 func TestAddWebmentionCreatesFile(t *testing.T) {
 	repo := getTestRepo()
-	repo.Retriever = &MockHttpRetriever{}
-	repo.Parser = &MockMicroformatParser{}
+	repo.HttpClient = &MockHttpRetriever{}
+	repo.Parser = &MockHttpParser{}
 	user, _ := repo.CreateUser("testuser")
 	post, _ := user.CreateNewPost("testpost")
 
@@ -210,8 +210,8 @@ func TestAddWebmentionCreatesFile(t *testing.T) {
 
 func TestAddWebmentionNotOverwritingFile(t *testing.T) {
 	repo := getTestRepo()
-	repo.Retriever = &MockHttpRetriever{}
-	repo.Parser = &MockMicroformatParser{}
+	repo.HttpClient = &MockHttpRetriever{}
+	repo.Parser = &MockHttpParser{}
 	user, _ := repo.CreateUser("testuser")
 	post, _ := user.CreateNewPost("testpost")
 
@@ -240,8 +240,8 @@ func TestAddWebmentionNotOverwritingFile(t *testing.T) {
 
 func TestAddWebmentionAddsParsedTitle(t *testing.T) {
 	repo := getTestRepo()
-	repo.Retriever = &MockHttpRetriever{}
-	repo.Parser = &MockMicroformatParser{}
+	repo.HttpClient = &MockHttpRetriever{}
+	repo.Parser = &MockHttpParser{}
 	user, _ := repo.CreateUser("testuser")
 	post, _ := user.CreateNewPost("testpost")
 
@@ -265,25 +265,25 @@ func TestApprovedWebmentions(t *testing.T) {
 	repo := getTestRepo()
 	user, _ := repo.CreateUser("testuser")
 	post, _ := user.CreateNewPost("testpost")
-	webmention := owl.Webmention{
+	webmention := owl.WebmentionIn{
 		Source:         "http://example.com/source",
 		ApprovalStatus: "approved",
 		RetrievedAt:    time.Now(),
 	}
 	post.PersistWebmention(webmention)
-	webmention = owl.Webmention{
+	webmention = owl.WebmentionIn{
 		Source:         "http://example.com/source2",
 		ApprovalStatus: "",
 		RetrievedAt:    time.Now().Add(time.Hour * -1),
 	}
 	post.PersistWebmention(webmention)
-	webmention = owl.Webmention{
+	webmention = owl.WebmentionIn{
 		Source:         "http://example.com/source3",
 		ApprovalStatus: "approved",
 		RetrievedAt:    time.Now().Add(time.Hour * -2),
 	}
 	post.PersistWebmention(webmention)
-	webmention = owl.Webmention{
+	webmention = owl.WebmentionIn{
 		Source:         "http://example.com/source4",
 		ApprovalStatus: "rejected",
 		RetrievedAt:    time.Now().Add(time.Hour * -3),
@@ -302,4 +302,84 @@ func TestApprovedWebmentions(t *testing.T) {
 		t.Errorf("Expected source: %s, got %s", "http://example.com/source3", webmentions[1].Source)
 	}
 
+}
+
+func TestScanningForLinks(t *testing.T) {
+	repo := getTestRepo()
+	user, _ := repo.CreateUser("testuser")
+	post, _ := user.CreateNewPost("testpost")
+
+	content := "---\n"
+	content += "title: test\n"
+	content += "date: Wed, 17 Aug 2022 10:50:02 +0000\n"
+	content += "---\n"
+	content += "\n"
+	content += "[Hello](https://example.com/hello)\n"
+	os.WriteFile(post.ContentFile(), []byte(content), 0644)
+
+	post.ScanForLinks()
+	webmentions := post.OutgoingWebmentions()
+	if len(webmentions) != 1 {
+		t.Errorf("Expected 1 webmention, got %d", len(webmentions))
+	}
+	if webmentions[0].Target != "https://example.com/hello" {
+		t.Errorf("Expected target: %s, got %s", "https://example.com/hello", webmentions[0].Target)
+	}
+}
+
+func TestScanningForLinksDoesNotAddDuplicates(t *testing.T) {
+	repo := getTestRepo()
+	user, _ := repo.CreateUser("testuser")
+	post, _ := user.CreateNewPost("testpost")
+
+	content := "---\n"
+	content += "title: test\n"
+	content += "date: Wed, 17 Aug 2022 10:50:02 +0000\n"
+	content += "---\n"
+	content += "\n"
+	content += "[Hello](https://example.com/hello)\n"
+	content += "[Hello](https://example.com/hello)\n"
+	os.WriteFile(post.ContentFile(), []byte(content), 0644)
+
+	post.ScanForLinks()
+	post.ScanForLinks()
+	post.ScanForLinks()
+	webmentions := post.OutgoingWebmentions()
+	if len(webmentions) != 1 {
+		t.Errorf("Expected 1 webmention, got %d", len(webmentions))
+	}
+	if webmentions[0].Target != "https://example.com/hello" {
+		t.Errorf("Expected target: %s, got %s", "https://example.com/hello", webmentions[0].Target)
+	}
+}
+
+func TestCanSendWebmention(t *testing.T) {
+	repo := getTestRepo()
+	repo.HttpClient = &MockHttpRetriever{}
+	repo.Parser = &MockHttpParser{}
+	user, _ := repo.CreateUser("testuser")
+	post, _ := user.CreateNewPost("testpost")
+
+	webmention := owl.WebmentionOut{
+		Target: "http://example.com",
+	}
+
+	err := post.SendWebmention(webmention)
+	if err != nil {
+		t.Errorf("Error sending webmention: %v", err)
+	}
+
+	webmentions := post.OutgoingWebmentions()
+
+	if len(webmentions) != 1 {
+		t.Errorf("Expected 1 webmention, got %d", len(webmentions))
+	}
+
+	if webmentions[0].Target != "http://example.com" {
+		t.Errorf("Expected target: %s, got %s", "http://example.com", webmentions[0].Target)
+	}
+
+	if webmentions[0].LastSentAt.IsZero() {
+		t.Errorf("Expected LastSentAt to be set")
+	}
 }

@@ -162,14 +162,14 @@ func TestRenderPostIncludesRelToWebMention(t *testing.T) {
 func TestRenderPostAddsLinksToApprovedWebmention(t *testing.T) {
 	user := getTestUser()
 	post, _ := user.CreateNewPost("testpost")
-	webmention := owl.Webmention{
+	webmention := owl.WebmentionIn{
 		Source:         "http://example.com/source3",
 		Title:          "Test Title",
 		ApprovalStatus: "approved",
 		RetrievedAt:    time.Now().Add(time.Hour * -2),
 	}
 	post.PersistWebmention(webmention)
-	webmention = owl.Webmention{
+	webmention = owl.WebmentionIn{
 		Source:         "http://example.com/source4",
 		ApprovalStatus: "rejected",
 		RetrievedAt:    time.Now().Add(time.Hour * -3),
