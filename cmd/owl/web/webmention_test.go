@@ -1,8 +1,8 @@
-package main_test
+package web_test
 
 import (
 	"h4kor/owl-blogs"
-	main "h4kor/owl-blogs/cmd/owl-web"
+	main "h4kor/owl-blogs/cmd/owl/web"
 	"net/http"
 	"net/http/httptest"
 	"net/url"

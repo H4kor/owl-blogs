@@ -1,4 +1,4 @@
-package main
+package web
 
 import (
 	"h4kor/owl-blogs"
@@ -34,63 +34,20 @@ func SingleUserRouter(repo *owl.Repository) http.Handler {
 	return router
 }
 
-func main() {
-	println("owl web server")
-	println("Parameters")
-	println("-repo <repo> - Specify the repository to use. Defaults to '.'")
-	println("-port <port> - Specify the port to use, Default is '8080'")
-	println("-user <name> - Start server in single user mode.")
-	println("-unsafe - Allow unsafe html.")
-	var repoName string
-	var port int
-	var singleUserName string
-	var allowRawHTML bool = false
-	for i, arg := range os.Args[0:len(os.Args)] {
-		if arg == "-port" {
-			if i+1 >= len(os.Args) {
-				println("-port requires a port number")
-				os.Exit(1)
-			}
-			port, _ = strconv.Atoi(os.Args[i+1])
-		}
-		if arg == "-repo" {
-			if i+1 >= len(os.Args) {
-				println("-repo requires a repopath")
-				os.Exit(1)
-			}
-			repoName = os.Args[i+1]
-		}
-		if arg == "-user" {
-			if i+1 >= len(os.Args) {
-				println("-user requires a username")
-				os.Exit(1)
-			}
-			singleUserName = os.Args[i+1]
-		}
-		if arg == "-unsafe" {
-			allowRawHTML = true
-		}
-	}
-	if repoName == "" {
-		repoName = "."
-	}
-	if port == 0 {
-		port = 8080
-	}
-
+func StartServer(repoPath string, port int, unsafe bool, user string) {
 	var repo owl.Repository
 	var err error
-	if singleUserName != "" {
+	if user != "" {
 		println("Single user mode")
-		println("Repository:", repoName)
-		println("User:", singleUserName)
-		repo, err = owl.OpenSingleUserRepo(repoName, singleUserName)
+		println("Repository:", repoPath)
+		println("User:", user)
+		repo, err = owl.OpenSingleUserRepo(repoPath, user)
 	} else {
 		println("Multi user mode")
-		println("Repository:", repoName)
-		repo, err = owl.OpenRepository(repoName)
+		println("Repository:", repoPath)
+		repo, err = owl.OpenRepository(repoPath)
 	}
-	repo.SetAllowRawHtml(allowRawHTML)
+	repo.SetAllowRawHtml(unsafe)
 
 	if err != nil {
 		println("Error opening repository: ", err.Error())
@@ -98,7 +55,7 @@ func main() {
 	}
 
 	var router http.Handler
-	if singleUserName == "" {
+	if user == "" {
 		println("Multi user mode Router used")
 		router = Router(&repo)
 	} else {

@@ -1,4 +1,4 @@
-package main
+package web
 
 import (
 	"h4kor/owl-blogs"
