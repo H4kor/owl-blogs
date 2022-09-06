@@ -23,6 +23,9 @@ Each directory in the `/users/` directory of a repository is considered a user.
                 -- This will be rendered as the blog post.
                 -- Must be present for the blog post to be valid.
                 -- All other folders will be ignored
+            \- status.yml
+                -- Used to track various process status related to the post, 
+                -- such as if a webmention was sent.
             \- media/
                 -- Contains all media files used in the blog post.
                 -- All files in this folder will be publicly available
@@ -58,4 +61,15 @@ aliases:
 
 Actual post
 
+```
+
+
+#### status.yml
+
+```
+webmentions:
+     - target: https://example.com/post
+       supported: true
+       scanned_at: 2021-08-13T17:07:00Z
+       last_sent_at: 2021-08-13T17:07:00Z
 ```

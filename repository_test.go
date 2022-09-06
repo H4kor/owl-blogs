@@ -9,7 +9,7 @@ import (
 
 func TestCanCreateRepository(t *testing.T) {
 	repoName := testRepoName()
-	_, err := owl.CreateRepository(repoName)
+	_, err := owl.CreateRepository(repoName, owl.RepoConfig{})
 	if err != nil {
 		t.Error("Error creating repository: ", err.Error())
 	}
@@ -18,8 +18,8 @@ func TestCanCreateRepository(t *testing.T) {
 
 func TestCannotCreateExistingRepository(t *testing.T) {
 	repoName := testRepoName()
-	owl.CreateRepository(repoName)
-	_, err := owl.CreateRepository(repoName)
+	owl.CreateRepository(repoName, owl.RepoConfig{})
+	_, err := owl.CreateRepository(repoName, owl.RepoConfig{})
 	if err == nil {
 		t.Error("No error returned when creating existing repository")
 	}
@@ -27,7 +27,7 @@ func TestCannotCreateExistingRepository(t *testing.T) {
 
 func TestCanCreateANewUser(t *testing.T) {
 	// Create a new user
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser(randomUserName())
 	if _, err := os.Stat(path.Join(user.Dir(), "")); err != nil {
 		t.Error("User directory not created")
@@ -36,7 +36,7 @@ func TestCanCreateANewUser(t *testing.T) {
 
 func TestCannotRecreateExisitingUser(t *testing.T) {
 	// Create a new user
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	userName := randomUserName()
 	repo.CreateUser(userName)
 	_, err := repo.CreateUser(userName)
@@ -47,7 +47,7 @@ func TestCannotRecreateExisitingUser(t *testing.T) {
 
 func TestCreateUserAddsVersionFile(t *testing.T) {
 	// Create a new user
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser(randomUserName())
 	if _, err := os.Stat(path.Join(user.Dir(), "/meta/VERSION")); err != nil {
 		t.Error("Version file not created")
@@ -56,7 +56,7 @@ func TestCreateUserAddsVersionFile(t *testing.T) {
 
 func TestCreateUserAddsBaseHtmlFile(t *testing.T) {
 	// Create a new user
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser(randomUserName())
 	if _, err := os.Stat(path.Join(user.Dir(), "/meta/base.html")); err != nil {
 		t.Error("Base html file not created")
@@ -65,7 +65,7 @@ func TestCreateUserAddsBaseHtmlFile(t *testing.T) {
 
 func TestCreateUserAddConfigYml(t *testing.T) {
 	// Create a new user
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser(randomUserName())
 	if _, err := os.Stat(path.Join(user.Dir(), "/meta/config.yml")); err != nil {
 		t.Error("Config file not created")
@@ -74,7 +74,7 @@ func TestCreateUserAddConfigYml(t *testing.T) {
 
 func TestCreateUserAddsPublicFolder(t *testing.T) {
 	// Create a new user
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser(randomUserName())
 	if _, err := os.Stat(path.Join(user.Dir(), "/public")); err != nil {
 		t.Error("Public folder not created")
@@ -83,7 +83,7 @@ func TestCreateUserAddsPublicFolder(t *testing.T) {
 
 func TestCanListRepoUsers(t *testing.T) {
 	// Create a new user
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	user1, _ := repo.CreateUser(randomUserName())
 	user2, _ := repo.CreateUser(randomUserName())
 	// Create a new post
@@ -101,7 +101,7 @@ func TestCanListRepoUsers(t *testing.T) {
 func TestCanOpenRepository(t *testing.T) {
 	// Create a new user
 	repoName := testRepoName()
-	repo, _ := owl.CreateRepository(repoName)
+	repo, _ := owl.CreateRepository(repoName, owl.RepoConfig{})
 	// Open the repository
 	repo2, err := owl.OpenRepository(repoName)
 	if err != nil {
@@ -121,7 +121,7 @@ func TestCannotOpenNonExisitingRepo(t *testing.T) {
 
 func TestGetUser(t *testing.T) {
 	// Create a new user
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser(randomUserName())
 	// Get the user
 	user2, err := repo.GetUser(user.Name())
@@ -135,7 +135,7 @@ func TestGetUser(t *testing.T) {
 
 func TestCannotGetNonexistingUser(t *testing.T) {
 	// Create a new user
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	_, err := repo.GetUser(randomUserName())
 	if err == nil {
 		t.Error("No error returned when getting non-existing user")
@@ -144,7 +144,7 @@ func TestCannotGetNonexistingUser(t *testing.T) {
 
 func TestGetStaticDirOfRepo(t *testing.T) {
 	// Create a new user
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	// Get the user
 	staticDir := repo.StaticDir()
 	if staticDir == "" {
@@ -154,7 +154,7 @@ func TestGetStaticDirOfRepo(t *testing.T) {
 
 func TestNewRepoGetsStaticFiles(t *testing.T) {
 	// Create a new user
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	if _, err := os.Stat(repo.StaticDir()); err != nil {
 		t.Error("Static directory not found")
 	}
@@ -169,7 +169,7 @@ func TestNewRepoGetsStaticFiles(t *testing.T) {
 
 func TestNewRepoGetsStaticFilesPicoCSSWithContent(t *testing.T) {
 	// Create a new user
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	file, err := os.Open(path.Join(repo.StaticDir(), "pico.min.css"))
 	if err != nil {
 		t.Error("Error opening pico.min.css")
@@ -183,7 +183,7 @@ func TestNewRepoGetsStaticFilesPicoCSSWithContent(t *testing.T) {
 
 func TestNewRepoGetsBaseHtml(t *testing.T) {
 	// Create a new user
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	if _, err := os.Stat(path.Join(repo.Dir(), "/base.html")); err != nil {
 		t.Error("Base html file not found")
 	}
@@ -191,7 +191,7 @@ func TestNewRepoGetsBaseHtml(t *testing.T) {
 
 func TestCanGetRepoTemplate(t *testing.T) {
 	// Create a new user
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	// Get the user
 	template, err := repo.Template()
 	if err != nil {
@@ -206,13 +206,13 @@ func TestCanOpenRepositoryInSingleUserMode(t *testing.T) {
 	// Create a new user
 	repoName := testRepoName()
 	userName := randomUserName()
-	created_repo, _ := owl.CreateRepository(repoName)
+	created_repo, _ := owl.CreateRepository(repoName, owl.RepoConfig{SingleUser: userName})
 	created_repo.CreateUser(userName)
 	created_repo.CreateUser(randomUserName())
 	created_repo.CreateUser(randomUserName())
 
 	// Open the repository
-	repo, _ := owl.OpenSingleUserRepo(repoName, userName)
+	repo, _ := owl.OpenRepository(repoName)
 
 	users, _ := repo.Users()
 	if len(users) != 1 {
@@ -227,11 +227,11 @@ func TestSingleUserRepoUserUrlPathIsSimple(t *testing.T) {
 	// Create a new user
 	repoName := testRepoName()
 	userName := randomUserName()
-	created_repo, _ := owl.CreateRepository(repoName)
+	created_repo, _ := owl.CreateRepository(repoName, owl.RepoConfig{SingleUser: userName})
 	created_repo.CreateUser(userName)
 
 	// Open the repository
-	repo, _ := owl.OpenSingleUserRepo(repoName, userName)
+	repo, _ := owl.OpenRepository(repoName)
 	user, _ := repo.GetUser(userName)
 	if user.UrlPath() != "/" {
 		t.Error("User url is not '/'. Got: ", user.UrlPath())
@@ -239,7 +239,7 @@ func TestSingleUserRepoUserUrlPathIsSimple(t *testing.T) {
 }
 
 func TestCanGetMapWithAllPostAliases(t *testing.T) {
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser(randomUserName())
 	post, _ := user.CreateNewPost("test-1")
 
@@ -276,7 +276,7 @@ func TestCanGetMapWithAllPostAliases(t *testing.T) {
 }
 
 func TestAliasesHaveCorrectPost(t *testing.T) {
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser(randomUserName())
 	post1, _ := user.CreateNewPost("test-1")
 	post2, _ := user.CreateNewPost("test-2")

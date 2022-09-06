@@ -2,20 +2,44 @@ package owl_test
 
 import (
 	"h4kor/owl-blogs"
+	"io"
 	"math/rand"
+	"net/http"
+	"net/url"
 	"time"
 )
 
-type MockMicroformatParser struct{}
+type MockHtmlParser struct{}
 
-func (*MockMicroformatParser) ParseHEntry(data []byte) (owl.ParsedHEntry, error) {
+func (*MockHtmlParser) ParseHEntry(resp *http.Response) (owl.ParsedHEntry, error) {
 	return owl.ParsedHEntry{Title: "Mock Title"}, nil
+
+}
+func (*MockHtmlParser) ParseLinks(resp *http.Response) ([]string, error) {
+	return []string{"http://example.com"}, nil
+
+}
+func (*MockHtmlParser) ParseLinksFromString(string) ([]string, error) {
+	return []string{"http://example.com"}, nil
+
+}
+func (*MockHtmlParser) GetWebmentionEndpoint(resp *http.Response) (string, error) {
+	return "http://example.com/webmention", nil
+
 }
 
-type MockHttpRetriever struct{}
+type MockHttpClient struct{}
 
-func (*MockHttpRetriever) Get(url string) ([]byte, error) {
-	return []byte(""), nil
+func (*MockHttpClient) Get(url string) (resp *http.Response, err error) {
+	return &http.Response{}, nil
+}
+func (*MockHttpClient) Post(url, contentType string, body io.Reader) (resp *http.Response, err error) {
+
+	return &http.Response{}, nil
+}
+func (*MockHttpClient) PostForm(url string, data url.Values) (resp *http.Response, err error) {
+
+	return &http.Response{}, nil
 }
 
 func randomName() string {
@@ -37,13 +61,13 @@ func randomUserName() string {
 }
 
 func getTestUser() owl.User {
-	repo, _ := owl.CreateRepository(testRepoName())
+	repo, _ := owl.CreateRepository(testRepoName(), owl.RepoConfig{})
 	user, _ := repo.CreateUser(randomUserName())
 	return user
 }
 
-func getTestRepo() owl.Repository {
-	repo, _ := owl.CreateRepository(testRepoName())
+func getTestRepo(config owl.RepoConfig) owl.Repository {
+	repo, _ := owl.CreateRepository(testRepoName(), config)
 	return repo
 }
 

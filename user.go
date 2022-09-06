@@ -18,9 +18,10 @@ type User struct {
 }
 
 type UserConfig struct {
-	Title       string `yaml:"title"`
-	SubTitle    string `yaml:"subtitle"`
-	HeaderColor string `yaml:"header_color"`
+	Title         string `yaml:"title"`
+	SubTitle      string `yaml:"subtitle"`
+	HeaderColor   string `yaml:"header_color"`
+	TwitterHandle string `yaml:"twitter_handle"`
 }
 
 func (user User) Dir() string {

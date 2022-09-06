@@ -1,3 +1,6 @@
+##
+## Build Container
+##
 FROM golang:1.19-alpine as build
 
 
@@ -12,9 +15,12 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o ./out/owl-web ./cmd/owl-web
-RUN go build -o ./out/owl-cli ./cmd/owl-cli
+RUN go build -o ./out/owl ./cmd/owl
 
+
+##
+## Run Container
+##
 FROM alpine:3.9 
 RUN apk add ca-certificates
 
@@ -24,4 +30,4 @@ COPY --from=build /tmp/owl/out/ /bin/
 EXPOSE 8080
 
 # Run the binary program produced by `go install`
-CMD ["/bin/owl-web"]
+ENTRYPOINT ["/bin/owl"]

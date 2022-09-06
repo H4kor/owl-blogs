@@ -5,13 +5,19 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ .Title }}</title>
+    <title>{{ .Title }} - {{ .UserConfig.Title }}</title>
     <link rel="stylesheet" href="/static/pico.min.css">
     <link rel="webmention" href="{{ .User.WebmentionUrl }}">
     <style>
         header {
-            background-color: {{.HeaderColor}};
+            background-color: {{.UserConfig.HeaderColor}};
         }
+
+        footer {
+            border-top: dashed 2px;
+            border-color: #ccc;
+        }
+
 
         hgroup h2 a { color: inherit; } 
     </style>
@@ -23,8 +29,8 @@
             <ul>
                 <li>
                     <hgroup>
-                        <h2><a href="{{ .User.UrlPath }}">{{ .UserTitle }}</a></h2>
-                        <h3>{{ .UserSubtitle }}</h3>
+                        <h2><a href="{{ .User.UrlPath }}">{{ .UserConfig.Title }}</a></h2>
+                        <h3>{{ .UserConfig.SubTitle }}</h3>
                     </hgroup>
                 </li>
             </ul>
@@ -35,6 +41,13 @@
         {{ .Content }}
     </main>
     <footer class="container">
+        <nav>
+            <ul>
+                {{ if .UserConfig.TwitterHandle}}
+                <li><a href="https://twitter.com/{{.UserConfig.TwitterHandle}}" rel="me">@{{.UserConfig.TwitterHandle}} on Twitter</a></li>
+                {{ end }}
+            </ul>
+        </nav>
     </footer>
 </body>
 

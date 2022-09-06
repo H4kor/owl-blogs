@@ -25,6 +25,25 @@ func TestCanRenderPost(t *testing.T) {
 
 }
 
+func TestRenderTwitterHandle(t *testing.T) {
+	user := getTestUser()
+	config, _ := user.Config()
+	config.TwitterHandle = "testhandle"
+	user.SetConfig(config)
+	post, _ := user.CreateNewPost("testpost")
+	result, err := owl.RenderPost(&post)
+
+	if err != nil {
+		t.Error("Error rendering post: " + err.Error())
+		return
+	}
+
+	if !strings.Contains(result, "href=\"https://twitter.com/testhandle\" rel=\"me\"") {
+		t.Error("Twitter handle not rendered. Got: " + result)
+	}
+
+}
+
 func TestRenderPostHEntry(t *testing.T) {
 	user := getTestUser()
 	post, _ := user.CreateNewPost("testpost")
@@ -107,7 +126,7 @@ func TestRenderIndexPageWithBrokenBaseTemplate(t *testing.T) {
 }
 
 func TestRenderUserList(t *testing.T) {
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	repo.CreateUser("user1")
 	repo.CreateUser("user2")
 
@@ -162,14 +181,14 @@ func TestRenderPostIncludesRelToWebMention(t *testing.T) {
 func TestRenderPostAddsLinksToApprovedWebmention(t *testing.T) {
 	user := getTestUser()
 	post, _ := user.CreateNewPost("testpost")
-	webmention := owl.Webmention{
+	webmention := owl.WebmentionIn{
 		Source:         "http://example.com/source3",
 		Title:          "Test Title",
 		ApprovalStatus: "approved",
 		RetrievedAt:    time.Now().Add(time.Hour * -2),
 	}
 	post.PersistWebmention(webmention)
-	webmention = owl.Webmention{
+	webmention = owl.WebmentionIn{
 		Source:         "http://example.com/source4",
 		ApprovalStatus: "rejected",
 		RetrievedAt:    time.Now().Add(time.Hour * -3),
@@ -198,4 +217,18 @@ func TestRenderPostNotMentioningWebmentionsIfNoAvail(t *testing.T) {
 		t.Error("Webmention mentioned. Got: " + result)
 	}
 
+}
+
+func TestRenderIncludesFullUrl(t *testing.T) {
+	user := getTestUser()
+	post, _ := user.CreateNewPost("testpost")
+	result, _ := owl.RenderPost(&post)
+
+	if !strings.Contains(result, "class=\"u-url\"") {
+		t.Error("u-url not rendered. Got: " + result)
+	}
+	if !strings.Contains(result, post.FullUrl()) {
+		t.Error("Full url not rendered. Got: " + result)
+		t.Error("Expected: " + post.FullUrl())
+	}
 }

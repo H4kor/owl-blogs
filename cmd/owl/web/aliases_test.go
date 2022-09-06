@@ -1,7 +1,8 @@
-package main_test
+package web_test
 
 import (
-	main "h4kor/owl-blogs/cmd/owl-web"
+	"h4kor/owl-blogs"
+	main "h4kor/owl-blogs/cmd/owl/web"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -9,7 +10,7 @@ import (
 )
 
 func TestRedirectOnAliases(t *testing.T) {
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("test-1")
 	post, _ := user.CreateNewPost("post-1")
 
@@ -47,7 +48,7 @@ func TestRedirectOnAliases(t *testing.T) {
 }
 
 func TestNoRedirectOnNonExistingAliases(t *testing.T) {
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("test-1")
 	post, _ := user.CreateNewPost("post-1")
 
@@ -78,7 +79,7 @@ func TestNoRedirectOnNonExistingAliases(t *testing.T) {
 }
 
 func TestNoRedirectIfValidPostUrl(t *testing.T) {
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("test-1")
 	post, _ := user.CreateNewPost("post-1")
 	post2, _ := user.CreateNewPost("post-2")
@@ -109,7 +110,7 @@ func TestNoRedirectIfValidPostUrl(t *testing.T) {
 }
 
 func TestRedirectIfInvalidPostUrl(t *testing.T) {
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("test-1")
 	post, _ := user.CreateNewPost("post-1")
 
@@ -139,7 +140,7 @@ func TestRedirectIfInvalidPostUrl(t *testing.T) {
 }
 
 func TestRedirectIfInvalidUserUrl(t *testing.T) {
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("test-1")
 	post, _ := user.CreateNewPost("post-1")
 
@@ -169,7 +170,7 @@ func TestRedirectIfInvalidUserUrl(t *testing.T) {
 }
 
 func TestRedirectIfInvalidMediaUrl(t *testing.T) {
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("test-1")
 	post, _ := user.CreateNewPost("post-1")
 
@@ -199,9 +200,8 @@ func TestRedirectIfInvalidMediaUrl(t *testing.T) {
 }
 
 func TestDeepAliasInSingleUserMode(t *testing.T) {
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{SingleUser: "test-1"})
 	user, _ := repo.CreateUser("test-1")
-	repo.SetSingleUser(user)
 	post, _ := user.CreateNewPost("post-1")
 
 	content := "---\n"

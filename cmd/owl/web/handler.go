@@ -1,4 +1,4 @@
-package main
+package web
 
 import (
 	"h4kor/owl-blogs"
@@ -11,8 +11,8 @@ import (
 )
 
 func getUserFromRepo(repo *owl.Repository, ps httprouter.Params) (owl.User, error) {
-	if repo.SingleUserName() != "" {
-		return repo.GetUser(repo.SingleUserName())
+	if config, _ := repo.Config(); config.SingleUser != "" {
+		return repo.GetUser(config.SingleUser)
 	}
 	userName := ps.ByName("user")
 	user, err := repo.GetUser(userName)

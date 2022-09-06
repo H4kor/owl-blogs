@@ -11,7 +11,7 @@ import (
 
 func TestCreateNewPostCreatesEntryInPublic(t *testing.T) {
 	// Create a new user
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser(randomUserName())
 	// Create a new post
 	user.CreateNewPost("testpost")
@@ -26,7 +26,7 @@ func TestCreateNewPostCreatesEntryInPublic(t *testing.T) {
 
 func TestCreateNewPostCreatesMediaDir(t *testing.T) {
 	// Create a new user
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser(randomUserName())
 	// Create a new post
 	post, _ := user.CreateNewPost("testpost")
@@ -49,7 +49,7 @@ func TestCreateNewPostAddsDateToMetaBlock(t *testing.T) {
 
 func TestCreateNewPostMultipleCalls(t *testing.T) {
 	// Create a new user
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser(randomUserName())
 	// Create a new post
 	user.CreateNewPost("testpost")
@@ -66,7 +66,7 @@ func TestCreateNewPostMultipleCalls(t *testing.T) {
 
 func TestCanListUserPosts(t *testing.T) {
 	// Create a new user
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser(randomUserName())
 	// Create a new post
 	user.CreateNewPost("testpost")
@@ -83,7 +83,7 @@ func TestCanListUserPosts(t *testing.T) {
 
 func TestCannotListUserPostsInSubdirectories(t *testing.T) {
 	// Create a new user
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser(randomUserName())
 	// Create a new post
 	user.CreateNewPost("testpost")
@@ -120,7 +120,7 @@ func TestCannotListUserPostsInSubdirectories(t *testing.T) {
 
 func TestCannotListUserPostsWithoutIndexMd(t *testing.T) {
 	// Create a new user
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser(randomUserName())
 	// Create a new post
 	user.CreateNewPost("testpost")
@@ -149,7 +149,7 @@ func TestCannotListUserPostsWithoutIndexMd(t *testing.T) {
 
 func TestListUserPostsDoesNotIncludeDrafts(t *testing.T) {
 	// Create a new user
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser(randomUserName())
 	// Create a new post
 	post, _ := user.CreateNewPost("testpost")
@@ -170,7 +170,7 @@ func TestListUserPostsDoesNotIncludeDrafts(t *testing.T) {
 
 func TestListUsersDraftsExcludedRealWorld(t *testing.T) {
 	// Create a new user
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser(randomUserName())
 	// Create a new post
 	post, _ := user.CreateNewPost("testpost")

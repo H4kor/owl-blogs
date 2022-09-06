@@ -1,8 +1,8 @@
-package main_test
+package web_test
 
 import (
 	"h4kor/owl-blogs"
-	main "h4kor/owl-blogs/cmd/owl-web"
+	main "h4kor/owl-blogs/cmd/owl/web"
 	"math/rand"
 	"net/http"
 	"net/http/httptest"
@@ -27,13 +27,13 @@ func testRepoName() string {
 	return "/tmp/" + randomName()
 }
 
-func getTestRepo() owl.Repository {
-	repo, _ := owl.CreateRepository(testRepoName())
+func getTestRepo(config owl.RepoConfig) owl.Repository {
+	repo, _ := owl.CreateRepository(testRepoName(), config)
 	return repo
 }
 
 func TestMultiUserRepoIndexHandler(t *testing.T) {
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	repo.CreateUser("user_1")
 	repo.CreateUser("user_2")
 
@@ -64,7 +64,7 @@ func TestMultiUserRepoIndexHandler(t *testing.T) {
 }
 
 func TestMultiUserUserIndexHandler(t *testing.T) {
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("test-1")
 	user.CreateNewPost("post-1")
 
@@ -91,7 +91,7 @@ func TestMultiUserUserIndexHandler(t *testing.T) {
 }
 
 func TestMultiUserPostHandler(t *testing.T) {
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("test-1")
 	post, _ := user.CreateNewPost("post-1")
 
@@ -112,7 +112,7 @@ func TestMultiUserPostHandler(t *testing.T) {
 }
 
 func TestMultiUserPostMediaHandler(t *testing.T) {
-	repo := getTestRepo()
+	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("test-1")
 	post, _ := user.CreateNewPost("post-1")
 
