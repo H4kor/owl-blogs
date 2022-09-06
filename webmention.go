@@ -68,6 +68,9 @@ func readResponseBody(resp *http.Response) (string, error) {
 
 func (OwlHtmlParser) ParseHEntry(resp *http.Response) (ParsedHEntry, error) {
 	htmlStr, err := readResponseBody(resp)
+	if err != nil {
+		return ParsedHEntry{}, err
+	}
 	doc, err := html.Parse(strings.NewReader(htmlStr))
 	if err != nil {
 		return ParsedHEntry{}, err
@@ -144,7 +147,27 @@ func (OwlHtmlParser) ParseLinksFromString(htmlStr string) ([]string, error) {
 }
 
 func (OwlHtmlParser) GetWebmentionEndpoint(resp *http.Response) (string, error) {
+	//request url
+	requestUrl := resp.Request.URL
+
+	// Check link headers
+	for _, link := range resp.Header["Link"] {
+		if strings.Contains(link, "rel=\"webmention\"") || strings.Contains(link, "rel=webmention") {
+			link := strings.Split(link, ";")[0]
+			link = strings.Trim(link, "<>")
+			linkUrl, err := url.Parse(link)
+			if err != nil {
+				return "", err
+			}
+			return requestUrl.ResolveReference(linkUrl).String(), nil
+
+		}
+	}
+
 	htmlStr, err := readResponseBody(resp)
+	if err != nil {
+		return "", err
+	}
 	doc, err := html.Parse(strings.NewReader(htmlStr))
 	if err != nil {
 		return "", err
@@ -154,7 +177,7 @@ func (OwlHtmlParser) GetWebmentionEndpoint(resp *http.Response) (string, error) 
 	findEndpoint = func(n *html.Node) (string, error) {
 		if n.Type == html.ElementNode && (n.Data == "link" || n.Data == "a") {
 			for _, attr := range n.Attr {
-				if attr.Key == "rel" && attr.Val == "webmention" {
+				if attr.Key == "rel" && strings.Contains(attr.Val, "webmention") {
 					for _, attr := range n.Attr {
 						if attr.Key == "href" {
 							return attr.Val, nil
@@ -171,5 +194,13 @@ func (OwlHtmlParser) GetWebmentionEndpoint(resp *http.Response) (string, error) 
 		}
 		return "", errors.New("no webmention endpoint found")
 	}
-	return findEndpoint(doc)
+	linkUrlStr, err := findEndpoint(doc)
+	if err != nil {
+		return "", err
+	}
+	linkUrl, err := url.Parse(linkUrlStr)
+	if err != nil {
+		return "", err
+	}
+	return requestUrl.ResolveReference(linkUrl).String(), nil
 }
