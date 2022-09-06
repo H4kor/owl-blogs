@@ -190,8 +190,8 @@ func TestPersistWebmention(t *testing.T) {
 
 func TestAddWebmentionCreatesFile(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
-	repo.HttpClient = &MockHttpRetriever{}
-	repo.Parser = &MockHttpParser{}
+	repo.HttpClient = &MockHttpClient{}
+	repo.Parser = &MockHtmlParser{}
 	user, _ := repo.CreateUser("testuser")
 	post, _ := user.CreateNewPost("testpost")
 
@@ -208,8 +208,8 @@ func TestAddWebmentionCreatesFile(t *testing.T) {
 
 func TestAddWebmentionNotOverwritingFile(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
-	repo.HttpClient = &MockHttpRetriever{}
-	repo.Parser = &MockHttpParser{}
+	repo.HttpClient = &MockHttpClient{}
+	repo.Parser = &MockHtmlParser{}
 	user, _ := repo.CreateUser("testuser")
 	post, _ := user.CreateNewPost("testpost")
 
@@ -238,8 +238,8 @@ func TestAddWebmentionNotOverwritingFile(t *testing.T) {
 
 func TestAddWebmentionAddsParsedTitle(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
-	repo.HttpClient = &MockHttpRetriever{}
-	repo.Parser = &MockHttpParser{}
+	repo.HttpClient = &MockHttpClient{}
+	repo.Parser = &MockHtmlParser{}
 	user, _ := repo.CreateUser("testuser")
 	post, _ := user.CreateNewPost("testpost")
 
@@ -353,8 +353,8 @@ func TestScanningForLinksDoesNotAddDuplicates(t *testing.T) {
 
 func TestCanSendWebmention(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
-	repo.HttpClient = &MockHttpRetriever{}
-	repo.Parser = &MockHttpParser{}
+	repo.HttpClient = &MockHttpClient{}
+	repo.Parser = &MockHtmlParser{}
 	user, _ := repo.CreateUser("testuser")
 	post, _ := user.CreateNewPost("testpost")
 

@@ -2,33 +2,44 @@ package owl_test
 
 import (
 	"h4kor/owl-blogs"
+	"io"
 	"math/rand"
+	"net/http"
 	"net/url"
 	"time"
 )
 
-type MockHttpParser struct{}
+type MockHtmlParser struct{}
 
-func (*MockHttpParser) ParseHEntry(data []byte) (owl.ParsedHEntry, error) {
+func (*MockHtmlParser) ParseHEntry(resp *http.Response) (owl.ParsedHEntry, error) {
 	return owl.ParsedHEntry{Title: "Mock Title"}, nil
-}
 
-func (*MockHttpParser) ParseLinks(data []byte) ([]string, error) {
+}
+func (*MockHtmlParser) ParseLinks(resp *http.Response) ([]string, error) {
 	return []string{"http://example.com"}, nil
-}
 
-func (*MockHttpParser) GetWebmentionEndpoint(data []byte) (string, error) {
+}
+func (*MockHtmlParser) ParseLinksFromString(string) ([]string, error) {
+	return []string{"http://example.com"}, nil
+
+}
+func (*MockHtmlParser) GetWebmentionEndpoint(resp *http.Response) (string, error) {
 	return "http://example.com/webmention", nil
+
 }
 
-type MockHttpRetriever struct{}
+type MockHttpClient struct{}
 
-func (*MockHttpRetriever) Get(url string) ([]byte, error) {
-	return []byte(""), nil
+func (*MockHttpClient) Get(url string) (resp *http.Response, err error) {
+	return &http.Response{}, nil
 }
+func (*MockHttpClient) Post(url, contentType string, body io.Reader) (resp *http.Response, err error) {
 
-func (m *MockHttpRetriever) Post(url string, data url.Values) ([]byte, error) {
-	return []byte(""), nil
+	return &http.Response{}, nil
+}
+func (*MockHttpClient) PostForm(url string, data url.Values) (resp *http.Response, err error) {
+
+	return &http.Response{}, nil
 }
 
 func randomName() string {

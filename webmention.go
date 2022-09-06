@@ -3,7 +3,6 @@ package owl
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -28,17 +27,19 @@ type WebmentionOut struct {
 }
 
 type HttpClient interface {
-	Get(url string) ([]byte, error)
-	Post(url string, data url.Values) ([]byte, error)
+	Get(url string) (resp *http.Response, err error)
+	Post(url, contentType string, body io.Reader) (resp *http.Response, err error)
+	PostForm(url string, data url.Values) (resp *http.Response, err error)
 }
 
 type HtmlParser interface {
-	ParseHEntry(data []byte) (ParsedHEntry, error)
-	ParseLinks(data []byte) ([]string, error)
-	GetWebmentionEndpoint(data []byte) (string, error)
+	ParseHEntry(resp *http.Response) (ParsedHEntry, error)
+	ParseLinks(resp *http.Response) ([]string, error)
+	ParseLinksFromString(string) ([]string, error)
+	GetWebmentionEndpoint(resp *http.Response) (string, error)
 }
 
-type OwlHttpClient struct{}
+type OwlHttpClient = http.Client
 
 type OwlHtmlParser struct{}
 
@@ -46,30 +47,8 @@ type ParsedHEntry struct {
 	Title string
 }
 
-func (OwlHttpClient) Get(url string) ([]byte, error) {
-	resp, err := http.Get(url)
-
-	if resp.StatusCode < 200 || resp.StatusCode > 299 {
-		return make([]byte, 0), errors.New("Failed to get url. Status code: " + fmt.Sprint(resp.StatusCode))
-	}
-
-	if err != nil {
-		return []byte{}, err
-	}
-	defer resp.Body.Close()
-	return io.ReadAll(resp.Body)
-}
-
-func (OwlHttpClient) Post(url string, data url.Values) ([]byte, error) {
-	resp, err := http.Post(url, "application/x-www-form-urlencoded", strings.NewReader(data.Encode()))
-	if err != nil {
-		return []byte{}, err
-	}
-	defer resp.Body.Close()
-	return io.ReadAll(resp.Body)
-}
-
 func collectText(n *html.Node, buf *bytes.Buffer) {
+
 	if n.Type == html.TextNode {
 		buf.WriteString(n.Data)
 	}
@@ -78,8 +57,18 @@ func collectText(n *html.Node, buf *bytes.Buffer) {
 	}
 }
 
-func (OwlHtmlParser) ParseHEntry(data []byte) (ParsedHEntry, error) {
-	doc, err := html.Parse(strings.NewReader(string(data)))
+func readResponseBody(resp *http.Response) (string, error) {
+	defer resp.Body.Close()
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	return string(bodyBytes), nil
+}
+
+func (OwlHtmlParser) ParseHEntry(resp *http.Response) (ParsedHEntry, error) {
+	htmlStr, err := readResponseBody(resp)
+	doc, err := html.Parse(strings.NewReader(htmlStr))
 	if err != nil {
 		return ParsedHEntry{}, err
 	}
@@ -121,8 +110,16 @@ func (OwlHtmlParser) ParseHEntry(data []byte) (ParsedHEntry, error) {
 	return findHFeed(doc)
 }
 
-func (OwlHtmlParser) ParseLinks(data []byte) ([]string, error) {
-	doc, err := html.Parse(strings.NewReader(string(data)))
+func (OwlHtmlParser) ParseLinks(resp *http.Response) ([]string, error) {
+	htmlStr, err := readResponseBody(resp)
+	if err != nil {
+		return []string{}, err
+	}
+	return OwlHtmlParser{}.ParseLinksFromString(htmlStr)
+}
+
+func (OwlHtmlParser) ParseLinksFromString(htmlStr string) ([]string, error) {
+	doc, err := html.Parse(strings.NewReader(htmlStr))
 	if err != nil {
 		return make([]string, 0), err
 	}
@@ -144,11 +141,11 @@ func (OwlHtmlParser) ParseLinks(data []byte) ([]string, error) {
 		return links, nil
 	}
 	return findLinks(doc)
-
 }
 
-func (OwlHtmlParser) GetWebmentionEndpoint(data []byte) (string, error) {
-	doc, err := html.Parse(strings.NewReader(string(data)))
+func (OwlHtmlParser) GetWebmentionEndpoint(resp *http.Response) (string, error) {
+	htmlStr, err := readResponseBody(resp)
+	doc, err := html.Parse(strings.NewReader(htmlStr))
 	if err != nil {
 		return "", err
 	}

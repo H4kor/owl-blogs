@@ -28,7 +28,7 @@ type RepoConfig struct {
 }
 
 func CreateRepository(name string, config RepoConfig) (Repository, error) {
-	newRepo := Repository{name: name, Parser: OwlHtmlParser{}, HttpClient: OwlHttpClient{}}
+	newRepo := Repository{name: name, Parser: OwlHtmlParser{}, HttpClient: &OwlHttpClient{}}
 	// check if repository already exists
 	if dirExists(newRepo.Dir()) {
 		return Repository{}, fmt.Errorf("Repository already exists")
@@ -69,7 +69,7 @@ func CreateRepository(name string, config RepoConfig) (Repository, error) {
 
 func OpenRepository(name string) (Repository, error) {
 
-	repo := Repository{name: name, Parser: OwlHtmlParser{}, HttpClient: OwlHttpClient{}}
+	repo := Repository{name: name, Parser: OwlHtmlParser{}, HttpClient: &OwlHttpClient{}}
 	if !dirExists(repo.Dir()) {
 		return Repository{}, fmt.Errorf("Repository does not exist: " + repo.Dir())
 	}

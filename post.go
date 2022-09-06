@@ -295,13 +295,13 @@ func (post *Post) UpdateOutgoingWebmention(webmention *WebmentionOut) error {
 }
 
 func (post *Post) EnrichWebmention(source string) error {
-	html, err := post.user.repo.HttpClient.Get(source)
+	resp, err := post.user.repo.HttpClient.Get(source)
 	if err == nil {
 		webmention, err := post.Webmention(source)
 		if err != nil {
 			return err
 		}
-		entry, err := post.user.repo.Parser.ParseHEntry(html)
+		entry, err := post.user.repo.Parser.ParseHEntry(resp)
 		if err == nil {
 			webmention.Title = entry.Title
 			return post.PersistWebmention(webmention)
@@ -359,7 +359,7 @@ func (post *Post) ScanForLinks() error {
 	// this could be done in markdown parsing, but I don't want to
 	// rely on goldmark for this (yet)
 	postHtml := post.RenderedContent()
-	links, _ := post.user.repo.Parser.ParseLinks(postHtml.Bytes())
+	links, _ := post.user.repo.Parser.ParseLinksFromString(string(postHtml.Bytes()))
 	for _, link := range links {
 		post.AddOutgoingWebmention(link)
 	}
@@ -370,13 +370,13 @@ func (post *Post) SendWebmention(webmention WebmentionOut) error {
 	defer post.UpdateOutgoingWebmention(&webmention)
 	webmention.ScannedAt = time.Now()
 
-	html, err := post.user.repo.HttpClient.Get(webmention.Target)
+	resp, err := post.user.repo.HttpClient.Get(webmention.Target)
 	if err != nil {
 		webmention.Supported = false
 		return err
 	}
 
-	endpoint, err := post.user.repo.Parser.GetWebmentionEndpoint(html)
+	endpoint, err := post.user.repo.Parser.GetWebmentionEndpoint(resp)
 	if err != nil {
 		webmention.Supported = false
 		return err
@@ -387,7 +387,7 @@ func (post *Post) SendWebmention(webmention WebmentionOut) error {
 	payload := url.Values{}
 	payload.Set("source", post.FullUrl())
 	payload.Set("target", webmention.Target)
-	_, err = post.user.repo.HttpClient.Post(endpoint, payload)
+	_, err = post.user.repo.HttpClient.PostForm(endpoint, payload)
 
 	if err != nil {
 		return err
