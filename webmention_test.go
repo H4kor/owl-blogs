@@ -103,6 +103,23 @@ func TestGetWebmentionEndpointLinkHeader(t *testing.T) {
 	}
 }
 
+func TestGetWebmentionEndpointLinkHeaderCommas(t *testing.T) {
+	html := []byte("")
+	parser := &owl.OwlHtmlParser{}
+	resp := constructResponse(html)
+	resp.Header = http.Header{
+		"Link": []string{"<https://webmention.rocks/test/19/webmention/error>; rel=\"other\", <https://webmention.rocks/test/19/webmention>; rel=\"webmention\""},
+	}
+	endpoint, err := parser.GetWebmentionEndpoint(resp)
+
+	if err != nil {
+		t.Errorf("Unable to parse feed: %v", err)
+	}
+	if endpoint != "https://webmention.rocks/test/19/webmention" {
+		t.Errorf("Wrong endpoint. Expected %v, got %v", "https://webmention.rocks/test/19/webmention", endpoint)
+	}
+}
+
 func TestGetWebmentionEndpointRelativeLink(t *testing.T) {
 	html := []byte("<link rel=\"webmention\" href=\"/webmention\" />")
 	parser := &owl.OwlHtmlParser{}

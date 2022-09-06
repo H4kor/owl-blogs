@@ -151,16 +151,26 @@ func (OwlHtmlParser) GetWebmentionEndpoint(resp *http.Response) (string, error) 
 	requestUrl := resp.Request.URL
 
 	// Check link headers
-	for _, link := range resp.Header["Link"] {
-		if strings.Contains(link, "rel=\"webmention\"") || strings.Contains(link, "rel=webmention") {
-			link := strings.Split(link, ";")[0]
-			link = strings.Trim(link, "<>")
-			linkUrl, err := url.Parse(link)
-			if err != nil {
-				return "", err
+	for _, linkHeader := range resp.Header["Link"] {
+		linkHeaderParts := strings.Split(linkHeader, ",")
+		for _, linkHeaderPart := range linkHeaderParts {
+			linkHeaderPart = strings.TrimSpace(linkHeaderPart)
+			params := strings.Split(linkHeaderPart, ";")
+			if len(params) != 2 {
+				continue
 			}
-			return requestUrl.ResolveReference(linkUrl).String(), nil
-
+			for _, param := range params[1:] {
+				param = strings.TrimSpace(param)
+				if strings.Contains(param, "webmention") {
+					link := strings.Split(params[0], ";")[0]
+					link = strings.Trim(link, "<>")
+					linkUrl, err := url.Parse(link)
+					if err != nil {
+						return "", err
+					}
+					return requestUrl.ResolveReference(linkUrl).String(), nil
+				}
+			}
 		}
 	}
 
