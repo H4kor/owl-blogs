@@ -375,13 +375,12 @@ func (post *Post) SendWebmention(webmention WebmentionOut) error {
 
 	html, err := post.user.repo.HttpClient.Get(webmention.Target)
 	if err != nil {
-		// TODO handle error
 		webmention.Supported = false
 		return err
 	}
+
 	endpoint, err := post.user.repo.Parser.GetWebmentionEndpoint(html)
 	if err != nil {
-		// TODO handle error
 		webmention.Supported = false
 		return err
 	}
@@ -394,7 +393,6 @@ func (post *Post) SendWebmention(webmention WebmentionOut) error {
 	_, err = post.user.repo.HttpClient.Post(endpoint, payload)
 
 	if err != nil {
-		// TODO handle error
 		return err
 	}
 

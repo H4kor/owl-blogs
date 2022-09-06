@@ -3,6 +3,8 @@ package owl
 import (
 	"bytes"
 	"errors"
+	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -46,13 +48,16 @@ type ParsedHEntry struct {
 
 func (OwlHttpClient) Get(url string) ([]byte, error) {
 	resp, err := http.Get(url)
+
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
+		return make([]byte, 0), errors.New("Failed to get url. Status code: " + fmt.Sprint(resp.StatusCode))
+	}
+
 	if err != nil {
 		return []byte{}, err
 	}
-	var data []byte
-	_, err = resp.Body.Read(data)
-	// TODO: encoding
-	return data, err
+	defer resp.Body.Close()
+	return io.ReadAll(resp.Body)
 }
 
 func (OwlHttpClient) Post(url string, data url.Values) ([]byte, error) {
@@ -60,10 +65,8 @@ func (OwlHttpClient) Post(url string, data url.Values) ([]byte, error) {
 	if err != nil {
 		return []byte{}, err
 	}
-	var respData []byte
-	_, err = resp.Body.Read(respData)
-
-	return respData, err
+	defer resp.Body.Close()
+	return io.ReadAll(resp.Body)
 }
 
 func collectText(n *html.Node, buf *bytes.Buffer) {
@@ -152,7 +155,7 @@ func (OwlHtmlParser) GetWebmentionEndpoint(data []byte) (string, error) {
 
 	var findEndpoint func(*html.Node) (string, error)
 	findEndpoint = func(n *html.Node) (string, error) {
-		if n.Type == html.ElementNode && n.Data == "link" {
+		if n.Type == html.ElementNode && (n.Data == "link" || n.Data == "a") {
 			for _, attr := range n.Attr {
 				if attr.Key == "rel" && attr.Val == "webmention" {
 					for _, attr := range n.Attr {
