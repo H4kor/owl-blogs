@@ -75,6 +75,19 @@ func TestGetWebmentionEndpointLinkA(t *testing.T) {
 	}
 }
 
+func TestGetWebmentionEndpointLinkAFakeWebmention(t *testing.T) {
+	html := []byte("<a rel=\"not-webmention\" href=\"http://example.com/foo\" /><a rel=\"webmention\" href=\"http://example.com/webmention\" />")
+	parser := &owl.OwlHtmlParser{}
+	endpoint, err := parser.GetWebmentionEndpoint(constructResponse(html))
+
+	if err != nil {
+		t.Errorf("Unable to parse feed: %v", err)
+	}
+	if endpoint != "http://example.com/webmention" {
+		t.Errorf("Wrong endpoint. Expected %v, got %v", "http://example.com/webmention", endpoint)
+	}
+}
+
 func TestGetWebmentionEndpointLinkHeader(t *testing.T) {
 	html := []byte("")
 	parser := &owl.OwlHtmlParser{}

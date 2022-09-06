@@ -177,10 +177,15 @@ func (OwlHtmlParser) GetWebmentionEndpoint(resp *http.Response) (string, error) 
 	findEndpoint = func(n *html.Node) (string, error) {
 		if n.Type == html.ElementNode && (n.Data == "link" || n.Data == "a") {
 			for _, attr := range n.Attr {
-				if attr.Key == "rel" && strings.Contains(attr.Val, "webmention") {
-					for _, attr := range n.Attr {
-						if attr.Key == "href" {
-							return attr.Val, nil
+				if attr.Key == "rel" {
+					vals := strings.Split(attr.Val, " ")
+					for _, val := range vals {
+						if val == "webmention" {
+							for _, attr := range n.Attr {
+								if attr.Key == "href" {
+									return attr.Val, nil
+								}
+							}
 						}
 					}
 				}
