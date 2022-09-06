@@ -25,6 +25,25 @@ func TestCanRenderPost(t *testing.T) {
 
 }
 
+func TestRenderTwitterHandle(t *testing.T) {
+	user := getTestUser()
+	config, _ := user.Config()
+	config.TwitterHandle = "testhandle"
+	user.SetConfig(config)
+	post, _ := user.CreateNewPost("testpost")
+	result, err := owl.RenderPost(&post)
+
+	if err != nil {
+		t.Error("Error rendering post: " + err.Error())
+		return
+	}
+
+	if !strings.Contains(result, "href=\"https://twitter.com/testhandle\" rel=\"me\"") {
+		t.Error("Twitter handle not rendered. Got: " + result)
+	}
+
+}
+
 func TestRenderPostHEntry(t *testing.T) {
 	user := getTestUser()
 	post, _ := user.CreateNewPost("testpost")

@@ -50,16 +50,14 @@ func renderIntoBaseTemplate(user User, data PageContent) (string, error) {
 		Title        string
 		Content      template.HTML
 		User         User
-		UserTitle    string
+		UserConfig   UserConfig
 		UserSubtitle string
 		HeaderColor  string
 	}{
-		Title:        data.Title,
-		Content:      data.Content,
-		User:         user,
-		UserTitle:    user_config.Title,
-		UserSubtitle: user_config.SubTitle,
-		HeaderColor:  user_config.HeaderColor,
+		Title:      data.Title,
+		Content:    data.Content,
+		User:       user,
+		UserConfig: user_config,
 	}
 
 	var html bytes.Buffer
