@@ -199,3 +199,17 @@ func TestRenderPostNotMentioningWebmentionsIfNoAvail(t *testing.T) {
 	}
 
 }
+
+func TestRenderIncludesFullUrl(t *testing.T) {
+	user := getTestUser()
+	post, _ := user.CreateNewPost("testpost")
+	result, _ := owl.RenderPost(&post)
+
+	if !strings.Contains(result, "class=\"u-url\"") {
+		t.Error("u-url not rendered. Got: " + result)
+	}
+	if !strings.Contains(result, post.FullUrl()) {
+		t.Error("Full url not rendered. Got: " + result)
+		t.Error("Expected: " + post.FullUrl())
+	}
+}

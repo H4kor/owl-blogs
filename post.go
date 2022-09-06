@@ -358,11 +358,8 @@ func (post *Post) OutgoingWebmentions() []WebmentionOut {
 func (post *Post) ScanForLinks() error {
 	// this could be done in markdown parsing, but I don't want to
 	// rely on goldmark for this (yet)
-	postHtml, err := renderPostContent(post)
-	if err != nil {
-		return err
-	}
-	links, _ := post.user.repo.Parser.ParseLinks([]byte(postHtml))
+	postHtml := post.RenderedContent()
+	links, _ := post.user.repo.Parser.ParseLinks(postHtml.Bytes())
 	for _, link := range links {
 		post.AddOutgoingWebmention(link)
 	}
