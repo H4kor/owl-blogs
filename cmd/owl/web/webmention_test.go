@@ -75,7 +75,7 @@ func TestWebmentionWrittenToPost(t *testing.T) {
 	// Check the status code is what we expect.
 	assertStatus(t, rr, http.StatusAccepted)
 
-	if len(post.Webmentions()) != 1 {
+	if len(post.IncomingWebmentions()) != 1 {
 		t.Errorf("no webmention written to post")
 	}
 }

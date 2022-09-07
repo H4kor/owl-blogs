@@ -187,13 +187,13 @@ func TestRenderPostAddsLinksToApprovedWebmention(t *testing.T) {
 		ApprovalStatus: "approved",
 		RetrievedAt:    time.Now().Add(time.Hour * -2),
 	}
-	post.PersistWebmention(webmention)
+	post.PersistIncomingWebmention(webmention)
 	webmention = owl.WebmentionIn{
 		Source:         "http://example.com/source4",
 		ApprovalStatus: "rejected",
 		RetrievedAt:    time.Now().Add(time.Hour * -3),
 	}
-	post.PersistWebmention(webmention)
+	post.PersistIncomingWebmention(webmention)
 
 	result, _ := owl.RenderPost(&post)
 	if !strings.Contains(result, "http://example.com/source3") {

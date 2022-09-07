@@ -116,7 +116,7 @@ func userWebmentionHandler(repo *owl.Repository) func(http.ResponseWriter, *http
 			w.Write([]byte("Post not found"))
 			return
 		}
-		err = post.AddWebmention(source[0])
+		err = post.AddIncomingWebmention(source[0])
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("Unable to process webmention"))

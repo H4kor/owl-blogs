@@ -2,9 +2,7 @@ package owl
 
 import (
 	"bytes"
-	"crypto/sha256"
-	"encoding/base64"
-	"fmt"
+	"errors"
 	"io/ioutil"
 	"net/url"
 	"os"
@@ -34,8 +32,9 @@ type PostMeta struct {
 	Draft   bool     `yaml:"draft"`
 }
 
-type PostStatus struct {
-	Webmentions []WebmentionOut
+type PostWebmetions struct {
+	Incoming []WebmentionIn  `ymal:"incoming"`
+	Outgoing []WebmentionOut `ymal:"outgoing"`
 }
 
 func (post Post) Id() string {
@@ -46,16 +45,12 @@ func (post Post) Dir() string {
 	return path.Join(post.user.Dir(), "public", post.id)
 }
 
-func (post Post) StatusFile() string {
-	return path.Join(post.Dir(), "status.yml")
+func (post Post) WebmentionsFile() string {
+	return path.Join(post.Dir(), "webmentions.yml")
 }
 
 func (post Post) MediaDir() string {
 	return path.Join(post.Dir(), "media")
-}
-
-func (post Post) WebmentionDir() string {
-	return path.Join(post.Dir(), "webmention")
 }
 
 func (post Post) UrlPath() string {
@@ -91,35 +86,35 @@ func (post Post) Content() []byte {
 	return data
 }
 
-func (post Post) Status() PostStatus {
+func (post Post) Webmentions() PostWebmetions {
 	// read status file
 	// return parsed webmentions
-	fileName := post.StatusFile()
+	fileName := post.WebmentionsFile()
 	if !fileExists(fileName) {
-		return PostStatus{}
+		return PostWebmetions{}
 	}
 
 	data, err := os.ReadFile(fileName)
 	if err != nil {
-		return PostStatus{}
+		return PostWebmetions{}
 	}
 
-	status := PostStatus{}
-	err = yaml.Unmarshal(data, &status)
+	webmentions := PostWebmetions{}
+	err = yaml.Unmarshal(data, &webmentions)
 	if err != nil {
-		return PostStatus{}
+		return PostWebmetions{}
 	}
 
-	return status
+	return webmentions
 }
 
-func (post Post) PersistStatus(status PostStatus) error {
-	data, err := yaml.Marshal(status)
+func (post Post) PersistWebmentions(webmentions PostWebmetions) error {
+	data, err := yaml.Marshal(webmentions)
 	if err != nil {
 		return err
 	}
 
-	err = os.WriteFile(post.StatusFile(), data, 0644)
+	err = os.WriteFile(post.WebmentionsFile(), data, 0644)
 	if err != nil {
 		return err
 	}
@@ -195,103 +190,85 @@ func (post *Post) LoadMeta() error {
 	return nil
 }
 
-func (post *Post) WebmentionFile(source string) string {
-
-	hash := sha256.Sum256([]byte(source))
-	hashStr := base64.URLEncoding.EncodeToString(hash[:])
-	return path.Join(post.WebmentionDir(), hashStr+".yml")
-}
-
-func (post *Post) PersistWebmention(webmention WebmentionIn) error {
-	// ensure dir exists
-	os.MkdirAll(post.WebmentionDir(), 0755)
-
-	// write to file
-	fileName := post.WebmentionFile(webmention.Source)
-	data, err := yaml.Marshal(webmention)
-	if err != nil {
-		return err
-	}
-	return os.WriteFile(fileName, data, 0644)
-}
-
-func (post *Post) Webmention(source string) (WebmentionIn, error) {
-	// ensure dir exists
-	os.MkdirAll(post.WebmentionDir(), 0755)
-
-	// Check if file exists
-	fileName := post.WebmentionFile(source)
-	if !fileExists(fileName) {
-		// return error if file doesn't exist
-		return WebmentionIn{}, fmt.Errorf("Webmention file not found: %s", source)
-	}
-
-	data, err := os.ReadFile(fileName)
-	if err != nil {
-		return WebmentionIn{}, err
-	}
-
-	mention := WebmentionIn{}
-	err = yaml.Unmarshal(data, &mention)
-	if err != nil {
-		return WebmentionIn{}, err
-	}
-
-	return mention, nil
-}
-
-func (post *Post) AddWebmention(source string) error {
-	// Check if file already exists
-	_, err := post.Webmention(source)
-	if err != nil {
-		webmention := WebmentionIn{
-			Source: source,
-		}
-		defer post.EnrichWebmention(source)
-		return post.PersistWebmention(webmention)
-	}
-	return nil
-}
-
-func (post *Post) AddOutgoingWebmention(target string) error {
-	status := post.Status()
-
-	// Check if file already exists
-	_, err := post.Webmention(target)
-	if err != nil {
-		webmention := WebmentionOut{
-			Target: target,
-		}
-		// if target is not in status, add it
-		for _, t := range status.Webmentions {
-			if t.Target == webmention.Target {
-				return nil
-			}
-		}
-		status.Webmentions = append(status.Webmentions, webmention)
-	}
-
-	return post.PersistStatus(status)
-}
-
-func (post *Post) UpdateOutgoingWebmention(webmention *WebmentionOut) error {
-	status := post.Status()
+func (post *Post) PersistIncomingWebmention(webmention WebmentionIn) error {
+	wms := post.Webmentions()
 
 	// if target is not in status, add it
 	replaced := false
-	for i, t := range status.Webmentions {
-		if t.Target == webmention.Target {
-			status.Webmentions[i] = *webmention
+	for i, t := range wms.Incoming {
+		if t.Source == webmention.Source {
+			wms.Incoming[i] = webmention
 			replaced = true
 			break
 		}
 	}
 
 	if !replaced {
-		status.Webmentions = append(status.Webmentions, *webmention)
+		wms.Incoming = append(wms.Incoming, webmention)
 	}
 
-	return post.PersistStatus(status)
+	return post.PersistWebmentions(wms)
+}
+
+func (post *Post) Webmention(source string) (WebmentionIn, error) {
+	wms := post.Webmentions()
+	for _, wm := range wms.Incoming {
+		if wm.Source == source {
+			return wm, nil
+		}
+	}
+	return WebmentionIn{}, errors.New("not found")
+}
+
+func (post *Post) AddIncomingWebmention(source string) error {
+	// Check if file already exists
+	_, err := post.Webmention(source)
+	if err != nil {
+		wms := post.Webmentions()
+		wms.Incoming = append(wms.Incoming, WebmentionIn{
+			Source: source,
+		})
+		defer post.EnrichWebmention(source)
+		return post.PersistWebmentions(wms)
+	}
+	return nil
+}
+
+func (post *Post) AddOutgoingWebmention(target string) error {
+	wms := post.Webmentions()
+
+	// Check if file already exists
+	for _, wm := range wms.Outgoing {
+		if wm.Target == target {
+			return nil
+		}
+	}
+
+	webmention := WebmentionOut{
+		Target: target,
+	}
+	wms.Outgoing = append(wms.Outgoing, webmention)
+	return post.PersistWebmentions(wms)
+}
+
+func (post *Post) UpdateOutgoingWebmention(webmention *WebmentionOut) error {
+	wms := post.Webmentions()
+
+	// if target is not in status, add it
+	replaced := false
+	for i, t := range wms.Outgoing {
+		if t.Target == webmention.Target {
+			wms.Outgoing[i] = *webmention
+			replaced = true
+			break
+		}
+	}
+
+	if !replaced {
+		wms.Outgoing = append(wms.Outgoing, *webmention)
+	}
+
+	return post.PersistWebmentions(wms)
 }
 
 func (post *Post) EnrichWebmention(source string) error {
@@ -304,35 +281,18 @@ func (post *Post) EnrichWebmention(source string) error {
 		entry, err := post.user.repo.Parser.ParseHEntry(resp)
 		if err == nil {
 			webmention.Title = entry.Title
-			return post.PersistWebmention(webmention)
+			return post.PersistIncomingWebmention(webmention)
 		}
 	}
 	return err
 }
 
-func (post *Post) Webmentions() []WebmentionIn {
-	// ensure dir exists
-	os.MkdirAll(post.WebmentionDir(), 0755)
-	files := listDir(post.WebmentionDir())
-	webmentions := []WebmentionIn{}
-	for _, file := range files {
-		data, err := os.ReadFile(path.Join(post.WebmentionDir(), file))
-		if err != nil {
-			continue
-		}
-		mention := WebmentionIn{}
-		err = yaml.Unmarshal(data, &mention)
-		if err != nil {
-			continue
-		}
-		webmentions = append(webmentions, mention)
-	}
-
-	return webmentions
+func (post *Post) IncomingWebmentions() []WebmentionIn {
+	return post.Webmentions().Incoming
 }
 
 func (post *Post) ApprovedWebmentions() []WebmentionIn {
-	webmentions := post.Webmentions()
+	webmentions := post.IncomingWebmentions()
 	approved := []WebmentionIn{}
 	for _, webmention := range webmentions {
 		if webmention.ApprovalStatus == "approved" {
@@ -348,9 +308,7 @@ func (post *Post) ApprovedWebmentions() []WebmentionIn {
 }
 
 func (post *Post) OutgoingWebmentions() []WebmentionOut {
-	status := post.Status()
-	return status.Webmentions
-
+	return post.Webmentions().Outgoing
 }
 
 // ScanForLinks scans the post content for links and adds them to the
