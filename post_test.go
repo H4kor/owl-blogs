@@ -167,18 +167,18 @@ func TestLoadMeta(t *testing.T) {
 /// Webmention
 ///
 
-func TestPersistWebmention(t *testing.T) {
+func TestPersistIncomingWebmention(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("testuser")
 	post, _ := user.CreateNewPost("testpost")
 	webmention := owl.WebmentionIn{
 		Source: "http://example.com/source",
 	}
-	err := post.PersistWebmention(webmention)
+	err := post.PersistIncomingWebmention(webmention)
 	if err != nil {
 		t.Errorf("Got error: %v", err)
 	}
-	mentions := post.Webmentions()
+	mentions := post.IncomingWebmentions()
 	if len(mentions) != 1 {
 		t.Errorf("Expected 1 webmention, got %d", len(mentions))
 	}
@@ -188,74 +188,64 @@ func TestPersistWebmention(t *testing.T) {
 	}
 }
 
-func TestAddWebmentionCreatesFile(t *testing.T) {
+func TestAddIncomingWebmentionCreatesFile(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	repo.HttpClient = &MockHttpClient{}
 	repo.Parser = &MockHtmlParser{}
 	user, _ := repo.CreateUser("testuser")
 	post, _ := user.CreateNewPost("testpost")
 
-	err := post.AddWebmention("https://example.com")
+	err := post.AddIncomingWebmention("https://example.com")
 	if err != nil {
 		t.Errorf("Got Error: %v", err)
 	}
 
-	mentions := post.Webmentions()
+	mentions := post.IncomingWebmentions()
 	if len(mentions) != 1 {
 		t.Errorf("Expected 1 webmention, got %d", len(mentions))
 	}
 }
 
-func TestAddWebmentionNotOverwritingFile(t *testing.T) {
+func TestAddIncomingWebmentionNotOverwritingWebmention(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	repo.HttpClient = &MockHttpClient{}
 	repo.Parser = &MockHtmlParser{}
 	user, _ := repo.CreateUser("testuser")
 	post, _ := user.CreateNewPost("testpost")
 
-	post.AddWebmention("https://example.com")
-	dir, _ := os.Open(post.WebmentionDir())
-	defer dir.Close()
-	files, _ := dir.Readdirnames(-1)
+	post.PersistIncomingWebmention(owl.WebmentionIn{
+		Source:         "https://example.com",
+		ApprovalStatus: "approved",
+	})
 
-	if len(files) != 1 {
-		t.Error("No file created for webmention")
+	post.AddIncomingWebmention("https://example.com")
+
+	mentions := post.IncomingWebmentions()
+	if len(mentions) != 1 {
+		t.Errorf("Expected 1 webmention, got %d", len(mentions))
 	}
 
-	content := "url: https://example.com\n"
-	content += "verified: true"
-	os.WriteFile(path.Join(post.WebmentionDir(), files[0]), []byte(content), 0644)
-
-	post.AddWebmention("https://example.com")
-
-	fileContent, _ := os.ReadFile(path.Join(post.WebmentionDir(), files[0]))
-	if string(fileContent) != content {
-		t.Error("File content was modified.")
-		t.Errorf("Got: %v", fileContent)
-		t.Errorf("Expected: %v", content)
+	if mentions[0].ApprovalStatus != "approved" {
+		t.Errorf("Expected approval status: %s, got %s", "approved", mentions[0].ApprovalStatus)
 	}
 }
 
-func TestAddWebmentionAddsParsedTitle(t *testing.T) {
+func TestAddIncomingWebmentionAddsParsedTitle(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	repo.HttpClient = &MockHttpClient{}
 	repo.Parser = &MockHtmlParser{}
 	user, _ := repo.CreateUser("testuser")
 	post, _ := user.CreateNewPost("testpost")
 
-	post.AddWebmention("https://example.com")
-	dir, _ := os.Open(post.WebmentionDir())
-	defer dir.Close()
-	files, _ := dir.Readdirnames(-1)
+	post.AddIncomingWebmention("https://example.com")
 
-	if len(files) != 1 {
-		t.Error("No file created for webmention")
+	mentions := post.IncomingWebmentions()
+	if len(mentions) != 1 {
+		t.Errorf("Expected 1 webmention, got %d", len(mentions))
 	}
 
-	fileContent, _ := os.ReadFile(path.Join(post.WebmentionDir(), files[0]))
-	if !strings.Contains(string(fileContent), "Mock Title") {
-		t.Error("File not containing the title.")
-		t.Errorf("Got: %v", string(fileContent))
+	if mentions[0].Title != "Mock Title" {
+		t.Errorf("Expected title: %s, got %s", "Mock Title", mentions[0].Title)
 	}
 }
 
@@ -268,25 +258,25 @@ func TestApprovedWebmentions(t *testing.T) {
 		ApprovalStatus: "approved",
 		RetrievedAt:    time.Now(),
 	}
-	post.PersistWebmention(webmention)
+	post.PersistIncomingWebmention(webmention)
 	webmention = owl.WebmentionIn{
 		Source:         "http://example.com/source2",
 		ApprovalStatus: "",
 		RetrievedAt:    time.Now().Add(time.Hour * -1),
 	}
-	post.PersistWebmention(webmention)
+	post.PersistIncomingWebmention(webmention)
 	webmention = owl.WebmentionIn{
 		Source:         "http://example.com/source3",
 		ApprovalStatus: "approved",
 		RetrievedAt:    time.Now().Add(time.Hour * -2),
 	}
-	post.PersistWebmention(webmention)
+	post.PersistIncomingWebmention(webmention)
 	webmention = owl.WebmentionIn{
 		Source:         "http://example.com/source4",
 		ApprovalStatus: "rejected",
 		RetrievedAt:    time.Now().Add(time.Hour * -3),
 	}
-	post.PersistWebmention(webmention)
+	post.PersistIncomingWebmention(webmention)
 
 	webmentions := post.ApprovedWebmentions()
 	if len(webmentions) != 2 {
