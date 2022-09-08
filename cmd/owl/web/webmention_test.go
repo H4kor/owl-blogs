@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -158,4 +159,29 @@ func TestValidationOfTarget(t *testing.T) {
 	}
 
 	assertStatus(t, rr, http.StatusBadRequest)
+}
+
+func TestAcceptWebmentionForAlias(t *testing.T) {
+	repo := getTestRepo(owl.RepoConfig{})
+	user, _ := repo.CreateUser("test-1")
+	post, _ := user.CreateNewPost("post-1")
+
+	content := "---\n"
+	content += "title: Test\n"
+	content += "aliases: \n"
+	content += "  - /foo/bar\n"
+	content += "  - /foo/baz\n"
+	content += "---\n"
+	content += "This is a test"
+	os.WriteFile(post.ContentFile(), []byte(content), 0644)
+
+	target := "https://example.com/foo/bar"
+	source := "https://example.com"
+
+	rr, err := setupWebmentionTest(repo, user, target, source)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assertStatus(t, rr, http.StatusAccepted)
 }

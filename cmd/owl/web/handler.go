@@ -1,8 +1,10 @@
 package web
 
 import (
+	"fmt"
 	"h4kor/owl-blogs"
 	"net/http"
+	"net/url"
 	"os"
 	"path"
 	"strings"
@@ -103,20 +105,41 @@ func userWebmentionHandler(repo *owl.Repository) func(http.ResponseWriter, *http
 			return
 		}
 
+		tryAlias := func(target string) *owl.Post {
+			parsedTarget, _ := url.Parse(target)
+			aliases, _ := repo.PostAliases()
+			fmt.Printf("aliases %v", aliases)
+			fmt.Printf("parsedTarget %v", parsedTarget)
+			if _, ok := aliases[parsedTarget.Path]; ok {
+				return aliases[parsedTarget.Path]
+			}
+			return nil
+		}
+
+		var aliasPost *owl.Post
 		parts := strings.Split(target[0], "/")
 		if len(parts) < 2 {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("Not found"))
-			return
+			aliasPost = tryAlias(target[0])
+			if aliasPost == nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write([]byte("Not found"))
+				return
+			}
 		}
 		postId := parts[len(parts)-2]
-		post, err := user.GetPost(postId)
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("Post not found"))
-			return
+		foundPost, err := user.GetPost(postId)
+		if err != nil && aliasPost == nil {
+			aliasPost = tryAlias(target[0])
+			if aliasPost == nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write([]byte("Post not found"))
+				return
+			}
 		}
-		err = post.AddIncomingWebmention(source[0])
+		if aliasPost != nil {
+			foundPost = *aliasPost
+		}
+		err = foundPost.AddIncomingWebmention(source[0])
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("Unable to process webmention"))
