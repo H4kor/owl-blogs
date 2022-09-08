@@ -6,8 +6,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var postId string
+
 func init() {
 	rootCmd.AddCommand(webmentionCmd)
+	webmentionCmd.Flags().StringVar(
+		&postId, "post", "",
+		"specify the post to send webmentions for. Otherwise, all posts will be checked.",
+	)
 }
 
 var webmentionCmd = &cobra.Command{
@@ -39,31 +45,46 @@ var webmentionCmd = &cobra.Command{
 			}
 		}
 
+		processPost := func(user owl.User, post *owl.Post) error {
+			println("Webmentions for post: ", post.Title())
+
+			err := post.ScanForLinks()
+			if err != nil {
+				println("Error scanning post for links: ", err.Error())
+				return err
+			}
+
+			webmentions := post.OutgoingWebmentions()
+			println("Found ", len(webmentions), " links")
+			for _, webmention := range webmentions {
+				err = post.SendWebmention(webmention)
+				if err != nil {
+					println("Error sending webmentions: ", err.Error())
+				} else {
+					println("Webmention sent to ", webmention.Target)
+				}
+			}
+			return nil
+		}
+
 		for _, user := range users {
+			if postId != "" {
+				// send webmentions for a specific post
+				post, err := user.GetPost(postId)
+				if err != nil {
+					println("Error getting post: ", err.Error())
+					return
+				}
+				processPost(user, &post)
+			}
+
 			posts, err := user.Posts()
 			if err != nil {
 				println("Error getting posts: ", err.Error())
 			}
 
 			for _, post := range posts {
-				println("Webmentions for post: ", post.Title())
-
-				err := post.ScanForLinks()
-				if err != nil {
-					println("Error scanning post for links: ", err.Error())
-					continue
-				}
-
-				webmentions := post.OutgoingWebmentions()
-				println("Found ", len(webmentions), " links")
-				for _, webmention := range webmentions {
-					err = post.SendWebmention(webmention)
-					if err != nil {
-						println("Error sending webmentions: ", err.Error())
-					} else {
-						println("Webmention sent to ", webmention.Target)
-					}
-				}
+				processPost(user, post)
 			}
 		}
 	},
