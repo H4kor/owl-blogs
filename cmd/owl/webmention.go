@@ -76,6 +76,7 @@ var webmentionCmd = &cobra.Command{
 					return
 				}
 				processPost(user, &post)
+				return
 			}
 
 			posts, err := user.Posts()

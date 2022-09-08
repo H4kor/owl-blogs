@@ -44,6 +44,25 @@ func TestRenderTwitterHandle(t *testing.T) {
 
 }
 
+func TestRenderGitHubHandle(t *testing.T) {
+	user := getTestUser()
+	config, _ := user.Config()
+	config.GitHubHandle = "testhandle"
+	user.SetConfig(config)
+	post, _ := user.CreateNewPost("testpost")
+	result, err := owl.RenderPost(&post)
+
+	if err != nil {
+		t.Error("Error rendering post: " + err.Error())
+		return
+	}
+
+	if !strings.Contains(result, "href=\"https://github.com/testhandle\" rel=\"me\"") {
+		t.Error("GitHub handle not rendered. Got: " + result)
+	}
+
+}
+
 func TestRenderPostHEntry(t *testing.T) {
 	user := getTestUser()
 	post, _ := user.CreateNewPost("testpost")

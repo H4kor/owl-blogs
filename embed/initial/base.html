@@ -44,7 +44,12 @@
         <nav>
             <ul>
                 {{ if .UserConfig.TwitterHandle}}
-                <li><a href="https://twitter.com/{{.UserConfig.TwitterHandle}}" rel="me">@{{.UserConfig.TwitterHandle}} on Twitter</a></li>
+                <li><a href="https://twitter.com/{{.UserConfig.TwitterHandle}}" rel="me">@{{.UserConfig.TwitterHandle}} on Twitter</a>
+                </li>
+                {{ end }}
+                {{ if .UserConfig.GitHubHandle}}
+                <li><a href="https://github.com/{{.UserConfig.GitHubHandle}}" rel="me">@{{.UserConfig.GitHubHandle}} on GitHub</a>
+                </li>
                 {{ end }}
             </ul>
         </nav>
