@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"sort"
+	"sync"
 	"time"
 
 	"github.com/yuin/goldmark"
@@ -23,6 +24,7 @@ type Post struct {
 	title      string
 	metaLoaded bool
 	meta       PostMeta
+	wmLock     sync.Mutex
 }
 
 type PostMeta struct {
@@ -37,39 +39,39 @@ type PostWebmetions struct {
 	Outgoing []WebmentionOut `ymal:"outgoing"`
 }
 
-func (post Post) Id() string {
+func (post *Post) Id() string {
 	return post.id
 }
 
-func (post Post) Dir() string {
+func (post *Post) Dir() string {
 	return path.Join(post.user.Dir(), "public", post.id)
 }
 
-func (post Post) WebmentionsFile() string {
+func (post *Post) WebmentionsFile() string {
 	return path.Join(post.Dir(), "webmentions.yml")
 }
 
-func (post Post) MediaDir() string {
+func (post *Post) MediaDir() string {
 	return path.Join(post.Dir(), "media")
 }
 
-func (post Post) UrlPath() string {
+func (post *Post) UrlPath() string {
 	return post.user.UrlPath() + "posts/" + post.id + "/"
 }
 
-func (post Post) FullUrl() string {
+func (post *Post) FullUrl() string {
 	return post.user.FullUrl() + "posts/" + post.id + "/"
 }
 
-func (post Post) UrlMediaPath(filename string) string {
+func (post *Post) UrlMediaPath(filename string) string {
 	return post.UrlPath() + "media/" + filename
 }
 
-func (post Post) Title() string {
+func (post *Post) Title() string {
 	return post.title
 }
 
-func (post Post) ContentFile() string {
+func (post *Post) ContentFile() string {
 	return path.Join(post.Dir(), "index.md")
 }
 
@@ -80,13 +82,13 @@ func (post *Post) Meta() PostMeta {
 	return post.meta
 }
 
-func (post Post) Content() []byte {
+func (post *Post) Content() []byte {
 	// read file
 	data, _ := ioutil.ReadFile(post.ContentFile())
 	return data
 }
 
-func (post Post) Webmentions() PostWebmetions {
+func (post *Post) Webmentions() PostWebmetions {
 	// read status file
 	// return parsed webmentions
 	fileName := post.WebmentionsFile()
@@ -108,7 +110,7 @@ func (post Post) Webmentions() PostWebmetions {
 	return webmentions
 }
 
-func (post Post) PersistWebmentions(webmentions PostWebmetions) error {
+func (post *Post) PersistIncomingWebmentions(webmentions PostWebmetions) error {
 	data, err := yaml.Marshal(webmentions)
 	if err != nil {
 		return err
@@ -122,7 +124,7 @@ func (post Post) PersistWebmentions(webmentions PostWebmetions) error {
 	return nil
 }
 
-func (post Post) RenderedContent() bytes.Buffer {
+func (post *Post) RenderedContent() bytes.Buffer {
 	data := post.Content()
 
 	// trim yaml block
@@ -162,7 +164,7 @@ func (post Post) RenderedContent() bytes.Buffer {
 
 }
 
-func (post Post) Aliases() []string {
+func (post *Post) Aliases() []string {
 	return post.Meta().Aliases
 }
 
@@ -207,10 +209,10 @@ func (post *Post) PersistIncomingWebmention(webmention WebmentionIn) error {
 		wms.Incoming = append(wms.Incoming, webmention)
 	}
 
-	return post.PersistWebmentions(wms)
+	return post.PersistIncomingWebmentions(wms)
 }
 
-func (post *Post) Webmention(source string) (WebmentionIn, error) {
+func (post *Post) getIncomingWebmention(source string) (WebmentionIn, error) {
 	wms := post.Webmentions()
 	for _, wm := range wms.Incoming {
 		if wm.Source == source {
@@ -221,20 +223,25 @@ func (post *Post) Webmention(source string) (WebmentionIn, error) {
 }
 
 func (post *Post) AddIncomingWebmention(source string) error {
+	post.wmLock.Lock()
+	defer post.wmLock.Unlock()
+
 	// Check if file already exists
-	_, err := post.Webmention(source)
+	_, err := post.getIncomingWebmention(source)
 	if err != nil {
 		wms := post.Webmentions()
 		wms.Incoming = append(wms.Incoming, WebmentionIn{
 			Source: source,
 		})
-		defer post.EnrichWebmention(source)
-		return post.PersistWebmentions(wms)
+		defer func() {
+			go post.EnrichWebmention(source)
+		}()
+		return post.PersistIncomingWebmentions(wms)
 	}
 	return nil
 }
 
-func (post *Post) AddOutgoingWebmention(target string) error {
+func (post *Post) addOutgoingWebmention(target string) error {
 	wms := post.Webmentions()
 
 	// Check if file already exists
@@ -248,7 +255,7 @@ func (post *Post) AddOutgoingWebmention(target string) error {
 		Target: target,
 	}
 	wms.Outgoing = append(wms.Outgoing, webmention)
-	return post.PersistWebmentions(wms)
+	return post.PersistIncomingWebmentions(wms)
 }
 
 func (post *Post) UpdateOutgoingWebmention(webmention *WebmentionOut) error {
@@ -268,13 +275,16 @@ func (post *Post) UpdateOutgoingWebmention(webmention *WebmentionOut) error {
 		wms.Outgoing = append(wms.Outgoing, *webmention)
 	}
 
-	return post.PersistWebmentions(wms)
+	return post.PersistIncomingWebmentions(wms)
 }
 
 func (post *Post) EnrichWebmention(source string) error {
+	post.wmLock.Lock()
+	defer post.wmLock.Unlock()
+
 	resp, err := post.user.repo.HttpClient.Get(source)
 	if err == nil {
-		webmention, err := post.Webmention(source)
+		webmention, err := post.getIncomingWebmention(source)
 		if err != nil {
 			return err
 		}
@@ -317,14 +327,17 @@ func (post *Post) ScanForLinks() error {
 	// this could be done in markdown parsing, but I don't want to
 	// rely on goldmark for this (yet)
 	postHtml := post.RenderedContent()
-	links, _ := post.user.repo.Parser.ParseLinksFromString(string(postHtml.Bytes()))
+	links, _ := post.user.repo.Parser.ParseLinksFromString(postHtml.String())
 	for _, link := range links {
-		post.AddOutgoingWebmention(link)
+		post.addOutgoingWebmention(link)
 	}
 	return nil
 }
 
 func (post *Post) SendWebmention(webmention WebmentionOut) error {
+	post.wmLock.Lock()
+	defer post.wmLock.Unlock()
+
 	defer post.UpdateOutgoingWebmention(&webmention)
 	webmention.ScannedAt = time.Now()
 

@@ -4,7 +4,9 @@ import (
 	"h4kor/owl-blogs"
 	"os"
 	"path"
+	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 )
@@ -230,7 +232,7 @@ func TestAddIncomingWebmentionNotOverwritingWebmention(t *testing.T) {
 	}
 }
 
-func TestAddIncomingWebmentionAddsParsedTitle(t *testing.T) {
+func TestEnrichAddsTitle(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	repo.HttpClient = &MockHttpClient{}
 	repo.Parser = &MockHtmlParser{}
@@ -238,6 +240,7 @@ func TestAddIncomingWebmentionAddsParsedTitle(t *testing.T) {
 	post, _ := user.CreateNewPost("testpost")
 
 	post.AddIncomingWebmention("https://example.com")
+	post.EnrichWebmention("https://example.com")
 
 	mentions := post.IncomingWebmentions()
 	if len(mentions) != 1 {
@@ -369,5 +372,103 @@ func TestCanSendWebmention(t *testing.T) {
 
 	if webmentions[0].LastSentAt.IsZero() {
 		t.Errorf("Expected LastSentAt to be set")
+	}
+}
+
+func TestSendingMultipleWebmentions(t *testing.T) {
+	repo := getTestRepo(owl.RepoConfig{})
+	repo.HttpClient = &MockHttpClient{}
+	repo.Parser = &MockHtmlParser{}
+	user, _ := repo.CreateUser("testuser")
+	post, _ := user.CreateNewPost("testpost")
+
+	wg := sync.WaitGroup{}
+	wg.Add(20)
+
+	for i := 0; i < 20; i++ {
+		go func(k int) {
+			webmention := owl.WebmentionOut{
+				Target: "http://example.com" + strconv.Itoa(k),
+			}
+			post.SendWebmention(webmention)
+			wg.Done()
+		}(i)
+	}
+
+	wg.Wait()
+
+	webmentions := post.OutgoingWebmentions()
+
+	if len(webmentions) != 20 {
+		t.Errorf("Expected 20 webmentions, got %d", len(webmentions))
+	}
+}
+
+func TestReceivingMultipleWebmentions(t *testing.T) {
+	repo := getTestRepo(owl.RepoConfig{})
+	repo.HttpClient = &MockHttpClient{}
+	repo.Parser = &MockHtmlParser{}
+	user, _ := repo.CreateUser("testuser")
+	post, _ := user.CreateNewPost("testpost")
+
+	wg := sync.WaitGroup{}
+	wg.Add(20)
+
+	for i := 0; i < 20; i++ {
+		go func(k int) {
+			post.AddIncomingWebmention("http://example.com" + strconv.Itoa(k))
+			wg.Done()
+		}(i)
+	}
+
+	wg.Wait()
+
+	webmentions := post.IncomingWebmentions()
+
+	if len(webmentions) != 20 {
+		t.Errorf("Expected 20 webmentions, got %d", len(webmentions))
+	}
+
+}
+
+func TestSendingAndReceivingMultipleWebmentions(t *testing.T) {
+	repo := getTestRepo(owl.RepoConfig{})
+	repo.HttpClient = &MockHttpClient{}
+	repo.Parser = &MockHtmlParser{}
+	user, _ := repo.CreateUser("testuser")
+	post, _ := user.CreateNewPost("testpost")
+
+	wg := sync.WaitGroup{}
+	wg.Add(40)
+
+	for i := 0; i < 20; i++ {
+		go func(k int) {
+			post.AddIncomingWebmention("http://example.com" + strconv.Itoa(k))
+			wg.Done()
+		}(i)
+	}
+
+	for i := 0; i < 20; i++ {
+		go func(k int) {
+			webmention := owl.WebmentionOut{
+				Target: "http://example.com" + strconv.Itoa(k),
+			}
+			post.SendWebmention(webmention)
+			wg.Done()
+		}(i)
+	}
+
+	wg.Wait()
+
+	ins := post.IncomingWebmentions()
+
+	if len(ins) != 20 {
+		t.Errorf("Expected 20 webmentions, got %d", len(ins))
+	}
+
+	outs := post.OutgoingWebmentions()
+
+	if len(outs) != 20 {
+		t.Errorf("Expected 20 webmentions, got %d", len(outs))
 	}
 }
