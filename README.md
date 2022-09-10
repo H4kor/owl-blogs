@@ -67,10 +67,15 @@ Actual post
 ```
 
 
-#### status.yml
+#### webmentions.yml
 
 ```
-webmentions:
+incoming:
+     - source: https://example.com/post
+       title: Example Post
+       ApprovalStatus: ["", "approved", "rejected"]
+       retrieved_at: 2021-08-13T17:07:00Z
+outgoing:
      - target: https://example.com/post
        supported: true
        scanned_at: 2021-08-13T17:07:00Z
