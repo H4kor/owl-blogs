@@ -18,6 +18,26 @@
             border-color: #ccc;
         }
 
+        .avatar {
+            float: left;
+            margin-right: 1rem;
+
+        }
+
+        .header {
+            display: flex;
+            flex-flow: row wrap;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .header-title {
+            order: 0;
+        }
+
+        .header-profile {
+            order: 1;
+        }
 
         hgroup h2 a { color: inherit; } 
     </style>
@@ -25,34 +45,34 @@
 
 <body>
     <header>
-        <nav class="container">
-            <ul>
-                <li>
-                    <hgroup>
-                        <h2><a href="{{ .User.UrlPath }}">{{ .UserConfig.Title }}</a></h2>
-                        <h3>{{ .UserConfig.SubTitle }}</h3>
-                    </hgroup>
-                </li>
-            </ul>
+        <div class="container header h-card">
+            <hgroup class="header-title">
+                <h2><a class="p-name u-url" href="{{ .User.UrlPath }}">{{ .UserConfig.Title }}</a></h2>
+                <h3>{{ .UserConfig.SubTitle }}</h3>
+            </hgroup>
 
-        </nav>
+            <div class="header-profile">
+                {{ if .User.AvatarUrl }}
+                    <img class="u-logo avatar" src="{{ .User.AvatarUrl }}" alt="{{ .UserConfig.Title }}" width="100" height="100" />
+                {{ end }}
+                <div style="float: right; list-style: none;">
+                    {{ if .UserConfig.TwitterHandle}}
+                    <li><a href="https://twitter.com/{{.UserConfig.TwitterHandle}}" rel="me">@{{.UserConfig.TwitterHandle}} on Twitter</a>
+                    </li>
+                    {{ end }}
+                    {{ if .UserConfig.GitHubHandle}}
+                    <li><a href="https://github.com/{{.UserConfig.GitHubHandle}}" rel="me">@{{.UserConfig.GitHubHandle}} on GitHub</a>
+                    </li>
+                    {{ end }}
+                </div>
+            </div>
+
+        </div>
     </header>
     <main class="container">
         {{ .Content }}
     </main>
     <footer class="container">
-        <nav>
-            <ul>
-                {{ if .UserConfig.TwitterHandle}}
-                <li><a href="https://twitter.com/{{.UserConfig.TwitterHandle}}" rel="me">@{{.UserConfig.TwitterHandle}} on Twitter</a>
-                </li>
-                {{ end }}
-                {{ if .UserConfig.GitHubHandle}}
-                <li><a href="https://github.com/{{.UserConfig.GitHubHandle}}" rel="me">@{{.UserConfig.GitHubHandle}} on GitHub</a>
-                </li>
-                {{ end }}
-            </ul>
-        </nav>
     </footer>
 </body>
 

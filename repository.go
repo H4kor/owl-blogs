@@ -136,9 +136,10 @@ func (repo *Repository) CreateUser(name string) (User, error) {
 	// creates repo/name folder if it doesn't exist
 	user_dir := new_user.Dir()
 	os.Mkdir(user_dir, 0755)
+	// create folders
 	os.Mkdir(path.Join(user_dir, "meta"), 0755)
-	// create public folder
 	os.Mkdir(path.Join(user_dir, "public"), 0755)
+	os.Mkdir(path.Join(user_dir, "media"), 0755)
 
 	// create Meta files
 	os.WriteFile(path.Join(user_dir, "meta", "VERSION"), []byte(VERSION), 0644)

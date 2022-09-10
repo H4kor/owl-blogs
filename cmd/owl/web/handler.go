@@ -237,6 +237,26 @@ func postMediaHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Requ
 	}
 }
 
+func userMediaHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Request, httprouter.Params) {
+	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		filepath := ps.ByName("filepath")
+
+		user, err := getUserFromRepo(repo, ps)
+		if err != nil {
+			println("Error getting user: ", err.Error())
+			notFoundHandler(repo)(w, r)
+			return
+		}
+		filepath = path.Join(user.MediaDir(), filepath)
+		if _, err := os.Stat(filepath); err != nil {
+			println("Error getting file: ", err.Error())
+			notFoundHandler(repo)(w, r)
+			return
+		}
+		http.ServeFile(w, r, filepath)
+	}
+}
+
 func notFoundHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path

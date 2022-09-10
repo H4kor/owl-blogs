@@ -251,3 +251,13 @@ func TestRenderIncludesFullUrl(t *testing.T) {
 		t.Error("Expected: " + post.FullUrl())
 	}
 }
+
+func TestAddAvatarIfExist(t *testing.T) {
+	user := getTestUser()
+	os.WriteFile(path.Join(user.MediaDir(), "avatar.png"), []byte("test"), 0644)
+
+	result, _ := owl.RenderIndexPage(user)
+	if !strings.Contains(result, "avatar.png") {
+		t.Error("Avatar not rendered. Got: " + result)
+	}
+}

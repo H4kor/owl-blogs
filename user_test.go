@@ -302,3 +302,18 @@ func TestPostsSortedByPublishingDateBrokenAtBottom(t *testing.T) {
 		t.Error("Wrong Id, Got: " + posts[1].Id())
 	}
 }
+
+func TestAvatarEmptyIfNotExist(t *testing.T) {
+	user := getTestUser()
+	if user.AvatarUrl() != "" {
+		t.Error("Avatar should be empty")
+	}
+}
+
+func TestAvatarSetIfFileExist(t *testing.T) {
+	user := getTestUser()
+	os.WriteFile(path.Join(user.MediaDir(), "avatar.png"), []byte("test"), 0644)
+	if user.AvatarUrl() == "" {
+		t.Error("Avatar should not be empty")
+	}
+}

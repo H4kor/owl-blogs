@@ -43,6 +43,11 @@ func (user User) WebmentionUrl() string {
 	return url
 }
 
+func (user User) MediaUrl() string {
+	url, _ := url.JoinPath(user.UrlPath(), "media")
+	return url
+}
+
 func (user User) PostDir() string {
 	return path.Join(user.Dir(), "public")
 }
@@ -51,12 +56,26 @@ func (user User) MetaDir() string {
 	return path.Join(user.Dir(), "meta")
 }
 
+func (user User) MediaDir() string {
+	return path.Join(user.Dir(), "media")
+}
+
 func (user User) ConfigFile() string {
 	return path.Join(user.MetaDir(), "config.yml")
 }
 
 func (user User) Name() string {
 	return user.name
+}
+
+func (user User) AvatarUrl() string {
+	for _, ext := range []string{".jpg", ".jpeg", ".png", ".gif"} {
+		if fileExists(path.Join(user.MediaDir(), "avatar"+ext)) {
+			url, _ := url.JoinPath(user.MediaUrl(), "avatar"+ext)
+			return url
+		}
+	}
+	return ""
 }
 
 func (user User) Posts() ([]*Post, error) {
