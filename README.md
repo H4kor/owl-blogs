@@ -23,9 +23,8 @@ Each directory in the `/users/` directory of a repository is considered a user.
                 -- This will be rendered as the blog post.
                 -- Must be present for the blog post to be valid.
                 -- All other folders will be ignored
-            \- status.yml
-                -- Used to track various process status related to the post, 
-                -- such as if a webmention was sent.
+            \- webmentions.yml
+                -- Used to track incoming and outgoing webmentions 
             \- media/
                 -- Contains all media files used in the blog post.
                 -- All files in this folder will be publicly available
@@ -38,6 +37,10 @@ Each directory in the `/users/` directory of a repository is considered a user.
        \- VERSION
             -- Contains the version string.
             -- Used to determine compatibility in the future
+  \- media/
+       -- All this files will be publicly available. To be used for general files
+       \- avatar.{png, jpg, jpeg, gif}
+            -- The avatar for the user
   \- config.yml
         -- Contains settings global to the user.
         -- For example: page title and style options
