@@ -88,42 +88,6 @@ func (post *Post) Content() []byte {
 	return data
 }
 
-func (post *Post) Webmentions() PostWebmetions {
-	// read status file
-	// return parsed webmentions
-	fileName := post.WebmentionsFile()
-	if !fileExists(fileName) {
-		return PostWebmetions{}
-	}
-
-	data, err := os.ReadFile(fileName)
-	if err != nil {
-		return PostWebmetions{}
-	}
-
-	webmentions := PostWebmetions{}
-	err = yaml.Unmarshal(data, &webmentions)
-	if err != nil {
-		return PostWebmetions{}
-	}
-
-	return webmentions
-}
-
-func (post *Post) PersistIncomingWebmentions(webmentions PostWebmetions) error {
-	data, err := yaml.Marshal(webmentions)
-	if err != nil {
-		return err
-	}
-
-	err = os.WriteFile(post.WebmentionsFile(), data, 0644)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (post *Post) RenderedContent() bytes.Buffer {
 	data := post.Content()
 
@@ -192,6 +156,51 @@ func (post *Post) LoadMeta() error {
 	return nil
 }
 
+// Webmentions returns list of incoming and outgoing webmentions
+func (post *Post) Webmentions() PostWebmetions {
+	// read status file
+	// return parsed webmentions
+	fileName := post.WebmentionsFile()
+	if !fileExists(fileName) {
+		return PostWebmetions{}
+	}
+
+	data, err := os.ReadFile(fileName)
+	if err != nil {
+		return PostWebmetions{}
+	}
+
+	webmentions := PostWebmetions{}
+	err = yaml.Unmarshal(data, &webmentions)
+	if err != nil {
+		return PostWebmetions{}
+	}
+
+	return webmentions
+}
+
+func (post *Post) IncomingWebmentions() []WebmentionIn {
+	return post.Webmentions().Incoming
+}
+
+func (post *Post) OutgoingWebmentions() []WebmentionOut {
+	return post.Webmentions().Outgoing
+}
+
+func (post *Post) persistWebmentions(webmentions PostWebmetions) error {
+	data, err := yaml.Marshal(webmentions)
+	if err != nil {
+		return err
+	}
+
+	err = os.WriteFile(post.WebmentionsFile(), data, 0644)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (post *Post) PersistIncomingWebmention(webmention WebmentionIn) error {
 	wms := post.Webmentions()
 
@@ -209,10 +218,39 @@ func (post *Post) PersistIncomingWebmention(webmention WebmentionIn) error {
 		wms.Incoming = append(wms.Incoming, webmention)
 	}
 
-	return post.PersistIncomingWebmentions(wms)
+	return post.persistWebmentions(wms)
 }
 
-func (post *Post) getIncomingWebmention(source string) (WebmentionIn, error) {
+// PersistOutgoingWebmention persists a webmention to the webmention file.
+// If `newLink` is true, the webmention is only persisted if it is not already in the webmention file.
+func (post *Post) PersistOutgoingWebmention(webmention *WebmentionOut, newLink bool) error {
+	post.wmLock.Lock()
+	defer post.wmLock.Unlock()
+
+	wms := post.Webmentions()
+
+	// if target is not in webmention, add it
+	replaced := false
+	for i, t := range wms.Outgoing {
+		if t.Target == webmention.Target {
+			// if newLink is true, only replace if the link is new
+			if newLink {
+				return nil
+			}
+			wms.Outgoing[i] = *webmention
+			replaced = true
+			break
+		}
+	}
+
+	if !replaced {
+		wms.Outgoing = append(wms.Outgoing, *webmention)
+	}
+
+	return post.persistWebmentions(wms)
+}
+
+func (post *Post) getIncomingWebmentionBySource(source string) (WebmentionIn, error) {
 	wms := post.Webmentions()
 	for _, wm := range wms.Incoming {
 		if wm.Source == source {
@@ -227,7 +265,7 @@ func (post *Post) AddIncomingWebmention(source string) error {
 	defer post.wmLock.Unlock()
 
 	// Check if file already exists
-	_, err := post.getIncomingWebmention(source)
+	_, err := post.getIncomingWebmentionBySource(source)
 	if err != nil {
 		wms := post.Webmentions()
 		wms.Incoming = append(wms.Incoming, WebmentionIn{
@@ -236,46 +274,9 @@ func (post *Post) AddIncomingWebmention(source string) error {
 		defer func() {
 			go post.EnrichWebmention(source)
 		}()
-		return post.PersistIncomingWebmentions(wms)
+		return post.persistWebmentions(wms)
 	}
 	return nil
-}
-
-func (post *Post) addOutgoingWebmention(target string) error {
-	wms := post.Webmentions()
-
-	// Check if file already exists
-	for _, wm := range wms.Outgoing {
-		if wm.Target == target {
-			return nil
-		}
-	}
-
-	webmention := WebmentionOut{
-		Target: target,
-	}
-	wms.Outgoing = append(wms.Outgoing, webmention)
-	return post.PersistIncomingWebmentions(wms)
-}
-
-func (post *Post) UpdateOutgoingWebmention(webmention *WebmentionOut) error {
-	wms := post.Webmentions()
-
-	// if target is not in status, add it
-	replaced := false
-	for i, t := range wms.Outgoing {
-		if t.Target == webmention.Target {
-			wms.Outgoing[i] = *webmention
-			replaced = true
-			break
-		}
-	}
-
-	if !replaced {
-		wms.Outgoing = append(wms.Outgoing, *webmention)
-	}
-
-	return post.PersistIncomingWebmentions(wms)
 }
 
 func (post *Post) EnrichWebmention(source string) error {
@@ -284,7 +285,7 @@ func (post *Post) EnrichWebmention(source string) error {
 
 	resp, err := post.user.repo.HttpClient.Get(source)
 	if err == nil {
-		webmention, err := post.getIncomingWebmention(source)
+		webmention, err := post.getIncomingWebmentionBySource(source)
 		if err != nil {
 			return err
 		}
@@ -297,11 +298,7 @@ func (post *Post) EnrichWebmention(source string) error {
 	return err
 }
 
-func (post *Post) IncomingWebmentions() []WebmentionIn {
-	return post.Webmentions().Incoming
-}
-
-func (post *Post) ApprovedWebmentions() []WebmentionIn {
+func (post *Post) ApprovedIncomingWebmentions() []WebmentionIn {
 	webmentions := post.IncomingWebmentions()
 	approved := []WebmentionIn{}
 	for _, webmention := range webmentions {
@@ -317,10 +314,6 @@ func (post *Post) ApprovedWebmentions() []WebmentionIn {
 	return approved
 }
 
-func (post *Post) OutgoingWebmentions() []WebmentionOut {
-	return post.Webmentions().Outgoing
-}
-
 // ScanForLinks scans the post content for links and adds them to the
 // `status.yml` file for the post. The links are not scanned by this function.
 func (post *Post) ScanForLinks() error {
@@ -329,16 +322,15 @@ func (post *Post) ScanForLinks() error {
 	postHtml := post.RenderedContent()
 	links, _ := post.user.repo.Parser.ParseLinksFromString(postHtml.String())
 	for _, link := range links {
-		post.addOutgoingWebmention(link)
+		post.PersistOutgoingWebmention(&WebmentionOut{
+			Target: link,
+		}, true)
 	}
 	return nil
 }
 
 func (post *Post) SendWebmention(webmention WebmentionOut) error {
-	post.wmLock.Lock()
-	defer post.wmLock.Unlock()
-
-	defer post.UpdateOutgoingWebmention(&webmention)
+	defer post.PersistOutgoingWebmention(&webmention, false)
 	webmention.ScannedAt = time.Now()
 
 	resp, err := post.user.repo.HttpClient.Get(webmention.Target)

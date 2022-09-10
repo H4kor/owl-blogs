@@ -16,12 +16,12 @@
     </div>
 
     <hr>
-    {{if .Post.ApprovedWebmentions}}
+    {{if .Post.ApprovedIncomingWebmentions}}
     <h3>
         Webmentions
     </h3>
     <ul>
-        {{range .Post.ApprovedWebmentions}}
+        {{range .Post.ApprovedIncomingWebmentions}}
         <li>
             <a href="{{.Source}}">
                 {{if .Title}}

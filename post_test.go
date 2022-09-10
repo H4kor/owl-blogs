@@ -252,7 +252,7 @@ func TestEnrichAddsTitle(t *testing.T) {
 	}
 }
 
-func TestApprovedWebmentions(t *testing.T) {
+func TestApprovedIncomingWebmentions(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("testuser")
 	post, _ := user.CreateNewPost("testpost")
@@ -281,7 +281,7 @@ func TestApprovedWebmentions(t *testing.T) {
 	}
 	post.PersistIncomingWebmention(webmention)
 
-	webmentions := post.ApprovedWebmentions()
+	webmentions := post.ApprovedIncomingWebmentions()
 	if len(webmentions) != 2 {
 		t.Errorf("Expected 2 webmentions, got %d", len(webmentions))
 	}
@@ -446,9 +446,6 @@ func TestSendingAndReceivingMultipleWebmentions(t *testing.T) {
 			post.AddIncomingWebmention("http://example.com" + strconv.Itoa(k))
 			wg.Done()
 		}(i)
-	}
-
-	for i := 0; i < 20; i++ {
 		go func(k int) {
 			webmention := owl.WebmentionOut{
 				Target: "http://example.com" + strconv.Itoa(k),
@@ -456,6 +453,55 @@ func TestSendingAndReceivingMultipleWebmentions(t *testing.T) {
 			post.SendWebmention(webmention)
 			wg.Done()
 		}(i)
+	}
+
+	wg.Wait()
+
+	ins := post.IncomingWebmentions()
+
+	if len(ins) != 20 {
+		t.Errorf("Expected 20 webmentions, got %d", len(ins))
+	}
+
+	outs := post.OutgoingWebmentions()
+
+	if len(outs) != 20 {
+		t.Errorf("Expected 20 webmentions, got %d", len(outs))
+	}
+}
+
+func TestComplexParallelWebmentions(t *testing.T) {
+	repo := getTestRepo(owl.RepoConfig{})
+	repo.HttpClient = &MockHttpClient{}
+	repo.Parser = &MockParseLinksHtmlParser{
+		Links: []string{
+			"http://example.com/1",
+			"http://example.com/2",
+			"http://example.com/3",
+		},
+	}
+	user, _ := repo.CreateUser("testuser")
+	post, _ := user.CreateNewPost("testpost")
+
+	wg := sync.WaitGroup{}
+	wg.Add(60)
+
+	for i := 0; i < 20; i++ {
+		go func(k int) {
+			post.AddIncomingWebmention("http://example.com/" + strconv.Itoa(k))
+			wg.Done()
+		}(i)
+		go func(k int) {
+			webmention := owl.WebmentionOut{
+				Target: "http://example.com/" + strconv.Itoa(k),
+			}
+			post.SendWebmention(webmention)
+			wg.Done()
+		}(i)
+		go func() {
+			post.ScanForLinks()
+			wg.Done()
+		}()
 	}
 
 	wg.Wait()

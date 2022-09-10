@@ -28,6 +28,27 @@ func (*MockHtmlParser) GetWebmentionEndpoint(resp *http.Response) (string, error
 
 }
 
+type MockParseLinksHtmlParser struct {
+	Links []string
+}
+
+func (*MockParseLinksHtmlParser) ParseHEntry(resp *http.Response) (owl.ParsedHEntry, error) {
+	return owl.ParsedHEntry{Title: "Mock Title"}, nil
+
+}
+func (parser *MockParseLinksHtmlParser) ParseLinks(resp *http.Response) ([]string, error) {
+	return parser.Links, nil
+
+}
+func (parser *MockParseLinksHtmlParser) ParseLinksFromString(string) ([]string, error) {
+	return parser.Links, nil
+
+}
+func (*MockParseLinksHtmlParser) GetWebmentionEndpoint(resp *http.Response) (string, error) {
+	return "http://example.com/webmention", nil
+
+}
+
 type MockHttpClient struct{}
 
 func (*MockHttpClient) Get(url string) (resp *http.Response, err error) {
