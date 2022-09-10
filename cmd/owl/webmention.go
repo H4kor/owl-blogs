@@ -62,9 +62,9 @@ var webmentionCmd = &cobra.Command{
 			for _, webmention := range webmentions {
 				go func(webmention owl.WebmentionOut) {
 					defer wg.Done()
-					err = post.SendWebmention(webmention)
-					if err != nil {
-						println("Error sending webmentions: ", err.Error())
+					sendErr := post.SendWebmention(webmention)
+					if sendErr != nil {
+						println("Error sending webmentions: ", sendErr.Error())
 					} else {
 						println("Webmention sent to ", webmention.Target)
 					}
