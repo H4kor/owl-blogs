@@ -2,6 +2,7 @@ package owl
 
 import (
 	"bytes"
+	"errors"
 	"io/ioutil"
 	"net/url"
 	"os"
@@ -308,7 +309,7 @@ func (post *Post) SendWebmention(webmention WebmentionOut) error {
 
 	// if last scan is less than 7 days ago, don't send webmention
 	if webmention.ScannedAt.After(time.Now().Add(-7*24*time.Hour)) && !webmention.Supported {
-		return nil
+		return errors.New("did not scan. Last scan was less than 7 days ago")
 	}
 
 	webmention.ScannedAt = time.Now()
