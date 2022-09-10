@@ -240,7 +240,7 @@ func TestEnrichAddsTitle(t *testing.T) {
 	post, _ := user.CreateNewPost("testpost")
 
 	post.AddIncomingWebmention("https://example.com")
-	post.EnrichWebmention("https://example.com")
+	post.EnrichWebmention(owl.WebmentionIn{Source: "https://example.com"})
 
 	mentions := post.IncomingWebmentions()
 	if len(mentions) != 1 {

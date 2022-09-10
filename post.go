@@ -2,7 +2,6 @@ package owl
 
 import (
 	"bytes"
-	"errors"
 	"io/ioutil"
 	"net/url"
 	"os"
@@ -201,14 +200,18 @@ func (post *Post) persistWebmentions(webmentions PostWebmetions) error {
 	return nil
 }
 
+// PersistWebmentionOutgoing persists incoming webmention
 func (post *Post) PersistIncomingWebmention(webmention WebmentionIn) error {
+	post.wmLock.Lock()
+	defer post.wmLock.Unlock()
+
 	wms := post.Webmentions()
 
 	// if target is not in status, add it
 	replaced := false
 	for i, t := range wms.Incoming {
 		if t.Source == webmention.Source {
-			wms.Incoming[i] = webmention
+			wms.Incoming[i].UpdateWith(webmention)
 			replaced = true
 			break
 		}
@@ -222,8 +225,7 @@ func (post *Post) PersistIncomingWebmention(webmention WebmentionIn) error {
 }
 
 // PersistOutgoingWebmention persists a webmention to the webmention file.
-// If `newLink` is true, the webmention is only persisted if it is not already in the webmention file.
-func (post *Post) PersistOutgoingWebmention(webmention *WebmentionOut, newLink bool) error {
+func (post *Post) PersistOutgoingWebmention(webmention *WebmentionOut) error {
 	post.wmLock.Lock()
 	defer post.wmLock.Unlock()
 
@@ -233,11 +235,7 @@ func (post *Post) PersistOutgoingWebmention(webmention *WebmentionOut, newLink b
 	replaced := false
 	for i, t := range wms.Outgoing {
 		if t.Target == webmention.Target {
-			// if newLink is true, only replace if the link is new
-			if newLink {
-				return nil
-			}
-			wms.Outgoing[i] = *webmention
+			wms.Outgoing[i].UpdateWith(*webmention)
 			replaced = true
 			break
 		}
@@ -250,45 +248,21 @@ func (post *Post) PersistOutgoingWebmention(webmention *WebmentionOut, newLink b
 	return post.persistWebmentions(wms)
 }
 
-func (post *Post) getIncomingWebmentionBySource(source string) (WebmentionIn, error) {
-	wms := post.Webmentions()
-	for _, wm := range wms.Incoming {
-		if wm.Source == source {
-			return wm, nil
-		}
-	}
-	return WebmentionIn{}, errors.New("not found")
-}
-
 func (post *Post) AddIncomingWebmention(source string) error {
-	post.wmLock.Lock()
-	defer post.wmLock.Unlock()
-
 	// Check if file already exists
-	_, err := post.getIncomingWebmentionBySource(source)
-	if err != nil {
-		wms := post.Webmentions()
-		wms.Incoming = append(wms.Incoming, WebmentionIn{
-			Source: source,
-		})
-		defer func() {
-			go post.EnrichWebmention(source)
-		}()
-		return post.persistWebmentions(wms)
+	wm := WebmentionIn{
+		Source: source,
 	}
-	return nil
+
+	defer func() {
+		go post.EnrichWebmention(wm)
+	}()
+	return post.PersistIncomingWebmention(wm)
 }
 
-func (post *Post) EnrichWebmention(source string) error {
-	post.wmLock.Lock()
-	defer post.wmLock.Unlock()
-
-	resp, err := post.user.repo.HttpClient.Get(source)
+func (post *Post) EnrichWebmention(webmention WebmentionIn) error {
+	resp, err := post.user.repo.HttpClient.Get(webmention.Source)
 	if err == nil {
-		webmention, err := post.getIncomingWebmentionBySource(source)
-		if err != nil {
-			return err
-		}
 		entry, err := post.user.repo.Parser.ParseHEntry(resp)
 		if err == nil {
 			webmention.Title = entry.Title
@@ -324,13 +298,13 @@ func (post *Post) ScanForLinks() error {
 	for _, link := range links {
 		post.PersistOutgoingWebmention(&WebmentionOut{
 			Target: link,
-		}, true)
+		})
 	}
 	return nil
 }
 
 func (post *Post) SendWebmention(webmention WebmentionOut) error {
-	defer post.PersistOutgoingWebmention(&webmention, false)
+	defer post.PersistOutgoingWebmention(&webmention)
 	webmention.ScannedAt = time.Now()
 
 	resp, err := post.user.repo.HttpClient.Get(webmention.Target)
