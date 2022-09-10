@@ -392,8 +392,8 @@ func TestSendWebmentionOnlyScansOncePerWeek(t *testing.T) {
 	webmention = webmentions[0]
 
 	err := post.SendWebmention(webmention)
-	if err != nil {
-		t.Errorf("Error sending webmention: %v", err)
+	if err == nil {
+		t.Errorf("Expected error, got nil")
 	}
 
 	webmentions = post.OutgoingWebmentions()
