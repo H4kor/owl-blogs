@@ -70,6 +70,7 @@ var webmentionCmd = &cobra.Command{
 					}
 				}(webmention)
 			}
+			wg.Wait()
 			return nil
 		}
 
