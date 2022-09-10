@@ -2,6 +2,7 @@ package main
 
 import (
 	"h4kor/owl-blogs"
+	"sync"
 
 	"github.com/spf13/cobra"
 )
@@ -56,13 +57,18 @@ var webmentionCmd = &cobra.Command{
 
 			webmentions := post.OutgoingWebmentions()
 			println("Found ", len(webmentions), " links")
+			wg := sync.WaitGroup{}
+			wg.Add(len(webmentions))
 			for _, webmention := range webmentions {
-				err = post.SendWebmention(webmention)
-				if err != nil {
-					println("Error sending webmentions: ", err.Error())
-				} else {
-					println("Webmention sent to ", webmention.Target)
-				}
+				go func(webmention owl.WebmentionOut) {
+					defer wg.Done()
+					err = post.SendWebmention(webmention)
+					if err != nil {
+						println("Error sending webmentions: ", err.Error())
+					} else {
+						println("Webmention sent to ", webmention.Target)
+					}
+				}(webmention)
 			}
 			return nil
 		}

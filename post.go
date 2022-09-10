@@ -305,6 +305,12 @@ func (post *Post) ScanForLinks() error {
 
 func (post *Post) SendWebmention(webmention WebmentionOut) error {
 	defer post.PersistOutgoingWebmention(&webmention)
+
+	// if last scan is less than 7 days ago, don't send webmention
+	if webmention.ScannedAt.After(time.Now().Add(-7*24*time.Hour)) && !webmention.Supported {
+		return nil
+	}
+
 	webmention.ScannedAt = time.Now()
 
 	resp, err := post.user.repo.HttpClient.Get(webmention.Target)

@@ -375,6 +375,38 @@ func TestCanSendWebmention(t *testing.T) {
 	}
 }
 
+func TestSendWebmentionOnlyScansOncePerWeek(t *testing.T) {
+	repo := getTestRepo(owl.RepoConfig{})
+	repo.HttpClient = &MockHttpClient{}
+	repo.Parser = &MockHtmlParser{}
+	user, _ := repo.CreateUser("testuser")
+	post, _ := user.CreateNewPost("testpost")
+
+	webmention := owl.WebmentionOut{
+		Target:    "http://example.com",
+		ScannedAt: time.Now().Add(time.Hour * -24 * 6),
+	}
+
+	post.PersistOutgoingWebmention(&webmention)
+	webmentions := post.OutgoingWebmentions()
+	webmention = webmentions[0]
+
+	err := post.SendWebmention(webmention)
+	if err != nil {
+		t.Errorf("Error sending webmention: %v", err)
+	}
+
+	webmentions = post.OutgoingWebmentions()
+
+	if len(webmentions) != 1 {
+		t.Errorf("Expected 1 webmention, got %d", len(webmentions))
+	}
+
+	if webmentions[0].ScannedAt != webmention.ScannedAt {
+		t.Errorf("Expected ScannedAt to be unchanged. Expected: %v, got %v", webmention.ScannedAt, webmentions[0].ScannedAt)
+	}
+}
+
 func TestSendingMultipleWebmentions(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	repo.HttpClient = &MockHttpClient{}
