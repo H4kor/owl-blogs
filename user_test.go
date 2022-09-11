@@ -42,8 +42,8 @@ func TestCreateNewPostAddsDateToMetaBlock(t *testing.T) {
 	posts, _ := user.Posts()
 	post, _ := user.GetPost(posts[0].Id())
 	meta := post.Meta()
-	if meta.Date == "" {
-		t.Error("Found no date. Got: " + meta.Date)
+	if meta.Date.IsZero() {
+		t.Errorf("Found no date. Got: %v", meta.Date)
 	}
 }
 

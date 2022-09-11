@@ -156,7 +156,7 @@ func TestLoadMeta(t *testing.T) {
 		t.Errorf("Expected title: %v, got %v", []string{"foo/bar/"}, post.Meta().Aliases)
 	}
 
-	if post.Meta().Date != "Wed, 17 Aug 2022 10:50:02 +0000" {
+	if post.Meta().Date.Format(time.RFC1123Z) != "Wed, 17 Aug 2022 10:50:02 +0000" {
 		t.Errorf("Expected title: %s, got %s", "Wed, 17 Aug 2022 10:50:02 +0000", post.Meta().Title)
 	}
 

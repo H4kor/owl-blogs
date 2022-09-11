@@ -3,6 +3,7 @@ package owl
 import (
 	"bytes"
 	"encoding/xml"
+	"time"
 )
 
 type RSS struct {
@@ -46,7 +47,7 @@ func RenderRSSFeed(user User) (string, error) {
 			Guid:    post.FullUrl(),
 			Title:   post.Title(),
 			Link:    post.FullUrl(),
-			PubDate: meta.Date,
+			PubDate: meta.Date.Format(time.RFC1123Z),
 		})
 	}
 

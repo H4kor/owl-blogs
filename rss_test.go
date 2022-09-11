@@ -71,7 +71,7 @@ func TestRenderRSSFeedPostData(t *testing.T) {
 	if !strings.Contains(res, post.FullUrl()) {
 		t.Error("SubTitle not rendered. Got: " + res)
 	}
-	if !strings.Contains(res, "2015-01-01") {
+	if !strings.Contains(res, "Thu, 01 Jan 2015 00:00:00 +0000") {
 		t.Error("Date not rendered. Got: " + res)
 	}
 }

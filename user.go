@@ -110,12 +110,7 @@ func (user User) Posts() ([]*Post, error) {
 	postDates := make([]PostWithDate, len(posts))
 	for i, post := range posts {
 		meta := post.Meta()
-		date, err := time.Parse(time.RFC1123Z, meta.Date)
-		if err != nil {
-			// invalid date -> use 1970-01-01
-			date = time.Time{}
-		}
-		postDates[i] = PostWithDate{post: post, date: date}
+		postDates[i] = PostWithDate{post: post, date: meta.Date}
 	}
 
 	// sort posts by date
@@ -162,11 +157,21 @@ func (user User) CreateNewPost(title string) (Post, error) {
 		}
 	}
 	post := Post{user: &user, id: folder_name, title: title}
+	meta := PostMeta{
+		Title:   title,
+		Date:    time.Now(),
+		Aliases: []string{},
+		Draft:   false,
+	}
 
 	initial_content := ""
 	initial_content += "---\n"
-	initial_content += "title: " + title + "\n"
-	initial_content += "date: " + time.Now().UTC().Format(time.RFC1123Z) + "\n"
+	// write meta
+	meta_bytes, err := yaml.Marshal(meta)
+	if err != nil {
+		return Post{}, err
+	}
+	initial_content += string(meta_bytes)
 	initial_content += "---\n"
 	initial_content += "\n"
 	initial_content += "Write your post here.\n"

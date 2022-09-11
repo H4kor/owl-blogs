@@ -28,10 +28,62 @@ type Post struct {
 }
 
 type PostMeta struct {
-	Title   string   `yaml:"title"`
-	Aliases []string `yaml:"aliases"`
-	Date    string   `yaml:"date"`
-	Draft   bool     `yaml:"draft"`
+	Title   string    `yaml:"title"`
+	Aliases []string  `yaml:"aliases"`
+	Date    time.Time `yaml:"date"`
+	Draft   bool      `yaml:"draft"`
+}
+
+func (pm *PostMeta) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	type T struct {
+		Title   string   `yaml:"title"`
+		Aliases []string `yaml:"aliases"`
+		Draft   bool     `yaml:"draft"`
+	}
+	type S struct {
+		Date string `yaml:"date"`
+	}
+
+	var t T
+	var s S
+	if err := unmarshal(&t); err != nil {
+		return err
+	}
+	if err := unmarshal(&s); err != nil {
+		return err
+	}
+
+	pm.Title = t.Title
+	pm.Aliases = t.Aliases
+	pm.Draft = t.Draft
+
+	possibleFormats := []string{
+		"2006-01-02",
+		time.Layout,
+		time.ANSIC,
+		time.UnixDate,
+		time.RubyDate,
+		time.RFC822,
+		time.RFC822Z,
+		time.RFC850,
+		time.RFC1123,
+		time.RFC1123Z,
+		time.RFC3339,
+		time.RFC3339Nano,
+		time.Stamp,
+		time.StampMilli,
+		time.StampMicro,
+		time.StampNano,
+	}
+
+	for _, format := range possibleFormats {
+		if t, err := time.Parse(format, s.Date); err == nil {
+			pm.Date = t
+			break
+		}
+	}
+
+	return nil
 }
 
 type PostWebmetions struct {
