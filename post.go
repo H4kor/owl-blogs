@@ -34,6 +34,10 @@ type PostMeta struct {
 	Draft   bool      `yaml:"draft"`
 }
 
+func (pm PostMeta) FormattedDate() string {
+	return pm.Date.Format("02-01-2006 15:04:05")
+}
+
 func (pm *PostMeta) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	type T struct {
 		Title   string   `yaml:"title"`
