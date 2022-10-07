@@ -550,62 +550,63 @@ func TestComplexParallelWebmentions(t *testing.T) {
 		t.Errorf("Expected 20 webmentions, got %d", len(outs))
 	}
 }
-func TestComplexParallelSimulatedProcessesWebmentions(t *testing.T) {
-	repoName := testRepoName()
-	repo, _ := owl.CreateRepository(repoName, owl.RepoConfig{})
-	repo.HttpClient = &MockHttpClient{}
-	repo.Parser = &MockParseLinksHtmlParser{
-		Links: []string{
-			"http://example.com/1",
-			"http://example.com/2",
-			"http://example.com/3",
-		},
-	}
-	user, _ := repo.CreateUser("testuser")
-	post, _ := user.CreateNewPost("testpost")
 
-	wg := sync.WaitGroup{}
-	wg.Add(40)
+// func TestComplexParallelSimulatedProcessesWebmentions(t *testing.T) {
+// 	repoName := testRepoName()
+// 	repo, _ := owl.CreateRepository(repoName, owl.RepoConfig{})
+// 	repo.HttpClient = &MockHttpClient{}
+// 	repo.Parser = &MockParseLinksHtmlParser{
+// 		Links: []string{
+// 			"http://example.com/1",
+// 			"http://example.com/2",
+// 			"http://example.com/3",
+// 		},
+// 	}
+// 	user, _ := repo.CreateUser("testuser")
+// 	post, _ := user.CreateNewPost("testpost")
 
-	for i := 0; i < 20; i++ {
-		go func(k int) {
-			defer wg.Done()
-			fRepo, _ := owl.OpenRepository(repoName)
-			fUser, _ := fRepo.GetUser("testuser")
-			fPost, err := fUser.GetPost(post.Id())
-			if err != nil {
-				t.Error(err)
-				return
-			}
-			fPost.AddIncomingWebmention("http://example.com/" + strconv.Itoa(k))
-		}(i)
-		go func(k int) {
-			defer wg.Done()
-			fRepo, _ := owl.OpenRepository(repoName)
-			fUser, _ := fRepo.GetUser("testuser")
-			fPost, err := fUser.GetPost(post.Id())
-			if err != nil {
-				t.Error(err)
-				return
-			}
-			webmention := owl.WebmentionOut{
-				Target: "http://example.com/" + strconv.Itoa(k),
-			}
-			fPost.SendWebmention(webmention)
-		}(i)
-	}
+// 	wg := sync.WaitGroup{}
+// 	wg.Add(40)
 
-	wg.Wait()
+// 	for i := 0; i < 20; i++ {
+// 		go func(k int) {
+// 			defer wg.Done()
+// 			fRepo, _ := owl.OpenRepository(repoName)
+// 			fUser, _ := fRepo.GetUser("testuser")
+// 			fPost, err := fUser.GetPost(post.Id())
+// 			if err != nil {
+// 				t.Error(err)
+// 				return
+// 			}
+// 			fPost.AddIncomingWebmention("http://example.com/" + strconv.Itoa(k))
+// 		}(i)
+// 		go func(k int) {
+// 			defer wg.Done()
+// 			fRepo, _ := owl.OpenRepository(repoName)
+// 			fUser, _ := fRepo.GetUser("testuser")
+// 			fPost, err := fUser.GetPost(post.Id())
+// 			if err != nil {
+// 				t.Error(err)
+// 				return
+// 			}
+// 			webmention := owl.WebmentionOut{
+// 				Target: "http://example.com/" + strconv.Itoa(k),
+// 			}
+// 			fPost.SendWebmention(webmention)
+// 		}(i)
+// 	}
 
-	ins := post.IncomingWebmentions()
+// 	wg.Wait()
 
-	if len(ins) != 20 {
-		t.Errorf("Expected 20 webmentions, got %d", len(ins))
-	}
+// 	ins := post.IncomingWebmentions()
 
-	outs := post.OutgoingWebmentions()
+// 	if len(ins) != 20 {
+// 		t.Errorf("Expected 20 webmentions, got %d", len(ins))
+// 	}
 
-	if len(outs) != 20 {
-		t.Errorf("Expected 20 webmentions, got %d", len(outs))
-	}
-}
+// 	outs := post.OutgoingWebmentions()
+
+// 	if len(outs) != 20 {
+// 		t.Errorf("Expected 20 webmentions, got %d", len(outs))
+// 	}
+// }
