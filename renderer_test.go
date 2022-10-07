@@ -261,3 +261,19 @@ func TestAddAvatarIfExist(t *testing.T) {
 		t.Error("Avatar not rendered. Got: " + result)
 	}
 }
+
+func TestAuthorNameInPost(t *testing.T) {
+	user := getTestUser()
+	user.SetConfig(owl.UserConfig{
+		Title:       "Test Title",
+		SubTitle:    "Test SubTitle",
+		HeaderColor: "#ff1337",
+		AuthorName:  "Test Author",
+	})
+	post, _ := user.CreateNewPost("testpost")
+
+	result, _ := owl.RenderPost(&post)
+	if !strings.Contains(result, "Test Author") {
+		t.Error("Author Name not included. Got: " + result)
+	}
+}

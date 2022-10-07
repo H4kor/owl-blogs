@@ -99,6 +99,10 @@ func (post *Post) Id() string {
 	return post.id
 }
 
+func (post *Post) User() *User {
+	return post.user
+}
+
 func (post *Post) Dir() string {
 	return path.Join(post.user.Dir(), "public", post.id)
 }

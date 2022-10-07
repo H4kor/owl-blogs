@@ -23,6 +23,7 @@ type UserConfig struct {
 	HeaderColor   string `yaml:"header_color"`
 	TwitterHandle string `yaml:"twitter_handle"`
 	GitHubHandle  string `yaml:"github_handle"`
+	AuthorName    string `yaml:"author_name"`
 }
 
 func (user User) Dir() string {

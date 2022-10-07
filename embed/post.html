@@ -6,6 +6,10 @@
             <time class="dt-published" datetime="{{.Post.Meta.Date}}">
                 {{.Post.Meta.FormattedDate}}
             </time>
+            {{ if .Post.User.Config.AuthorName }}
+                by
+                <a class="p-author h-card" href="{{.Post.User.FullUrl}}">{{.Post.User.Config.AuthorName}}</a>
+            {{ end }}
             <a class="u-url" href="{{.Post.FullUrl}}">#</a>
         </small> 
     </hgroup>

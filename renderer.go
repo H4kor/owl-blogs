@@ -45,19 +45,16 @@ func renderIntoBaseTemplate(user User, data PageContent) (string, error) {
 		return "", err
 	}
 
-	user_config, _ := user.Config()
 	full_data := struct {
 		Title        string
 		Content      template.HTML
 		User         User
-		UserConfig   UserConfig
 		UserSubtitle string
 		HeaderColor  string
 	}{
-		Title:      data.Title,
-		Content:    data.Content,
-		User:       user,
-		UserConfig: user_config,
+		Title:   data.Title,
+		Content: data.Content,
+		User:    user,
 	}
 
 	var html bytes.Buffer
