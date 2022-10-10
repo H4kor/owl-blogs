@@ -27,11 +27,17 @@ type Post struct {
 	wmLock     sync.Mutex
 }
 
+type Reply struct {
+	Url  string `yaml:"url"`
+	Text string `yaml:"text"`
+}
+
 type PostMeta struct {
 	Title   string    `yaml:"title"`
 	Aliases []string  `yaml:"aliases"`
 	Date    time.Time `yaml:"date"`
 	Draft   bool      `yaml:"draft"`
+	Reply   Reply     `yaml:"reply"`
 }
 
 func (pm PostMeta) FormattedDate() string {
@@ -43,6 +49,7 @@ func (pm *PostMeta) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		Title   string   `yaml:"title"`
 		Aliases []string `yaml:"aliases"`
 		Draft   bool     `yaml:"draft"`
+		Reply   Reply    `yaml:"reply"`
 	}
 	type S struct {
 		Date string `yaml:"date"`
@@ -60,6 +67,7 @@ func (pm *PostMeta) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	pm.Title = t.Title
 	pm.Aliases = t.Aliases
 	pm.Draft = t.Draft
+	pm.Reply = t.Reply
 
 	possibleFormats := []string{
 		"2006-01-02",
@@ -206,7 +214,7 @@ func (post *Post) LoadMeta() error {
 	if string(trimmedData[0:4]) == "---\n" {
 		trimmedData = trimmedData[4:]
 		// find --- end
-		end := bytes.Index(trimmedData, []byte("\n---\n"))
+		end := bytes.Index(trimmedData, []byte("---\n"))
 		if end != -1 {
 			metaData := trimmedData[:end]
 			err := yaml.Unmarshal(metaData, &meta)

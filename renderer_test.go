@@ -277,3 +277,49 @@ func TestAuthorNameInPost(t *testing.T) {
 		t.Error("Author Name not included. Got: " + result)
 	}
 }
+
+func TestRenderReplyWithoutText(t *testing.T) {
+
+	user := getTestUser()
+	post, _ := user.CreateNewPost("testpost")
+
+	content := "---\n"
+	content += "title: test\n"
+	content += "date: Wed, 17 Aug 2022 10:50:02 +0000\n"
+	content += "reply: \n"
+	content += "  url: https://example.com/post\n"
+	content += "---\n"
+	content += "\n"
+	content += "Hi \n"
+	os.WriteFile(post.ContentFile(), []byte(content), 0644)
+
+	result, _ := owl.RenderPost(&post)
+	if !strings.Contains(result, "https://example.com/post") {
+		t.Error("Reply url not rendered. Got: " + result)
+	}
+}
+
+func TestRenderReplyWithText(t *testing.T) {
+
+	user := getTestUser()
+	post, _ := user.CreateNewPost("testpost")
+
+	content := "---\n"
+	content += "title: test\n"
+	content += "date: Wed, 17 Aug 2022 10:50:02 +0000\n"
+	content += "reply: \n"
+	content += "  url: https://example.com/post\n"
+	content += "  text: \"This is a reply\"\n"
+	content += "---\n"
+	content += "Hi \n"
+	os.WriteFile(post.ContentFile(), []byte(content), 0644)
+
+	result, _ := owl.RenderPost(&post)
+	if !strings.Contains(result, "https://example.com/post") {
+		t.Error("Reply url not rendered. Got: " + result)
+	}
+
+	if !strings.Contains(result, "This is a reply") {
+		t.Error("Reply text not rendered. Got: " + result)
+	}
+}
