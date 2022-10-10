@@ -2,15 +2,20 @@
     <hgroup>
         <h1 class="p-name">{{.Title}}</h1>
         <small>
+            <a class="u-url" href="{{.Post.FullUrl}}">#</a>
             Published:
             <time class="dt-published" datetime="{{.Post.Meta.Date}}">
                 {{.Post.Meta.FormattedDate}}
             </time>
             {{ if .Post.User.Config.AuthorName }}
                 by
-                <a class="p-author h-card" href="{{.Post.User.FullUrl}}">{{.Post.User.Config.AuthorName}}</a>
+                <a class="p-author h-card" href="{{.Post.User.FullUrl}}">
+                    {{ if .Post.User.AvatarUrl }}
+                        <img class="u-photo u-logo" style="height: 1em;" src="{{ .Post.User.AvatarUrl }}" alt="{{ .Post.User.Config.Title }}" />
+                    {{ end }}
+                    {{.Post.User.Config.AuthorName}}
+                </a>
             {{ end }}
-            <a class="u-url" href="{{.Post.FullUrl}}">#</a>
         </small> 
     </hgroup>
     <hr>
