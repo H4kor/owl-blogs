@@ -385,6 +385,10 @@ func (post *Post) ScanForLinks() error {
 	// rely on goldmark for this (yet)
 	postHtml := post.RenderedContent()
 	links, _ := post.user.repo.Parser.ParseLinksFromString(postHtml.String())
+	// add reply url if set
+	if post.Meta().Reply.Url != "" {
+		links = append(links, post.Meta().Reply.Url)
+	}
 	for _, link := range links {
 		post.PersistOutgoingWebmention(&WebmentionOut{
 			Target: link,

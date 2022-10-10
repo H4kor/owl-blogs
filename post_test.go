@@ -344,6 +344,31 @@ func TestScanningForLinksDoesNotAddDuplicates(t *testing.T) {
 	}
 }
 
+func TestScanningForLinksDoesAddReplyUrl(t *testing.T) {
+	repo := getTestRepo(owl.RepoConfig{})
+	user, _ := repo.CreateUser("testuser")
+	post, _ := user.CreateNewPost("testpost")
+
+	content := "---\n"
+	content += "title: test\n"
+	content += "date: Wed, 17 Aug 2022 10:50:02 +0000\n"
+	content += "reply:\n"
+	content += "  url: https://example.com/reply\n"
+	content += "---\n"
+	content += "\n"
+	content += "Hi\n"
+	os.WriteFile(post.ContentFile(), []byte(content), 0644)
+
+	post.ScanForLinks()
+	webmentions := post.OutgoingWebmentions()
+	if len(webmentions) != 1 {
+		t.Errorf("Expected 1 webmention, got %d", len(webmentions))
+	}
+	if webmentions[0].Target != "https://example.com/reply" {
+		t.Errorf("Expected target: %s, got %s", "https://example.com/reply", webmentions[0].Target)
+	}
+}
+
 func TestCanSendWebmention(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	repo.HttpClient = &MockHttpClient{}
