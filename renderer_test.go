@@ -11,7 +11,7 @@ import (
 
 func TestCanRenderPost(t *testing.T) {
 	user := getTestUser()
-	post, _ := user.CreateNewPost("testpost")
+	post, _ := user.CreateNewPost("testpost", false)
 	result, err := owl.RenderPost(&post)
 
 	if err != nil {
@@ -30,7 +30,7 @@ func TestRenderTwitterHandle(t *testing.T) {
 	config, _ := user.Config()
 	config.TwitterHandle = "testhandle"
 	user.SetConfig(config)
-	post, _ := user.CreateNewPost("testpost")
+	post, _ := user.CreateNewPost("testpost", false)
 	result, err := owl.RenderPost(&post)
 
 	if err != nil {
@@ -49,7 +49,7 @@ func TestRenderGitHubHandle(t *testing.T) {
 	config, _ := user.Config()
 	config.GitHubHandle = "testhandle"
 	user.SetConfig(config)
-	post, _ := user.CreateNewPost("testpost")
+	post, _ := user.CreateNewPost("testpost", false)
 	result, err := owl.RenderPost(&post)
 
 	if err != nil {
@@ -65,7 +65,7 @@ func TestRenderGitHubHandle(t *testing.T) {
 
 func TestRenderPostHEntry(t *testing.T) {
 	user := getTestUser()
-	post, _ := user.CreateNewPost("testpost")
+	post, _ := user.CreateNewPost("testpost", false)
 	result, _ := owl.RenderPost(&post)
 	if !strings.Contains(result, "class=\"h-entry\"") {
 		t.Error("h-entry container not rendered. Got: " + result)
@@ -81,7 +81,7 @@ func TestRenderPostHEntry(t *testing.T) {
 
 func TestRendererUsesBaseTemplate(t *testing.T) {
 	user := getTestUser()
-	post, _ := user.CreateNewPost("testpost")
+	post, _ := user.CreateNewPost("testpost", false)
 	result, err := owl.RenderPost(&post)
 
 	if err != nil {
@@ -96,8 +96,8 @@ func TestRendererUsesBaseTemplate(t *testing.T) {
 
 func TestCanRenderIndexPage(t *testing.T) {
 	user := getTestUser()
-	user.CreateNewPost("testpost1")
-	user.CreateNewPost("testpost2")
+	user.CreateNewPost("testpost1", false)
+	user.CreateNewPost("testpost2", false)
 	result, _ := owl.RenderIndexPage(user)
 	if !strings.Contains(result, "testpost1") {
 		t.Error("Post title not rendered. Got: " + result)
@@ -109,7 +109,7 @@ func TestCanRenderIndexPage(t *testing.T) {
 
 func TestIndexPageContainsHFeedContainer(t *testing.T) {
 	user := getTestUser()
-	user.CreateNewPost("testpost1")
+	user.CreateNewPost("testpost1", false)
 
 	result, _ := owl.RenderIndexPage(user)
 	if !strings.Contains(result, "<div class=\"h-feed\">") {
@@ -119,7 +119,7 @@ func TestIndexPageContainsHFeedContainer(t *testing.T) {
 
 func TestIndexPageContainsHEntryAndUUrl(t *testing.T) {
 	user := getTestUser()
-	user.CreateNewPost("testpost1")
+	user.CreateNewPost("testpost1", false)
 
 	result, _ := owl.RenderIndexPage(user)
 	if !strings.Contains(result, "class=\"h-entry\"") {
@@ -133,8 +133,8 @@ func TestIndexPageContainsHEntryAndUUrl(t *testing.T) {
 
 func TestRenderIndexPageWithBrokenBaseTemplate(t *testing.T) {
 	user := getTestUser()
-	user.CreateNewPost("testpost1")
-	user.CreateNewPost("testpost2")
+	user.CreateNewPost("testpost1", false)
+	user.CreateNewPost("testpost2", false)
 
 	os.WriteFile(path.Join(user.Dir(), "meta/base.html"), []byte("{{content}}"), 0644)
 
@@ -169,7 +169,7 @@ func TestRendersHeaderTitle(t *testing.T) {
 		SubTitle:    "Test SubTitle",
 		HeaderColor: "#ff1337",
 	})
-	post, _ := user.CreateNewPost("testpost")
+	post, _ := user.CreateNewPost("testpost", false)
 
 	result, _ := owl.RenderPost(&post)
 	if !strings.Contains(result, "Test Title") {
@@ -185,7 +185,7 @@ func TestRendersHeaderTitle(t *testing.T) {
 
 func TestRenderPostIncludesRelToWebMention(t *testing.T) {
 	user := getTestUser()
-	post, _ := user.CreateNewPost("testpost")
+	post, _ := user.CreateNewPost("testpost", false)
 
 	result, _ := owl.RenderPost(&post)
 	if !strings.Contains(result, "rel=\"webmention\"") {
@@ -199,7 +199,7 @@ func TestRenderPostIncludesRelToWebMention(t *testing.T) {
 
 func TestRenderPostAddsLinksToApprovedWebmention(t *testing.T) {
 	user := getTestUser()
-	post, _ := user.CreateNewPost("testpost")
+	post, _ := user.CreateNewPost("testpost", false)
 	webmention := owl.WebmentionIn{
 		Source:         "http://example.com/source3",
 		Title:          "Test Title",
@@ -229,7 +229,7 @@ func TestRenderPostAddsLinksToApprovedWebmention(t *testing.T) {
 
 func TestRenderPostNotMentioningWebmentionsIfNoAvail(t *testing.T) {
 	user := getTestUser()
-	post, _ := user.CreateNewPost("testpost")
+	post, _ := user.CreateNewPost("testpost", false)
 	result, _ := owl.RenderPost(&post)
 
 	if strings.Contains(result, "Webmention") {
@@ -240,7 +240,7 @@ func TestRenderPostNotMentioningWebmentionsIfNoAvail(t *testing.T) {
 
 func TestRenderIncludesFullUrl(t *testing.T) {
 	user := getTestUser()
-	post, _ := user.CreateNewPost("testpost")
+	post, _ := user.CreateNewPost("testpost", false)
 	result, _ := owl.RenderPost(&post)
 
 	if !strings.Contains(result, "class=\"u-url\"") {
@@ -270,7 +270,7 @@ func TestAuthorNameInPost(t *testing.T) {
 		HeaderColor: "#ff1337",
 		AuthorName:  "Test Author",
 	})
-	post, _ := user.CreateNewPost("testpost")
+	post, _ := user.CreateNewPost("testpost", false)
 
 	result, _ := owl.RenderPost(&post)
 	if !strings.Contains(result, "Test Author") {
@@ -281,7 +281,7 @@ func TestAuthorNameInPost(t *testing.T) {
 func TestRenderReplyWithoutText(t *testing.T) {
 
 	user := getTestUser()
-	post, _ := user.CreateNewPost("testpost")
+	post, _ := user.CreateNewPost("testpost", false)
 
 	content := "---\n"
 	content += "title: test\n"
@@ -302,7 +302,7 @@ func TestRenderReplyWithoutText(t *testing.T) {
 func TestRenderReplyWithText(t *testing.T) {
 
 	user := getTestUser()
-	post, _ := user.CreateNewPost("testpost")
+	post, _ := user.CreateNewPost("testpost", false)
 
 	content := "---\n"
 	content += "title: test\n"

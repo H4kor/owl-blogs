@@ -141,7 +141,7 @@ func (user User) GetPost(id string) (Post, error) {
 	return post, nil
 }
 
-func (user User) CreateNewPost(title string) (Post, error) {
+func (user User) CreateNewPost(title string, draft bool) (Post, error) {
 	timestamp := time.Now().UTC().Unix()
 	folder_name := fmt.Sprintf("%d-%s", timestamp, title)
 	post_dir := path.Join(user.Dir(), "public", folder_name)
@@ -162,7 +162,7 @@ func (user User) CreateNewPost(title string) (Post, error) {
 		Title:   title,
 		Date:    time.Now(),
 		Aliases: []string{},
-		Draft:   false,
+		Draft:   draft,
 	}
 
 	initial_content := ""

@@ -40,11 +40,12 @@ var newPostCmd = &cobra.Command{
 			return
 		}
 
-		_, err = user.CreateNewPost(postTitle)
+		post, err := user.CreateNewPost(postTitle, true)
 		if err != nil {
 			println("Error creating post: ", err.Error())
 		} else {
 			println("Post created: ", postTitle)
+			println("Edit: ", post.ContentFile())
 		}
 	},
 }

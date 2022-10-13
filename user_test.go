@@ -14,7 +14,7 @@ func TestCreateNewPostCreatesEntryInPublic(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser(randomUserName())
 	// Create a new post
-	user.CreateNewPost("testpost")
+	user.CreateNewPost("testpost", false)
 	files, err := ioutil.ReadDir(path.Join(user.Dir(), "public"))
 	if err != nil {
 		t.Error("Error reading directory")
@@ -29,7 +29,7 @@ func TestCreateNewPostCreatesMediaDir(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser(randomUserName())
 	// Create a new post
-	post, _ := user.CreateNewPost("testpost")
+	post, _ := user.CreateNewPost("testpost", false)
 	if _, err := os.Stat(post.MediaDir()); os.IsNotExist(err) {
 		t.Error("Media directory not created")
 	}
@@ -38,7 +38,7 @@ func TestCreateNewPostCreatesMediaDir(t *testing.T) {
 func TestCreateNewPostAddsDateToMetaBlock(t *testing.T) {
 	user := getTestUser()
 	// Create a new post
-	user.CreateNewPost("testpost")
+	user.CreateNewPost("testpost", false)
 	posts, _ := user.Posts()
 	post, _ := user.GetPost(posts[0].Id())
 	meta := post.Meta()
@@ -52,9 +52,9 @@ func TestCreateNewPostMultipleCalls(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser(randomUserName())
 	// Create a new post
-	user.CreateNewPost("testpost")
-	user.CreateNewPost("testpost")
-	user.CreateNewPost("testpost")
+	user.CreateNewPost("testpost", false)
+	user.CreateNewPost("testpost", false)
+	user.CreateNewPost("testpost", false)
 	files, err := ioutil.ReadDir(path.Join(user.Dir(), "public"))
 	if err != nil {
 		t.Error("Error reading directory")
@@ -69,9 +69,9 @@ func TestCanListUserPosts(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser(randomUserName())
 	// Create a new post
-	user.CreateNewPost("testpost")
-	user.CreateNewPost("testpost")
-	user.CreateNewPost("testpost")
+	user.CreateNewPost("testpost", false)
+	user.CreateNewPost("testpost", false)
+	user.CreateNewPost("testpost", false)
 	posts, err := user.Posts()
 	if err != nil {
 		t.Error("Error reading posts")
@@ -86,7 +86,7 @@ func TestCannotListUserPostsInSubdirectories(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser(randomUserName())
 	// Create a new post
-	user.CreateNewPost("testpost")
+	user.CreateNewPost("testpost", false)
 	os.Mkdir(path.Join(user.PostDir(), "foo"), 0755)
 	os.Mkdir(path.Join(user.PostDir(), "foo/bar"), 0755)
 	content := ""
@@ -123,7 +123,7 @@ func TestCannotListUserPostsWithoutIndexMd(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser(randomUserName())
 	// Create a new post
-	user.CreateNewPost("testpost")
+	user.CreateNewPost("testpost", false)
 	os.Mkdir(path.Join(user.PostDir(), "foo"), 0755)
 	os.Mkdir(path.Join(user.PostDir(), "foo/bar"), 0755)
 	content := ""
@@ -152,7 +152,7 @@ func TestListUserPostsDoesNotIncludeDrafts(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser(randomUserName())
 	// Create a new post
-	post, _ := user.CreateNewPost("testpost")
+	post, _ := user.CreateNewPost("testpost", false)
 	content := ""
 	content += "---\n"
 	content += "title: test\n"
@@ -173,7 +173,7 @@ func TestListUsersDraftsExcludedRealWorld(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser(randomUserName())
 	// Create a new post
-	post, _ := user.CreateNewPost("testpost")
+	post, _ := user.CreateNewPost("testpost", false)
 	content := ""
 	content += "---\n"
 	content += "title: Articles September 2019\n"
@@ -199,7 +199,7 @@ func TestListUsersDraftsExcludedRealWorld(t *testing.T) {
 func TestCanLoadPost(t *testing.T) {
 	user := getTestUser()
 	// Create a new post
-	user.CreateNewPost("testpost")
+	user.CreateNewPost("testpost", false)
 
 	posts, _ := user.Posts()
 	post, _ := user.GetPost(posts[0].Id())
@@ -225,8 +225,8 @@ func TestUserFullUrl(t *testing.T) {
 func TestPostsSortedByPublishingDateLatestFirst(t *testing.T) {
 	user := getTestUser()
 	// Create a new post
-	post1, _ := user.CreateNewPost("testpost")
-	post2, _ := user.CreateNewPost("testpost2")
+	post1, _ := user.CreateNewPost("testpost", false)
+	post2, _ := user.CreateNewPost("testpost2", false)
 
 	content := "---\n"
 	content += "title: Test Post\n"
@@ -256,7 +256,7 @@ func TestPostsSortedByPublishingDateLatestFirst2(t *testing.T) {
 	// Create a new post
 	posts := []*owl.Post{}
 	for i := 59; i >= 0; i-- {
-		post, _ := user.CreateNewPost("testpost")
+		post, _ := user.CreateNewPost("testpost", false)
 		content := "---\n"
 		content += "title: Test Post\n"
 		content += fmt.Sprintf("date: Wed, 17 Aug 2022 10:%02d:02 +0000\n", i)
@@ -277,8 +277,8 @@ func TestPostsSortedByPublishingDateLatestFirst2(t *testing.T) {
 func TestPostsSortedByPublishingDateBrokenAtBottom(t *testing.T) {
 	user := getTestUser()
 	// Create a new post
-	post1, _ := user.CreateNewPost("testpost")
-	post2, _ := user.CreateNewPost("testpost2")
+	post1, _ := user.CreateNewPost("testpost", false)
+	post2, _ := user.CreateNewPost("testpost2", false)
 
 	content := "---\n"
 	content += "title: Test Post\n"

@@ -66,7 +66,7 @@ func TestMultiUserRepoIndexHandler(t *testing.T) {
 func TestMultiUserUserIndexHandler(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("test-1")
-	user.CreateNewPost("post-1")
+	user.CreateNewPost("post-1", false)
 
 	// Create Request and Response
 	req, err := http.NewRequest("GET", user.UrlPath(), nil)
@@ -93,7 +93,7 @@ func TestMultiUserUserIndexHandler(t *testing.T) {
 func TestMultiUserPostHandler(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("test-1")
-	post, _ := user.CreateNewPost("post-1")
+	post, _ := user.CreateNewPost("post-1", false)
 
 	// Create Request and Response
 	req, err := http.NewRequest("GET", post.UrlPath(), nil)
@@ -114,7 +114,7 @@ func TestMultiUserPostHandler(t *testing.T) {
 func TestMultiUserPostMediaHandler(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("test-1")
-	post, _ := user.CreateNewPost("post-1")
+	post, _ := user.CreateNewPost("post-1", false)
 
 	// Create test media file
 	path := path.Join(post.MediaDir(), "data.txt")

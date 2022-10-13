@@ -45,7 +45,7 @@ func assertStatus(t *testing.T, rr *httptest.ResponseRecorder, expStatus int) {
 func TestWebmentionHandleAccepts(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("test-1")
-	post, _ := user.CreateNewPost("post-1")
+	post, _ := user.CreateNewPost("post-1", false)
 
 	target := post.FullUrl()
 	source := "https://example.com"
@@ -63,7 +63,7 @@ func TestWebmentionWrittenToPost(t *testing.T) {
 
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("test-1")
-	post, _ := user.CreateNewPost("post-1")
+	post, _ := user.CreateNewPost("post-1", false)
 
 	target := post.FullUrl()
 	source := "https://example.com"
@@ -92,7 +92,7 @@ func TestWebmentionSourceValidation(t *testing.T) {
 
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("test-1")
-	post, _ := user.CreateNewPost("post-1")
+	post, _ := user.CreateNewPost("post-1", false)
 
 	target := post.FullUrl()
 	source := "ftp://example.com"
@@ -109,7 +109,7 @@ func TestWebmentionTargetValidation(t *testing.T) {
 
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("test-1")
-	post, _ := user.CreateNewPost("post-1")
+	post, _ := user.CreateNewPost("post-1", false)
 
 	target := "ftp://example.com"
 	source := post.FullUrl()
@@ -128,7 +128,7 @@ func TestWebmentionSameTargetAndSource(t *testing.T) {
 
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("test-1")
-	post, _ := user.CreateNewPost("post-1")
+	post, _ := user.CreateNewPost("post-1", false)
 
 	target := post.FullUrl()
 	source := post.FullUrl()
@@ -147,7 +147,7 @@ func TestWebmentionSameTargetAndSource(t *testing.T) {
 func TestValidationOfTarget(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("test-1")
-	post, _ := user.CreateNewPost("post-1")
+	post, _ := user.CreateNewPost("post-1", false)
 
 	target := post.FullUrl()
 	target = target[:len(target)-1] + "invalid"
@@ -164,7 +164,7 @@ func TestValidationOfTarget(t *testing.T) {
 func TestAcceptWebmentionForAlias(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("test-1")
-	post, _ := user.CreateNewPost("post-1")
+	post, _ := user.CreateNewPost("post-1", false)
 
 	content := "---\n"
 	content += "title: Test\n"

@@ -19,7 +19,7 @@ func getSingleUserTestRepo() (owl.Repository, owl.User) {
 
 func TestSingleUserUserIndexHandler(t *testing.T) {
 	repo, user := getSingleUserTestRepo()
-	user.CreateNewPost("post-1")
+	user.CreateNewPost("post-1", false)
 
 	// Create Request and Response
 	req, err := http.NewRequest("GET", user.UrlPath(), nil)
@@ -45,7 +45,7 @@ func TestSingleUserUserIndexHandler(t *testing.T) {
 
 func TestSingleUserPostHandler(t *testing.T) {
 	repo, user := getSingleUserTestRepo()
-	post, _ := user.CreateNewPost("post-1")
+	post, _ := user.CreateNewPost("post-1", false)
 
 	// Create Request and Response
 	req, err := http.NewRequest("GET", post.UrlPath(), nil)
@@ -65,7 +65,7 @@ func TestSingleUserPostHandler(t *testing.T) {
 
 func TestSingleUserPostMediaHandler(t *testing.T) {
 	repo, user := getSingleUserTestRepo()
-	post, _ := user.CreateNewPost("post-1")
+	post, _ := user.CreateNewPost("post-1", false)
 
 	// Create test media file
 	path := path.Join(post.MediaDir(), "data.txt")
@@ -98,7 +98,7 @@ func TestSingleUserPostMediaHandler(t *testing.T) {
 
 func TestHasNoDraftsInList(t *testing.T) {
 	repo, user := getSingleUserTestRepo()
-	post, _ := user.CreateNewPost("post-1")
+	post, _ := user.CreateNewPost("post-1", false)
 	content := ""
 	content += "---\n"
 	content += "title: Articles September 2019\n"

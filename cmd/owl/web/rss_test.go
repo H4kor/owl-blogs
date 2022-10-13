@@ -12,7 +12,7 @@ import (
 func TestMultiUserUserRssIndexHandler(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("test-1")
-	user.CreateNewPost("post-1")
+	user.CreateNewPost("post-1", false)
 
 	// Create Request and Response
 	req, err := http.NewRequest("GET", user.UrlPath()+"index.xml", nil)
