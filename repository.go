@@ -6,8 +6,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
-
-	"gopkg.in/yaml.v2"
 )
 
 //go:embed embed/initial/base.html
@@ -42,8 +40,7 @@ func CreateRepository(name string, config RepoConfig) (Repository, error) {
 	if config.Domain == "" {
 		config.Domain = "http://localhost:8080"
 	}
-	config_data, _ := yaml.Marshal(config)
-	os.WriteFile(path.Join(newRepo.Dir(), "config.yml"), config_data, 0644)
+	saveToYaml(path.Join(newRepo.Dir(), "config.yml"), config)
 
 	// copy all files from static_files embed.FS to StaticDir
 	staticFiles, _ := embed_files.ReadDir("embed/initial/static")
@@ -145,12 +142,11 @@ func (repo *Repository) CreateUser(name string) (User, error) {
 	os.WriteFile(path.Join(user_dir, "meta", "VERSION"), []byte(VERSION), 0644)
 	os.WriteFile(path.Join(user_dir, "meta", "base.html"), []byte(base_template), 0644)
 
-	meta, _ := yaml.Marshal(UserConfig{
+	saveToYaml(new_user.ConfigFile(), UserConfig{
 		Title:       name,
 		SubTitle:    "",
 		HeaderColor: "#bdd6be",
 	})
-	os.WriteFile(new_user.ConfigFile(), meta, 0644)
 
 	return new_user, nil
 }
@@ -182,15 +178,8 @@ func (repo Repository) PostAliases() (map[string]*Post, error) {
 }
 
 func (repo Repository) Config() (RepoConfig, error) {
-	config_path := path.Join(repo.Dir(), "config.yml")
-	config_data, err := ioutil.ReadFile(config_path)
-	if err != nil {
-		return RepoConfig{}, err
-	}
-	var meta RepoConfig
-	err = yaml.Unmarshal(config_data, &meta)
-	if err != nil {
-		return RepoConfig{}, err
-	}
-	return meta, nil
+	meta := RepoConfig{}
+	err := loadFromYaml(path.Join(repo.Dir(), "config.yml"), &meta)
+	return meta, err
+
 }

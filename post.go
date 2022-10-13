@@ -5,7 +5,6 @@ import (
 	"errors"
 	"io/ioutil"
 	"net/url"
-	"os"
 	"path"
 	"sort"
 	"sync"
@@ -235,16 +234,8 @@ func (post *Post) IncomingWebmentions() []WebmentionIn {
 		return []WebmentionIn{}
 	}
 
-	data, err := os.ReadFile(fileName)
-	if err != nil {
-		return []WebmentionIn{}
-	}
-
 	webmentions := []WebmentionIn{}
-	err = yaml.Unmarshal(data, &webmentions)
-	if err != nil {
-		return []WebmentionIn{}
-	}
+	loadFromYaml(fileName, &webmentions)
 
 	return webmentions
 }
@@ -256,16 +247,8 @@ func (post *Post) OutgoingWebmentions() []WebmentionOut {
 		return []WebmentionOut{}
 	}
 
-	data, err := os.ReadFile(fileName)
-	if err != nil {
-		return []WebmentionOut{}
-	}
-
 	webmentions := []WebmentionOut{}
-	err = yaml.Unmarshal(data, &webmentions)
-	if err != nil {
-		return []WebmentionOut{}
-	}
+	loadFromYaml(fileName, &webmentions)
 
 	return webmentions
 }
@@ -291,12 +274,7 @@ func (post *Post) PersistIncomingWebmention(webmention WebmentionIn) error {
 		wms = append(wms, webmention)
 	}
 
-	data, err := yaml.Marshal(wms)
-	if err != nil {
-		return err
-	}
-
-	err = os.WriteFile(post.IncomingWebmentionsFile(), data, 0644)
+	err := saveToYaml(post.IncomingWebmentionsFile(), wms)
 	if err != nil {
 		return err
 	}
@@ -325,12 +303,7 @@ func (post *Post) PersistOutgoingWebmention(webmention *WebmentionOut) error {
 		wms = append(wms, *webmention)
 	}
 
-	data, err := yaml.Marshal(wms)
-	if err != nil {
-		return err
-	}
-
-	err = os.WriteFile(post.OutgoingWebmentionsFile(), data, 0644)
+	err := saveToYaml(post.OutgoingWebmentionsFile(), wms)
 	if err != nil {
 		return err
 	}

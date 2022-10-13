@@ -196,30 +196,13 @@ func (user User) Template() (string, error) {
 }
 
 func (user User) Config() (UserConfig, error) {
-	config_path := user.ConfigFile()
-	config_data, err := ioutil.ReadFile(config_path)
-	if err != nil {
-		return UserConfig{}, err
-	}
-	var meta UserConfig
-	err = yaml.Unmarshal(config_data, &meta)
-	if err != nil {
-		return UserConfig{}, err
-	}
-	return meta, nil
+	meta := UserConfig{}
+	err := loadFromYaml(user.ConfigFile(), &meta)
+	return meta, err
 }
 
 func (user User) SetConfig(new_config UserConfig) error {
-	config_path := user.ConfigFile()
-	config_data, err := yaml.Marshal(new_config)
-	if err != nil {
-		return err
-	}
-	err = ioutil.WriteFile(config_path, config_data, 0644)
-	if err != nil {
-		return err
-	}
-	return nil
+	return saveToYaml(user.ConfigFile(), new_config)
 }
 
 func (user User) PostAliases() (map[string]*Post, error) {
