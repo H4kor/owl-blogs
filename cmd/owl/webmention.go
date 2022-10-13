@@ -82,7 +82,7 @@ var webmentionCmd = &cobra.Command{
 					println("Error getting post: ", err.Error())
 					return
 				}
-				processPost(user, &post)
+				processPost(user, post)
 				return
 			}
 

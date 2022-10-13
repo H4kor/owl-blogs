@@ -137,7 +137,7 @@ func userWebmentionHandler(repo *owl.Repository) func(http.ResponseWriter, *http
 			}
 		}
 		if aliasPost != nil {
-			foundPost = *aliasPost
+			foundPost = aliasPost
 		}
 		err = foundPost.AddIncomingWebmention(source[0])
 		if err != nil {
@@ -197,7 +197,7 @@ func postHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Request, 
 			return
 		}
 
-		html, err := owl.RenderPost(&post)
+		html, err := owl.RenderPost(post)
 		if err != nil {
 			println("Error rendering post: ", err.Error())
 			w.WriteHeader(http.StatusInternalServerError)

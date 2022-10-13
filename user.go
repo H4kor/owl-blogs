@@ -86,7 +86,7 @@ func (user User) Posts() ([]*Post, error) {
 		if dirExists(path.Join(user.Dir(), "public", id)) {
 			if fileExists(path.Join(user.Dir(), "public", id, "index.md")) {
 				post, _ := user.GetPost(id)
-				posts = append(posts, &post)
+				posts = append(posts, post)
 			}
 		}
 	}
@@ -125,10 +125,10 @@ func (user User) Posts() ([]*Post, error) {
 	return posts, nil
 }
 
-func (user User) GetPost(id string) (Post, error) {
+func (user User) GetPost(id string) (*Post, error) {
 	// check if posts index.md exists
 	if !fileExists(path.Join(user.Dir(), "public", id, "index.md")) {
-		return Post{}, fmt.Errorf("post %s does not exist", id)
+		return &Post{}, fmt.Errorf("post %s does not exist", id)
 	}
 
 	post := Post{user: &user, id: id}
@@ -137,10 +137,10 @@ func (user User) GetPost(id string) (Post, error) {
 	title := meta.Title
 	post.title = fmt.Sprint(title)
 
-	return post, nil
+	return &post, nil
 }
 
-func (user User) CreateNewPost(title string, draft bool) (Post, error) {
+func (user User) CreateNewPost(title string, draft bool) (*Post, error) {
 	folder_name := toDirectoryName(title)
 	post_dir := path.Join(user.Dir(), "public", folder_name)
 
@@ -168,7 +168,7 @@ func (user User) CreateNewPost(title string, draft bool) (Post, error) {
 	// write meta
 	meta_bytes, err := yaml.Marshal(meta)
 	if err != nil {
-		return Post{}, err
+		return &Post{}, err
 	}
 	initial_content += string(meta_bytes)
 	initial_content += "---\n"
@@ -180,7 +180,7 @@ func (user User) CreateNewPost(title string, draft bool) (Post, error) {
 	os.WriteFile(post.ContentFile(), []byte(initial_content), 0644)
 	// create media dir
 	os.Mkdir(post.MediaDir(), 0755)
-	return post, nil
+	return &post, nil
 }
 
 func (user User) Template() (string, error) {

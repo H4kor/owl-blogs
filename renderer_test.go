@@ -12,7 +12,7 @@ import (
 func TestCanRenderPost(t *testing.T) {
 	user := getTestUser()
 	post, _ := user.CreateNewPost("testpost", false)
-	result, err := owl.RenderPost(&post)
+	result, err := owl.RenderPost(post)
 
 	if err != nil {
 		t.Error("Error rendering post: " + err.Error())
@@ -31,7 +31,7 @@ func TestRenderTwitterHandle(t *testing.T) {
 	config.TwitterHandle = "testhandle"
 	user.SetConfig(config)
 	post, _ := user.CreateNewPost("testpost", false)
-	result, err := owl.RenderPost(&post)
+	result, err := owl.RenderPost(post)
 
 	if err != nil {
 		t.Error("Error rendering post: " + err.Error())
@@ -50,7 +50,7 @@ func TestRenderGitHubHandle(t *testing.T) {
 	config.GitHubHandle = "testhandle"
 	user.SetConfig(config)
 	post, _ := user.CreateNewPost("testpost", false)
-	result, err := owl.RenderPost(&post)
+	result, err := owl.RenderPost(post)
 
 	if err != nil {
 		t.Error("Error rendering post: " + err.Error())
@@ -66,7 +66,7 @@ func TestRenderGitHubHandle(t *testing.T) {
 func TestRenderPostHEntry(t *testing.T) {
 	user := getTestUser()
 	post, _ := user.CreateNewPost("testpost", false)
-	result, _ := owl.RenderPost(&post)
+	result, _ := owl.RenderPost(post)
 	if !strings.Contains(result, "class=\"h-entry\"") {
 		t.Error("h-entry container not rendered. Got: " + result)
 	}
@@ -82,7 +82,7 @@ func TestRenderPostHEntry(t *testing.T) {
 func TestRendererUsesBaseTemplate(t *testing.T) {
 	user := getTestUser()
 	post, _ := user.CreateNewPost("testpost", false)
-	result, err := owl.RenderPost(&post)
+	result, err := owl.RenderPost(post)
 
 	if err != nil {
 		t.Error("Error rendering post: " + err.Error())
@@ -171,7 +171,7 @@ func TestRendersHeaderTitle(t *testing.T) {
 	})
 	post, _ := user.CreateNewPost("testpost", false)
 
-	result, _ := owl.RenderPost(&post)
+	result, _ := owl.RenderPost(post)
 	if !strings.Contains(result, "Test Title") {
 		t.Error("Header title not rendered. Got: " + result)
 	}
@@ -187,7 +187,7 @@ func TestRenderPostIncludesRelToWebMention(t *testing.T) {
 	user := getTestUser()
 	post, _ := user.CreateNewPost("testpost", false)
 
-	result, _ := owl.RenderPost(&post)
+	result, _ := owl.RenderPost(post)
 	if !strings.Contains(result, "rel=\"webmention\"") {
 		t.Error("webmention rel not rendered. Got: " + result)
 	}
@@ -214,7 +214,7 @@ func TestRenderPostAddsLinksToApprovedWebmention(t *testing.T) {
 	}
 	post.PersistIncomingWebmention(webmention)
 
-	result, _ := owl.RenderPost(&post)
+	result, _ := owl.RenderPost(post)
 	if !strings.Contains(result, "http://example.com/source3") {
 		t.Error("webmention not rendered. Got: " + result)
 	}
@@ -230,7 +230,7 @@ func TestRenderPostAddsLinksToApprovedWebmention(t *testing.T) {
 func TestRenderPostNotMentioningWebmentionsIfNoAvail(t *testing.T) {
 	user := getTestUser()
 	post, _ := user.CreateNewPost("testpost", false)
-	result, _ := owl.RenderPost(&post)
+	result, _ := owl.RenderPost(post)
 
 	if strings.Contains(result, "Webmention") {
 		t.Error("Webmention mentioned. Got: " + result)
@@ -241,7 +241,7 @@ func TestRenderPostNotMentioningWebmentionsIfNoAvail(t *testing.T) {
 func TestRenderIncludesFullUrl(t *testing.T) {
 	user := getTestUser()
 	post, _ := user.CreateNewPost("testpost", false)
-	result, _ := owl.RenderPost(&post)
+	result, _ := owl.RenderPost(post)
 
 	if !strings.Contains(result, "class=\"u-url\"") {
 		t.Error("u-url not rendered. Got: " + result)
@@ -272,7 +272,7 @@ func TestAuthorNameInPost(t *testing.T) {
 	})
 	post, _ := user.CreateNewPost("testpost", false)
 
-	result, _ := owl.RenderPost(&post)
+	result, _ := owl.RenderPost(post)
 	if !strings.Contains(result, "Test Author") {
 		t.Error("Author Name not included. Got: " + result)
 	}
@@ -293,7 +293,7 @@ func TestRenderReplyWithoutText(t *testing.T) {
 	content += "Hi \n"
 	os.WriteFile(post.ContentFile(), []byte(content), 0644)
 
-	result, _ := owl.RenderPost(&post)
+	result, _ := owl.RenderPost(post)
 	if !strings.Contains(result, "https://example.com/post") {
 		t.Error("Reply url not rendered. Got: " + result)
 	}
@@ -314,7 +314,7 @@ func TestRenderReplyWithText(t *testing.T) {
 	content += "Hi \n"
 	os.WriteFile(post.ContentFile(), []byte(content), 0644)
 
-	result, _ := owl.RenderPost(&post)
+	result, _ := owl.RenderPost(post)
 	if !strings.Contains(result, "https://example.com/post") {
 		t.Error("Reply url not rendered. Got: " + result)
 	}

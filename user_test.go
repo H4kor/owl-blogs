@@ -59,7 +59,7 @@ func TestCreateNewPostMultipleCalls(t *testing.T) {
 		t.Error("Error reading directory")
 	}
 	if len(files) < 3 {
-		t.Error(fmt.Sprintf("Only %d posts created", len(files)))
+		t.Errorf("Only %d posts created", len(files))
 	}
 }
 
@@ -262,7 +262,7 @@ func TestPostsSortedByPublishingDateLatestFirst2(t *testing.T) {
 		content += "---\n"
 		content += "This is a test"
 		os.WriteFile(post.ContentFile(), []byte(content), 0644)
-		posts = append(posts, &post)
+		posts = append(posts, post)
 	}
 
 	retPosts, _ := user.Posts()

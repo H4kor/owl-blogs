@@ -2,7 +2,6 @@ package owl
 
 import (
 	"os"
-	"path/filepath"
 	"strings"
 )
 
@@ -22,22 +21,6 @@ func listDir(path string) []string {
 func fileExists(path string) bool {
 	_, err := os.Stat(path)
 	return err == nil
-}
-
-// recursive list of all files in a directory
-func walkDir(path string) []string {
-	files := make([]string, 0)
-	filepath.Walk(path, func(subPath string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if info.IsDir() {
-			return nil
-		}
-		files = append(files, subPath[len(path)+1:])
-		return nil
-	})
-	return files
 }
 
 func toDirectoryName(name string) string {
