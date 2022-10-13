@@ -3,7 +3,6 @@ package owl_test
 import (
 	"fmt"
 	"h4kor/owl-blogs"
-	"io/ioutil"
 	"os"
 	"path"
 	"testing"
@@ -15,7 +14,7 @@ func TestCreateNewPostCreatesEntryInPublic(t *testing.T) {
 	user, _ := repo.CreateUser(randomUserName())
 	// Create a new post
 	user.CreateNewPost("testpost", false)
-	files, err := ioutil.ReadDir(path.Join(user.Dir(), "public"))
+	files, err := os.ReadDir(path.Join(user.Dir(), "public"))
 	if err != nil {
 		t.Error("Error reading directory")
 	}
@@ -55,7 +54,7 @@ func TestCreateNewPostMultipleCalls(t *testing.T) {
 	user.CreateNewPost("testpost", false)
 	user.CreateNewPost("testpost", false)
 	user.CreateNewPost("testpost", false)
-	files, err := ioutil.ReadDir(path.Join(user.Dir(), "public"))
+	files, err := os.ReadDir(path.Join(user.Dir(), "public"))
 	if err != nil {
 		t.Error("Error reading directory")
 	}

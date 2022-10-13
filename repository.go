@@ -3,7 +3,6 @@ package owl
 import (
 	_ "embed"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 )
@@ -102,7 +101,7 @@ func (repo Repository) FullUrl() string {
 func (repo Repository) Template() (string, error) {
 	// load base.html
 	path := path.Join(repo.Dir(), "base.html")
-	base_html, err := ioutil.ReadFile(path)
+	base_html, err := os.ReadFile(path)
 	if err != nil {
 		return "", err
 	}

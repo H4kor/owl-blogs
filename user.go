@@ -2,7 +2,6 @@ package owl
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/url"
 	"os"
 	"path"
@@ -187,7 +186,7 @@ func (user User) CreateNewPost(title string, draft bool) (Post, error) {
 func (user User) Template() (string, error) {
 	// load base.html
 	path := path.Join(user.Dir(), "meta", "base.html")
-	base_html, err := ioutil.ReadFile(path)
+	base_html, err := os.ReadFile(path)
 	if err != nil {
 		return "", err
 	}

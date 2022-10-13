@@ -3,8 +3,8 @@ package owl
 import (
 	"bytes"
 	"errors"
-	"io/ioutil"
 	"net/url"
+	"os"
 	"path"
 	"sort"
 	"sync"
@@ -155,7 +155,7 @@ func (post *Post) Meta() PostMeta {
 
 func (post *Post) Content() []byte {
 	// read file
-	data, _ := ioutil.ReadFile(post.ContentFile())
+	data, _ := os.ReadFile(post.ContentFile())
 	return data
 }
 
