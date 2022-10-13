@@ -3,6 +3,7 @@ package owl
 import (
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 func dirExists(path string) bool {
@@ -37,4 +38,25 @@ func walkDir(path string) []string {
 		return nil
 	})
 	return files
+}
+
+func toDirectoryName(name string) string {
+	name = strings.ToLower(strings.ReplaceAll(name, " ", "-"))
+	// remove all non-alphanumeric characters
+	name = strings.Map(func(r rune) rune {
+		if r >= 'a' && r <= 'z' {
+			return r
+		}
+		if r >= 'A' && r <= 'Z' {
+			return r
+		}
+		if r >= '0' && r <= '9' {
+			return r
+		}
+		if r == '-' {
+			return r
+		}
+		return -1
+	}, name)
+	return name
 }

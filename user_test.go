@@ -317,3 +317,11 @@ func TestAvatarSetIfFileExist(t *testing.T) {
 		t.Error("Avatar should not be empty")
 	}
 }
+
+func TestPostNameIllegalFileName(t *testing.T) {
+	user := getTestUser()
+	_, err := user.CreateNewPost("testpost?///", false)
+	if err != nil {
+		t.Error("Should not have failed")
+	}
+}

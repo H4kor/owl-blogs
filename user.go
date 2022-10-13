@@ -142,8 +142,7 @@ func (user User) GetPost(id string) (Post, error) {
 }
 
 func (user User) CreateNewPost(title string, draft bool) (Post, error) {
-	timestamp := time.Now().UTC().Unix()
-	folder_name := fmt.Sprintf("%d-%s", timestamp, title)
+	folder_name := toDirectoryName(title)
 	post_dir := path.Join(user.Dir(), "public", folder_name)
 
 	// if post already exists, add -n to the end of the name
@@ -151,7 +150,7 @@ func (user User) CreateNewPost(title string, draft bool) (Post, error) {
 	for {
 		if dirExists(post_dir) {
 			i++
-			folder_name = fmt.Sprintf("%d-%s-%d", timestamp, title, i)
+			folder_name = toDirectoryName(fmt.Sprintf("%s-%d", title, i))
 			post_dir = path.Join(user.Dir(), "public", folder_name)
 		} else {
 			break
