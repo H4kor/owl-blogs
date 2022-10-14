@@ -20,10 +20,11 @@ type RSSChannel struct {
 }
 
 type RSSItem struct {
-	Guid    string `xml:"guid"`
-	Title   string `xml:"title"`
-	Link    string `xml:"link"`
-	PubDate string `xml:"pubDate"`
+	Guid        string `xml:"guid"`
+	Title       string `xml:"title"`
+	Link        string `xml:"link"`
+	PubDate     string `xml:"pubDate"`
+	Description string `xml:"description"`
 }
 
 func RenderRSSFeed(user User) (string, error) {
@@ -43,11 +44,13 @@ func RenderRSSFeed(user User) (string, error) {
 	posts, _ := user.Posts()
 	for _, post := range posts {
 		meta := post.Meta()
+		content, _ := renderPostContent(post)
 		rss.Channel.Items = append(rss.Channel.Items, RSSItem{
-			Guid:    post.FullUrl(),
-			Title:   post.Title(),
-			Link:    post.FullUrl(),
-			PubDate: meta.Date.Format(time.RFC1123Z),
+			Guid:        post.FullUrl(),
+			Title:       post.Title(),
+			Link:        post.FullUrl(),
+			PubDate:     meta.Date.Format(time.RFC1123Z),
+			Description: content,
 		})
 	}
 
