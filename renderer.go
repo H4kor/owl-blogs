@@ -7,8 +7,11 @@ import (
 )
 
 type PageContent struct {
-	Title   string
-	Content template.HTML
+	Title       string
+	Description string
+	Content     template.HTML
+	Type        string
+	SelfUrl     string
 }
 
 type PostRenderData struct {
@@ -46,13 +49,19 @@ func renderIntoBaseTemplate(user User, data PageContent) (string, error) {
 	}
 
 	full_data := struct {
-		Title   string
-		Content template.HTML
-		User    User
+		Title       string
+		Description string
+		Content     template.HTML
+		Type        string
+		SelfUrl     string
+		User        User
 	}{
-		Title:   data.Title,
-		Content: data.Content,
-		User:    user,
+		Title:       data.Title,
+		Description: data.Description,
+		Content:     data.Content,
+		Type:        data.Type,
+		SelfUrl:     data.SelfUrl,
+		User:        user,
 	}
 
 	var html bytes.Buffer
@@ -78,8 +87,11 @@ func RenderPost(post *Post) (string, error) {
 	}
 
 	return renderIntoBaseTemplate(*post.user, PageContent{
-		Title:   post.Title(),
-		Content: template.HTML(postHtml),
+		Title:       post.Title(),
+		Description: post.Meta().Description,
+		Content:     template.HTML(postHtml),
+		Type:        "article",
+		SelfUrl:     post.FullUrl(),
 	})
 }
 

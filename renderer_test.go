@@ -323,3 +323,40 @@ func TestRenderReplyWithText(t *testing.T) {
 		t.Error("Reply text not rendered. Got: " + result)
 	}
 }
+
+func TestOpenGraphTags(t *testing.T) {
+	user := getTestUser()
+	post, _ := user.CreateNewPost("testpost", false)
+
+	content := "---\n"
+	content += "title: The Rock\n"
+	content += "description: Dwayne Johnson\n"
+	content += "date: Wed, 17 Aug 2022 10:50:02 +0000\n"
+	content += "---\n"
+	content += "\n"
+	content += "Hi \n"
+
+	err := os.WriteFile(post.ContentFile(), []byte(content), 0644)
+	if err != nil {
+		t.Error(err)
+	}
+	post, _ = user.GetPost(post.Id())
+
+	result, _ := owl.RenderPost(post)
+
+	if !strings.Contains(result, "<meta property=\"og:title\" content=\"The Rock\" />") {
+		t.Error("incorrent og:title . Got: " + result)
+	}
+
+	if !strings.Contains(result, "<meta property=\"og:description\" content=\"Dwayne Johnson\" />") {
+		t.Error("incorrent og:description . Got: " + result)
+	}
+
+	if !strings.Contains(result, "<meta property=\"og:type\" content=\"article\" />") {
+		t.Error("incorrent og:type . Got: " + result)
+	}
+	if !strings.Contains(result, "<meta property=\"og:url\" content=\""+post.FullUrl()+"\" />") {
+		t.Error("incorrent og:url . Got: " + result)
+	}
+
+}

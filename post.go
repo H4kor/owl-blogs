@@ -32,11 +32,12 @@ type Reply struct {
 }
 
 type PostMeta struct {
-	Title   string    `yaml:"title"`
-	Aliases []string  `yaml:"aliases"`
-	Date    time.Time `yaml:"date"`
-	Draft   bool      `yaml:"draft"`
-	Reply   Reply     `yaml:"reply"`
+	Title       string    `yaml:"title"`
+	Description string    `yaml:"description"`
+	Aliases     []string  `yaml:"aliases"`
+	Date        time.Time `yaml:"date"`
+	Draft       bool      `yaml:"draft"`
+	Reply       Reply     `yaml:"reply"`
 }
 
 func (pm PostMeta) FormattedDate() string {
@@ -45,10 +46,11 @@ func (pm PostMeta) FormattedDate() string {
 
 func (pm *PostMeta) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	type T struct {
-		Title   string   `yaml:"title"`
-		Aliases []string `yaml:"aliases"`
-		Draft   bool     `yaml:"draft"`
-		Reply   Reply    `yaml:"reply"`
+		Title       string   `yaml:"title"`
+		Description string   `yaml:"description"`
+		Aliases     []string `yaml:"aliases"`
+		Draft       bool     `yaml:"draft"`
+		Reply       Reply    `yaml:"reply"`
 	}
 	type S struct {
 		Date string `yaml:"date"`
@@ -64,6 +66,7 @@ func (pm *PostMeta) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	}
 
 	pm.Title = t.Title
+	pm.Description = t.Description
 	pm.Aliases = t.Aliases
 	pm.Draft = t.Draft
 	pm.Reply = t.Reply
