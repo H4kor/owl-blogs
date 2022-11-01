@@ -17,12 +17,16 @@ type User struct {
 }
 
 type UserConfig struct {
-	Title         string `yaml:"title"`
-	SubTitle      string `yaml:"subtitle"`
-	HeaderColor   string `yaml:"header_color"`
-	TwitterHandle string `yaml:"twitter_handle"`
-	GitHubHandle  string `yaml:"github_handle"`
-	AuthorName    string `yaml:"author_name"`
+	Title       string   `yaml:"title"`
+	SubTitle    string   `yaml:"subtitle"`
+	HeaderColor string   `yaml:"header_color"`
+	AuthorName  string   `yaml:"author_name"`
+	Me          []UserMe `yaml:"me"`
+}
+
+type UserMe struct {
+	Name string `yaml:"name"`
+	Url  string `yaml:"url"`
 }
 
 func (user User) Dir() string {

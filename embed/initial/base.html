@@ -75,14 +75,10 @@
                     <img class="u-photo u-logo avatar" src="{{ .User.AvatarUrl }}" alt="{{ .User.Config.Title }}" width="100" height="100" />
                 {{ end }}
                 <div style="float: right; list-style: none;">
-                    {{ if .User.Config.TwitterHandle}}
-                    <li><a href="https://twitter.com/{{.User.Config.TwitterHandle}}" rel="me">@{{.User.Config.TwitterHandle}} on Twitter</a>
+                {{ range $me := .User.Config.Me }}
+                    <li><a href="{{$me.Url}}" rel="me">{{$me.Name}}</a>
                     </li>
-                    {{ end }}
-                    {{ if .User.Config.GitHubHandle}}
-                    <li><a href="https://github.com/{{.User.Config.GitHubHandle}}" rel="me">@{{.User.Config.GitHubHandle}} on GitHub</a>
-                    </li>
-                    {{ end }}
+                {{ end }}
                 </div>
             </div>
 

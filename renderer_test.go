@@ -25,10 +25,14 @@ func TestCanRenderPost(t *testing.T) {
 
 }
 
-func TestRenderTwitterHandle(t *testing.T) {
+func TestRenderOneMe(t *testing.T) {
 	user := getTestUser()
 	config, _ := user.Config()
-	config.TwitterHandle = "testhandle"
+	config.Me = append(config.Me, owl.UserMe{
+		Name: "Twitter",
+		Url:  "https://twitter.com/testhandle",
+	})
+
 	user.SetConfig(config)
 	post, _ := user.CreateNewPost("testpost", false)
 	result, err := owl.RenderPost(post)
@@ -44,10 +48,18 @@ func TestRenderTwitterHandle(t *testing.T) {
 
 }
 
-func TestRenderGitHubHandle(t *testing.T) {
+func TestRenderTwoMe(t *testing.T) {
 	user := getTestUser()
 	config, _ := user.Config()
-	config.GitHubHandle = "testhandle"
+	config.Me = append(config.Me, owl.UserMe{
+		Name: "Twitter",
+		Url:  "https://twitter.com/testhandle",
+	})
+	config.Me = append(config.Me, owl.UserMe{
+		Name: "Github",
+		Url:  "https://github.com/testhandle",
+	})
+
 	user.SetConfig(config)
 	post, _ := user.CreateNewPost("testpost", false)
 	result, err := owl.RenderPost(post)
@@ -57,8 +69,11 @@ func TestRenderGitHubHandle(t *testing.T) {
 		return
 	}
 
+	if !strings.Contains(result, "href=\"https://twitter.com/testhandle\" rel=\"me\"") {
+		t.Error("Twitter handle not rendered. Got: " + result)
+	}
 	if !strings.Contains(result, "href=\"https://github.com/testhandle\" rel=\"me\"") {
-		t.Error("GitHub handle not rendered. Got: " + result)
+		t.Error("Github handle not rendered. Got: " + result)
 	}
 
 }
