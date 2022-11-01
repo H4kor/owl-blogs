@@ -324,3 +324,18 @@ func TestPostNameIllegalFileName(t *testing.T) {
 		t.Error("Should not have failed")
 	}
 }
+
+func TestFaviconIfNotExist(t *testing.T) {
+	user := getTestUser()
+	if user.FaviconUrl() != "" {
+		t.Error("Favicon should be empty")
+	}
+}
+
+func TestFaviconSetIfFileExist(t *testing.T) {
+	user := getTestUser()
+	os.WriteFile(path.Join(user.MediaDir(), "favicon.ico"), []byte("test"), 0644)
+	if user.FaviconUrl() == "" {
+		t.Error("Favicon should not be empty")
+	}
+}

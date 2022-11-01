@@ -360,3 +360,13 @@ func TestOpenGraphTags(t *testing.T) {
 	}
 
 }
+
+func TestAddFaviconIfExist(t *testing.T) {
+	user := getTestUser()
+	os.WriteFile(path.Join(user.MediaDir(), "favicon.png"), []byte("test"), 0644)
+
+	result, _ := owl.RenderIndexPage(user)
+	if !strings.Contains(result, "favicon.png") {
+		t.Error("favicon not rendered. Got: " + result)
+	}
+}

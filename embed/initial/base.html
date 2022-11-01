@@ -7,6 +7,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ .Title }} - {{ .User.Config.Title }}</title>
 
+    {{ if .User.FaviconUrl }}
+    <link rel="icon" href="{{ .User.FaviconUrl }}">
+    {{ else }}
+    <link rel="icon" href="data:,">
+    {{ end }}
+
     <meta property="og:title" content="{{ .Title }}" />
     {{ if .Description }}
     <meta name="description" content="{{ .Description }}">

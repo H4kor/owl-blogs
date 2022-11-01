@@ -78,6 +78,16 @@ func (user User) AvatarUrl() string {
 	return ""
 }
 
+func (user User) FaviconUrl() string {
+	for _, ext := range []string{".jpg", ".jpeg", ".png", ".gif", ".ico"} {
+		if fileExists(path.Join(user.MediaDir(), "favicon"+ext)) {
+			url, _ := url.JoinPath(user.MediaUrl(), "favicon"+ext)
+			return url
+		}
+	}
+	return ""
+}
+
 func (user User) Posts() ([]*Post, error) {
 	postFiles := listDir(path.Join(user.Dir(), "public"))
 	posts := make([]*Post, 0)
