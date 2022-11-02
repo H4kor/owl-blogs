@@ -17,9 +17,7 @@ func TestCreateNewPostCreatesEntryInPublic(t *testing.T) {
 	user.CreateNewPost("testpost", false)
 	files, err := os.ReadDir(path.Join(user.Dir(), "public"))
 	assertions.AssertNoError(t, err, "Error reading directory")
-	if len(files) < 1 {
-		t.Error("Post not created")
-	}
+	assertions.AssertLen(t, files, 1)
 }
 
 func TestCreateNewPostCreatesMediaDir(t *testing.T) {
@@ -28,9 +26,8 @@ func TestCreateNewPostCreatesMediaDir(t *testing.T) {
 	user, _ := repo.CreateUser(randomUserName())
 	// Create a new post
 	post, _ := user.CreateNewPost("testpost", false)
-	if _, err := os.Stat(post.MediaDir()); os.IsNotExist(err) {
-		t.Error("Media directory not created")
-	}
+	_, err := os.Stat(post.MediaDir())
+	assertions.AssertNot(t, os.IsNotExist(err), "Media directory not created")
 }
 
 func TestCreateNewPostAddsDateToMetaBlock(t *testing.T) {
@@ -40,9 +37,7 @@ func TestCreateNewPostAddsDateToMetaBlock(t *testing.T) {
 	posts, _ := user.Posts()
 	post, _ := user.GetPost(posts[0].Id())
 	meta := post.Meta()
-	if meta.Date.IsZero() {
-		t.Errorf("Found no date. Got: %v", meta.Date)
-	}
+	assertions.AssertNot(t, meta.Date.IsZero(), "Date not set")
 }
 
 func TestCreateNewPostMultipleCalls(t *testing.T) {

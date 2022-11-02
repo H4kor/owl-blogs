@@ -6,7 +6,6 @@ import (
 	"os"
 	"path"
 	"strconv"
-	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -16,62 +15,42 @@ func TestCanGetPostTitle(t *testing.T) {
 	user := getTestUser()
 	post, _ := user.CreateNewPost("testpost", false)
 	result := post.Title()
-	if result != "testpost" {
-		t.Error("Wrong Title. Got: " + result)
-	}
+	assertions.AssertEqual(t, result, "testpost")
 }
 
 func TestMediaDir(t *testing.T) {
 	user := getTestUser()
 	post, _ := user.CreateNewPost("testpost", false)
 	result := post.MediaDir()
-	if result != path.Join(post.Dir(), "media") {
-		t.Error("Wrong MediaDir. Got: " + result)
-	}
+	assertions.AssertEqual(t, result, path.Join(post.Dir(), "media"))
 }
 
 func TestPostUrlPath(t *testing.T) {
 	user := getTestUser()
 	post, _ := user.CreateNewPost("testpost", false)
 	expected := "/user/" + user.Name() + "/posts/" + post.Id() + "/"
-	if !(post.UrlPath() == expected) {
-		t.Error("Wrong url path")
-		t.Error("Expected: " + expected)
-		t.Error("     Got: " + post.UrlPath())
-	}
+	assertions.AssertEqual(t, post.UrlPath(), expected)
 }
 
 func TestPostFullUrl(t *testing.T) {
 	user := getTestUser()
 	post, _ := user.CreateNewPost("testpost", false)
 	expected := "http://localhost:8080/user/" + user.Name() + "/posts/" + post.Id() + "/"
-	if !(post.FullUrl() == expected) {
-		t.Error("Wrong url path")
-		t.Error("Expected: " + expected)
-		t.Error("     Got: " + post.FullUrl())
-	}
+	assertions.AssertEqual(t, post.FullUrl(), expected)
 }
 
 func TestPostUrlMediaPath(t *testing.T) {
 	user := getTestUser()
 	post, _ := user.CreateNewPost("testpost", false)
 	expected := "/user/" + user.Name() + "/posts/" + post.Id() + "/media/data.png"
-	if !(post.UrlMediaPath("data.png") == expected) {
-		t.Error("Wrong url path")
-		t.Error("Expected: " + expected)
-		t.Error("     Got: " + post.UrlPath())
-	}
+	assertions.AssertEqual(t, post.UrlMediaPath("data.png"), expected)
 }
 
 func TestPostUrlMediaPathWithSubDir(t *testing.T) {
 	user := getTestUser()
 	post, _ := user.CreateNewPost("testpost", false)
 	expected := "/user/" + user.Name() + "/posts/" + post.Id() + "/media/foo/data.png"
-	if !(post.UrlMediaPath("foo/data.png") == expected) {
-		t.Error("Wrong url path")
-		t.Error("Expected: " + expected)
-		t.Error("     Got: " + post.UrlPath())
-	}
+	assertions.AssertEqual(t, post.UrlMediaPath("foo/data.png"), expected)
 }
 
 func TestDraftInMetaData(t *testing.T) {
@@ -85,10 +64,7 @@ func TestDraftInMetaData(t *testing.T) {
 	content += "Write your post here.\n"
 	os.WriteFile(post.ContentFile(), []byte(content), 0644)
 	meta := post.Meta()
-	if !meta.Draft {
-		t.Error("Draft should be true")
-	}
-
+	assertions.AssertEqual(t, meta.Draft, true)
 }
 
 func TestNoRawHTMLIfDisallowedByRepo(t *testing.T) {
@@ -104,9 +80,7 @@ func TestNoRawHTMLIfDisallowedByRepo(t *testing.T) {
 	os.WriteFile(post.ContentFile(), []byte(content), 0644)
 	html := post.RenderedContent()
 	html_str := html.String()
-	if strings.Contains(html_str, "<script>") {
-		t.Error("HTML should not be allowed")
-	}
+	assertions.AssertNotContains(t, html_str, "<script>")
 }
 
 func TestRawHTMLIfAllowedByRepo(t *testing.T) {

@@ -6,10 +6,31 @@ import (
 	"testing"
 )
 
+func Assert(t *testing.T, condition bool, message string) {
+	t.Helper()
+	if !condition {
+		t.Errorf(message)
+	}
+}
+
+func AssertNot(t *testing.T, condition bool, message string) {
+	t.Helper()
+	if condition {
+		t.Errorf(message)
+	}
+}
+
 func AssertContains(t *testing.T, containing string, search string) {
 	t.Helper()
 	if !strings.Contains(containing, search) {
 		t.Errorf("Expected '%s' to contain '%s'", containing, search)
+	}
+}
+
+func AssertNotContains(t *testing.T, containing string, search string) {
+	t.Helper()
+	if strings.Contains(containing, search) {
+		t.Errorf("Expected '%s' to not contain '%s'", containing, search)
 	}
 }
 
