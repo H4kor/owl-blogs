@@ -3,6 +3,7 @@ package web_test
 import (
 	owl "h4kor/owl-blogs"
 	main "h4kor/owl-blogs/cmd/owl/web"
+	"h4kor/owl-blogs/priv/assertions"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -23,24 +24,15 @@ func TestSingleUserUserIndexHandler(t *testing.T) {
 
 	// Create Request and Response
 	req, err := http.NewRequest("GET", user.UrlPath(), nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assertions.AssertNoError(t, err, "Error creating request")
 	rr := httptest.NewRecorder()
 	router := main.SingleUserRouter(&repo)
 	router.ServeHTTP(rr, req)
 
-	// Check the status code is what we expect.
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusOK)
-	}
+	assertions.AssertStatus(t, rr, http.StatusOK)
 
 	// Check the response body contains names of users
-	if !strings.Contains(rr.Body.String(), "post-1") {
-		t.Error("post-1 not listed on index page. Got: ")
-		t.Error(rr.Body.String())
-	}
+	assertions.AssertContains(t, rr.Body.String(), "post-1")
 }
 
 func TestSingleUserPostHandler(t *testing.T) {
@@ -49,18 +41,12 @@ func TestSingleUserPostHandler(t *testing.T) {
 
 	// Create Request and Response
 	req, err := http.NewRequest("GET", post.UrlPath(), nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assertions.AssertNoError(t, err, "Error creating request")
 	rr := httptest.NewRecorder()
 	router := main.SingleUserRouter(&repo)
 	router.ServeHTTP(rr, req)
 
-	// Check the status code is what we expect.
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusOK)
-	}
+	assertions.AssertStatus(t, rr, http.StatusOK)
 }
 
 func TestSingleUserPostMediaHandler(t *testing.T) {
@@ -70,24 +56,16 @@ func TestSingleUserPostMediaHandler(t *testing.T) {
 	// Create test media file
 	path := path.Join(post.MediaDir(), "data.txt")
 	err := os.WriteFile(path, []byte("test"), 0644)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assertions.AssertNoError(t, err, "Error creating request")
 
 	// Create Request and Response
 	req, err := http.NewRequest("GET", post.UrlMediaPath("data.txt"), nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assertions.AssertNoError(t, err, "Error creating request")
 	rr := httptest.NewRecorder()
 	router := main.SingleUserRouter(&repo)
 	router.ServeHTTP(rr, req)
 
-	// Check the status code is what we expect.
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusOK)
-	}
+	assertions.AssertStatus(t, rr, http.StatusOK)
 
 	// Check the response body contains data of media file
 	if !(rr.Body.String() == "test") {
@@ -117,9 +95,7 @@ func TestHasNoDraftsInList(t *testing.T) {
 
 	// Create Request and Response
 	req, err := http.NewRequest("GET", "/", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assertions.AssertNoError(t, err, "Error creating request")
 	rr := httptest.NewRecorder()
 	router := main.SingleUserRouter(&repo)
 	router.ServeHTTP(rr, req)

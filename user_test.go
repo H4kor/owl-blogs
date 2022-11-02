@@ -3,6 +3,7 @@ package owl_test
 import (
 	"fmt"
 	"h4kor/owl-blogs"
+	"h4kor/owl-blogs/priv/assertions"
 	"os"
 	"path"
 	"testing"
@@ -15,9 +16,7 @@ func TestCreateNewPostCreatesEntryInPublic(t *testing.T) {
 	// Create a new post
 	user.CreateNewPost("testpost", false)
 	files, err := os.ReadDir(path.Join(user.Dir(), "public"))
-	if err != nil {
-		t.Error("Error reading directory")
-	}
+	assertions.AssertNoError(t, err, "Error reading directory")
 	if len(files) < 1 {
 		t.Error("Post not created")
 	}
@@ -55,9 +54,7 @@ func TestCreateNewPostMultipleCalls(t *testing.T) {
 	user.CreateNewPost("testpost", false)
 	user.CreateNewPost("testpost", false)
 	files, err := os.ReadDir(path.Join(user.Dir(), "public"))
-	if err != nil {
-		t.Error("Error reading directory")
-	}
+	assertions.AssertNoError(t, err, "Error reading directory")
 	if len(files) < 3 {
 		t.Errorf("Only %d posts created", len(files))
 	}
@@ -72,12 +69,8 @@ func TestCanListUserPosts(t *testing.T) {
 	user.CreateNewPost("testpost", false)
 	user.CreateNewPost("testpost", false)
 	posts, err := user.Posts()
-	if err != nil {
-		t.Error("Error reading posts")
-	}
-	if len(posts) != 3 {
-		t.Error("No posts found")
-	}
+	assertions.AssertNoError(t, err, "Error reading posts")
+	assertions.AssertLen(t, posts, 3)
 }
 
 func TestCannotListUserPostsInSubdirectories(t *testing.T) {
@@ -162,9 +155,7 @@ func TestListUserPostsDoesNotIncludeDrafts(t *testing.T) {
 	os.WriteFile(post.ContentFile(), []byte(content), 0644)
 
 	posts, _ := user.Posts()
-	if len(posts) != 0 {
-		t.Error("Found draft post")
-	}
+	assertions.AssertLen(t, posts, 0)
 }
 
 func TestListUsersDraftsExcludedRealWorld(t *testing.T) {
@@ -190,9 +181,7 @@ func TestListUsersDraftsExcludedRealWorld(t *testing.T) {
 	os.WriteFile(post.ContentFile(), []byte(content), 0644)
 
 	posts, _ := user.Posts()
-	if len(posts) != 0 {
-		t.Error("Found draft post")
-	}
+	assertions.AssertLen(t, posts, 0)
 }
 
 func TestCanLoadPost(t *testing.T) {
@@ -320,9 +309,7 @@ func TestAvatarSetIfFileExist(t *testing.T) {
 func TestPostNameIllegalFileName(t *testing.T) {
 	user := getTestUser()
 	_, err := user.CreateNewPost("testpost?///", false)
-	if err != nil {
-		t.Error("Should not have failed")
-	}
+	assertions.AssertNoError(t, err, "Should not have failed")
 }
 
 func TestFaviconIfNotExist(t *testing.T) {

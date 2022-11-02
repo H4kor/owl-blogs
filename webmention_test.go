@@ -3,6 +3,7 @@ package owl_test
 import (
 	"bytes"
 	"h4kor/owl-blogs"
+	"h4kor/owl-blogs/priv/assertions"
 	"io"
 	"net/http"
 	"net/url"
@@ -28,12 +29,8 @@ func TestParseValidHEntry(t *testing.T) {
 	parser := &owl.OwlHtmlParser{}
 	entry, err := parser.ParseHEntry(&http.Response{Body: io.NopCloser(bytes.NewReader(html))})
 
-	if err != nil {
-		t.Errorf("Unable to parse feed: %v", err)
-	}
-	if entry.Title != "Foo" {
-		t.Errorf("Wrong Title. Expected %v, got %v", "Foo", entry.Title)
-	}
+	assertions.AssertNoError(t, err, "Unable to parse feed")
+	assertions.AssertEqual(t, entry.Title, "Foo")
 }
 
 func TestParseValidHEntryWithoutTitle(t *testing.T) {
@@ -41,12 +38,8 @@ func TestParseValidHEntryWithoutTitle(t *testing.T) {
 	parser := &owl.OwlHtmlParser{}
 	entry, err := parser.ParseHEntry(&http.Response{Body: io.NopCloser(bytes.NewReader(html))})
 
-	if err != nil {
-		t.Errorf("Unable to parse feed: %v", err)
-	}
-	if entry.Title != "" {
-		t.Errorf("Wrong Title. Expected %v, got %v", "Foo", entry.Title)
-	}
+	assertions.AssertNoError(t, err, "Unable to parse feed")
+	assertions.AssertEqual(t, entry.Title, "")
 }
 
 func TestGetWebmentionEndpointLink(t *testing.T) {
@@ -54,12 +47,9 @@ func TestGetWebmentionEndpointLink(t *testing.T) {
 	parser := &owl.OwlHtmlParser{}
 	endpoint, err := parser.GetWebmentionEndpoint(constructResponse(html))
 
-	if err != nil {
-		t.Errorf("Unable to parse feed: %v", err)
-	}
-	if endpoint != "http://example.com/webmention" {
-		t.Errorf("Wrong endpoint. Expected %v, got %v", "http://example.com/webmention", endpoint)
-	}
+	assertions.AssertNoError(t, err, "Unable to parse feed")
+
+	assertions.AssertEqual(t, endpoint, "http://example.com/webmention")
 }
 
 func TestGetWebmentionEndpointLinkA(t *testing.T) {
@@ -67,12 +57,8 @@ func TestGetWebmentionEndpointLinkA(t *testing.T) {
 	parser := &owl.OwlHtmlParser{}
 	endpoint, err := parser.GetWebmentionEndpoint(constructResponse(html))
 
-	if err != nil {
-		t.Errorf("Unable to parse feed: %v", err)
-	}
-	if endpoint != "http://example.com/webmention" {
-		t.Errorf("Wrong endpoint. Expected %v, got %v", "http://example.com/webmention", endpoint)
-	}
+	assertions.AssertNoError(t, err, "Unable to parse feed")
+	assertions.AssertEqual(t, endpoint, "http://example.com/webmention")
 }
 
 func TestGetWebmentionEndpointLinkAFakeWebmention(t *testing.T) {
@@ -80,12 +66,8 @@ func TestGetWebmentionEndpointLinkAFakeWebmention(t *testing.T) {
 	parser := &owl.OwlHtmlParser{}
 	endpoint, err := parser.GetWebmentionEndpoint(constructResponse(html))
 
-	if err != nil {
-		t.Errorf("Unable to parse feed: %v", err)
-	}
-	if endpoint != "http://example.com/webmention" {
-		t.Errorf("Wrong endpoint. Expected %v, got %v", "http://example.com/webmention", endpoint)
-	}
+	assertions.AssertNoError(t, err, "Unable to parse feed")
+	assertions.AssertEqual(t, endpoint, "http://example.com/webmention")
 }
 
 func TestGetWebmentionEndpointLinkHeader(t *testing.T) {
@@ -95,12 +77,8 @@ func TestGetWebmentionEndpointLinkHeader(t *testing.T) {
 	resp.Header = http.Header{"Link": []string{"<http://example.com/webmention>; rel=\"webmention\""}}
 	endpoint, err := parser.GetWebmentionEndpoint(resp)
 
-	if err != nil {
-		t.Errorf("Unable to parse feed: %v", err)
-	}
-	if endpoint != "http://example.com/webmention" {
-		t.Errorf("Wrong endpoint. Expected %v, got %v", "http://example.com/webmention", endpoint)
-	}
+	assertions.AssertNoError(t, err, "Unable to parse feed")
+	assertions.AssertEqual(t, endpoint, "http://example.com/webmention")
 }
 
 func TestGetWebmentionEndpointLinkHeaderCommas(t *testing.T) {
@@ -112,12 +90,8 @@ func TestGetWebmentionEndpointLinkHeaderCommas(t *testing.T) {
 	}
 	endpoint, err := parser.GetWebmentionEndpoint(resp)
 
-	if err != nil {
-		t.Errorf("Unable to parse feed: %v", err)
-	}
-	if endpoint != "https://webmention.rocks/test/19/webmention" {
-		t.Errorf("Wrong endpoint. Expected %v, got %v", "https://webmention.rocks/test/19/webmention", endpoint)
-	}
+	assertions.AssertNoError(t, err, "Unable to parse feed")
+	assertions.AssertEqual(t, endpoint, "https://webmention.rocks/test/19/webmention")
 }
 
 func TestGetWebmentionEndpointRelativeLink(t *testing.T) {
@@ -125,12 +99,8 @@ func TestGetWebmentionEndpointRelativeLink(t *testing.T) {
 	parser := &owl.OwlHtmlParser{}
 	endpoint, err := parser.GetWebmentionEndpoint(constructResponse(html))
 
-	if err != nil {
-		t.Errorf("Unable to parse feed: %v", err)
-	}
-	if endpoint != "http://example.com/webmention" {
-		t.Errorf("Wrong endpoint. Expected %v, got %v", "http://example.com/webmention", endpoint)
-	}
+	assertions.AssertNoError(t, err, "Unable to parse feed")
+	assertions.AssertEqual(t, endpoint, "http://example.com/webmention")
 }
 
 func TestGetWebmentionEndpointRelativeLinkInHeader(t *testing.T) {
@@ -140,12 +110,8 @@ func TestGetWebmentionEndpointRelativeLinkInHeader(t *testing.T) {
 	resp.Header = http.Header{"Link": []string{"</webmention>; rel=\"webmention\""}}
 	endpoint, err := parser.GetWebmentionEndpoint(resp)
 
-	if err != nil {
-		t.Errorf("Unable to parse feed: %v", err)
-	}
-	if endpoint != "http://example.com/webmention" {
-		t.Errorf("Wrong endpoint. Expected %v, got %v", "http://example.com/webmention", endpoint)
-	}
+	assertions.AssertNoError(t, err, "Unable to parse feed")
+	assertions.AssertEqual(t, endpoint, "http://example.com/webmention")
 }
 
 // func TestRealWorldWebmention(t *testing.T) {

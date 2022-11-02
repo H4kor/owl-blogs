@@ -2,6 +2,7 @@ package owl_test
 
 import (
 	"h4kor/owl-blogs"
+	"h4kor/owl-blogs/priv/assertions"
 	"os"
 	"path"
 	"strconv"
@@ -121,9 +122,7 @@ func TestRawHTMLIfAllowedByRepo(t *testing.T) {
 	os.WriteFile(post.ContentFile(), []byte(content), 0644)
 	html := post.RenderedContent()
 	html_str := html.String()
-	if !strings.Contains(html_str, "<script>") {
-		t.Error("HTML should be allowed")
-	}
+	assertions.AssertContains(t, html_str, "<script>")
 }
 
 func TestLoadMeta(t *testing.T) {
@@ -144,25 +143,13 @@ func TestLoadMeta(t *testing.T) {
 
 	err := post.LoadMeta()
 
-	if err != nil {
-		t.Errorf("Got Error: %v", err)
-	}
+	assertions.AssertNoError(t, err, "Error loading meta")
 
-	if post.Meta().Title != "test" {
-		t.Errorf("Expected title: %s, got %s", "test", post.Meta().Title)
-	}
-
-	if len(post.Meta().Aliases) != 1 || post.Meta().Aliases[0] != "foo/bar/" {
-		t.Errorf("Expected title: %v, got %v", []string{"foo/bar/"}, post.Meta().Aliases)
-	}
-
-	if post.Meta().Date.Format(time.RFC1123Z) != "Wed, 17 Aug 2022 10:50:02 +0000" {
-		t.Errorf("Expected title: %s, got %s", "Wed, 17 Aug 2022 10:50:02 +0000", post.Meta().Title)
-	}
-
-	if post.Meta().Draft != true {
-		t.Errorf("Expected title: %v, got %v", true, post.Meta().Draft)
-	}
+	assertions.AssertEqual(t, post.Meta().Title, "test")
+	assertions.AssertLen(t, post.Meta().Aliases, 1)
+	assertions.AssertEqual(t, post.Meta().Draft, true)
+	assertions.AssertEqual(t, post.Meta().Date.Format(time.RFC1123Z), "Wed, 17 Aug 2022 10:50:02 +0000")
+	assertions.AssertEqual(t, post.Meta().Draft, true)
 }
 
 ///
@@ -177,17 +164,10 @@ func TestPersistIncomingWebmention(t *testing.T) {
 		Source: "http://example.com/source",
 	}
 	err := post.PersistIncomingWebmention(webmention)
-	if err != nil {
-		t.Errorf("Got error: %v", err)
-	}
+	assertions.AssertNoError(t, err, "Error persisting webmention")
 	mentions := post.IncomingWebmentions()
-	if len(mentions) != 1 {
-		t.Errorf("Expected 1 webmention, got %d", len(mentions))
-	}
-
-	if mentions[0].Source != webmention.Source {
-		t.Errorf("Expected source: %s, got %s", webmention.Source, mentions[0].Source)
-	}
+	assertions.AssertLen(t, mentions, 1)
+	assertions.AssertEqual(t, mentions[0].Source, webmention.Source)
 }
 
 func TestAddIncomingWebmentionCreatesFile(t *testing.T) {
@@ -198,14 +178,10 @@ func TestAddIncomingWebmentionCreatesFile(t *testing.T) {
 	post, _ := user.CreateNewPost("testpost", false)
 
 	err := post.AddIncomingWebmention("https://example.com")
-	if err != nil {
-		t.Errorf("Got Error: %v", err)
-	}
+	assertions.AssertNoError(t, err, "Error adding webmention")
 
 	mentions := post.IncomingWebmentions()
-	if len(mentions) != 1 {
-		t.Errorf("Expected 1 webmention, got %d", len(mentions))
-	}
+	assertions.AssertLen(t, mentions, 1)
 }
 
 func TestAddIncomingWebmentionNotOverwritingWebmention(t *testing.T) {
@@ -223,13 +199,9 @@ func TestAddIncomingWebmentionNotOverwritingWebmention(t *testing.T) {
 	post.AddIncomingWebmention("https://example.com")
 
 	mentions := post.IncomingWebmentions()
-	if len(mentions) != 1 {
-		t.Errorf("Expected 1 webmention, got %d", len(mentions))
-	}
+	assertions.AssertLen(t, mentions, 1)
 
-	if mentions[0].ApprovalStatus != "approved" {
-		t.Errorf("Expected approval status: %s, got %s", "approved", mentions[0].ApprovalStatus)
-	}
+	assertions.AssertEqual(t, mentions[0].ApprovalStatus, "approved")
 }
 
 func TestEnrichAddsTitle(t *testing.T) {
@@ -243,13 +215,8 @@ func TestEnrichAddsTitle(t *testing.T) {
 	post.EnrichWebmention(owl.WebmentionIn{Source: "https://example.com"})
 
 	mentions := post.IncomingWebmentions()
-	if len(mentions) != 1 {
-		t.Errorf("Expected 1 webmention, got %d", len(mentions))
-	}
-
-	if mentions[0].Title != "Mock Title" {
-		t.Errorf("Expected title: %s, got %s", "Mock Title", mentions[0].Title)
-	}
+	assertions.AssertLen(t, mentions, 1)
+	assertions.AssertEqual(t, mentions[0].Title, "Mock Title")
 }
 
 func TestApprovedIncomingWebmentions(t *testing.T) {
@@ -282,16 +249,10 @@ func TestApprovedIncomingWebmentions(t *testing.T) {
 	post.PersistIncomingWebmention(webmention)
 
 	webmentions := post.ApprovedIncomingWebmentions()
-	if len(webmentions) != 2 {
-		t.Errorf("Expected 2 webmentions, got %d", len(webmentions))
-	}
+	assertions.AssertLen(t, webmentions, 2)
 
-	if webmentions[0].Source != "http://example.com/source" {
-		t.Errorf("Expected source: %s, got %s", "http://example.com/source", webmentions[0].Source)
-	}
-	if webmentions[1].Source != "http://example.com/source3" {
-		t.Errorf("Expected source: %s, got %s", "http://example.com/source3", webmentions[1].Source)
-	}
+	assertions.AssertEqual(t, webmentions[0].Source, "http://example.com/source")
+	assertions.AssertEqual(t, webmentions[1].Source, "http://example.com/source3")
 
 }
 
@@ -310,12 +271,8 @@ func TestScanningForLinks(t *testing.T) {
 
 	post.ScanForLinks()
 	webmentions := post.OutgoingWebmentions()
-	if len(webmentions) != 1 {
-		t.Errorf("Expected 1 webmention, got %d", len(webmentions))
-	}
-	if webmentions[0].Target != "https://example.com/hello" {
-		t.Errorf("Expected target: %s, got %s", "https://example.com/hello", webmentions[0].Target)
-	}
+	assertions.AssertLen(t, webmentions, 1)
+	assertions.AssertEqual(t, webmentions[0].Target, "https://example.com/hello")
 }
 
 func TestScanningForLinksDoesNotAddDuplicates(t *testing.T) {
@@ -336,12 +293,8 @@ func TestScanningForLinksDoesNotAddDuplicates(t *testing.T) {
 	post.ScanForLinks()
 	post.ScanForLinks()
 	webmentions := post.OutgoingWebmentions()
-	if len(webmentions) != 1 {
-		t.Errorf("Expected 1 webmention, got %d", len(webmentions))
-	}
-	if webmentions[0].Target != "https://example.com/hello" {
-		t.Errorf("Expected target: %s, got %s", "https://example.com/hello", webmentions[0].Target)
-	}
+	assertions.AssertLen(t, webmentions, 1)
+	assertions.AssertEqual(t, webmentions[0].Target, "https://example.com/hello")
 }
 
 func TestScanningForLinksDoesAddReplyUrl(t *testing.T) {
@@ -361,12 +314,8 @@ func TestScanningForLinksDoesAddReplyUrl(t *testing.T) {
 
 	post.ScanForLinks()
 	webmentions := post.OutgoingWebmentions()
-	if len(webmentions) != 1 {
-		t.Errorf("Expected 1 webmention, got %d", len(webmentions))
-	}
-	if webmentions[0].Target != "https://example.com/reply" {
-		t.Errorf("Expected target: %s, got %s", "https://example.com/reply", webmentions[0].Target)
-	}
+	assertions.AssertLen(t, webmentions, 1)
+	assertions.AssertEqual(t, webmentions[0].Target, "https://example.com/reply")
 }
 
 func TestCanSendWebmention(t *testing.T) {
@@ -381,20 +330,12 @@ func TestCanSendWebmention(t *testing.T) {
 	}
 
 	err := post.SendWebmention(webmention)
-	if err != nil {
-		t.Errorf("Error sending webmention: %v", err)
-	}
+	assertions.AssertNoError(t, err, "Error sending webmention")
 
 	webmentions := post.OutgoingWebmentions()
 
-	if len(webmentions) != 1 {
-		t.Errorf("Expected 1 webmention, got %d", len(webmentions))
-	}
-
-	if webmentions[0].Target != "http://example.com" {
-		t.Errorf("Expected target: %s, got %s", "http://example.com", webmentions[0].Target)
-	}
-
+	assertions.AssertLen(t, webmentions, 1)
+	assertions.AssertEqual(t, webmentions[0].Target, "http://example.com")
 	if webmentions[0].LastSentAt.IsZero() {
 		t.Errorf("Expected LastSentAt to be set")
 	}
@@ -423,13 +364,8 @@ func TestSendWebmentionOnlyScansOncePerWeek(t *testing.T) {
 
 	webmentions = post.OutgoingWebmentions()
 
-	if len(webmentions) != 1 {
-		t.Errorf("Expected 1 webmention, got %d", len(webmentions))
-	}
-
-	if webmentions[0].ScannedAt != webmention.ScannedAt {
-		t.Errorf("Expected ScannedAt to be unchanged. Expected: %v, got %v", webmention.ScannedAt, webmentions[0].ScannedAt)
-	}
+	assertions.AssertLen(t, webmentions, 1)
+	assertions.AssertEqual(t, webmentions[0].ScannedAt, webmention.ScannedAt)
 }
 
 func TestSendingMultipleWebmentions(t *testing.T) {
@@ -456,9 +392,7 @@ func TestSendingMultipleWebmentions(t *testing.T) {
 
 	webmentions := post.OutgoingWebmentions()
 
-	if len(webmentions) != 20 {
-		t.Errorf("Expected 20 webmentions, got %d", len(webmentions))
-	}
+	assertions.AssertLen(t, webmentions, 20)
 }
 
 func TestReceivingMultipleWebmentions(t *testing.T) {
@@ -482,9 +416,7 @@ func TestReceivingMultipleWebmentions(t *testing.T) {
 
 	webmentions := post.IncomingWebmentions()
 
-	if len(webmentions) != 20 {
-		t.Errorf("Expected 20 webmentions, got %d", len(webmentions))
-	}
+	assertions.AssertLen(t, webmentions, 20)
 
 }
 
@@ -515,16 +447,10 @@ func TestSendingAndReceivingMultipleWebmentions(t *testing.T) {
 	wg.Wait()
 
 	ins := post.IncomingWebmentions()
-
-	if len(ins) != 20 {
-		t.Errorf("Expected 20 webmentions, got %d", len(ins))
-	}
-
 	outs := post.OutgoingWebmentions()
 
-	if len(outs) != 20 {
-		t.Errorf("Expected 20 webmentions, got %d", len(outs))
-	}
+	assertions.AssertLen(t, ins, 20)
+	assertions.AssertLen(t, outs, 20)
 }
 
 func TestComplexParallelWebmentions(t *testing.T) {
@@ -564,16 +490,10 @@ func TestComplexParallelWebmentions(t *testing.T) {
 	wg.Wait()
 
 	ins := post.IncomingWebmentions()
-
-	if len(ins) != 20 {
-		t.Errorf("Expected 20 webmentions, got %d", len(ins))
-	}
-
 	outs := post.OutgoingWebmentions()
 
-	if len(outs) != 20 {
-		t.Errorf("Expected 20 webmentions, got %d", len(outs))
-	}
+	assertions.AssertLen(t, ins, 20)
+	assertions.AssertLen(t, outs, 20)
 }
 
 // func TestComplexParallelSimulatedProcessesWebmentions(t *testing.T) {

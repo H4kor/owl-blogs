@@ -2,6 +2,7 @@ package owl_test
 
 import (
 	"h4kor/owl-blogs"
+	"h4kor/owl-blogs/priv/assertions"
 	"os"
 	"path"
 	"testing"
@@ -10,9 +11,7 @@ import (
 func TestCanCreateRepository(t *testing.T) {
 	repoName := testRepoName()
 	_, err := owl.CreateRepository(repoName, owl.RepoConfig{})
-	if err != nil {
-		t.Error("Error creating repository: ", err.Error())
-	}
+	assertions.AssertNoError(t, err, "Error creating repository: ")
 
 }
 
@@ -88,9 +87,7 @@ func TestCanListRepoUsers(t *testing.T) {
 	user2, _ := repo.CreateUser(randomUserName())
 	// Create a new post
 	users, _ := repo.Users()
-	if len(users) != 2 {
-		t.Error("Wrong number of users returned, expected 2, got ", len(users))
-	}
+	assertions.AssertLen(t, users, 2)
 	for _, user := range users {
 		if user.Name() != user1.Name() && user.Name() != user2.Name() {
 			t.Error("User found: " + user.Name())
@@ -104,9 +101,7 @@ func TestCanOpenRepository(t *testing.T) {
 	repo, _ := owl.CreateRepository(repoName, owl.RepoConfig{})
 	// Open the repository
 	repo2, err := owl.OpenRepository(repoName)
-	if err != nil {
-		t.Error("Error opening repository: ", err.Error())
-	}
+	assertions.AssertNoError(t, err, "Error opening repository: ")
 	if repo2.Dir() != repo.Dir() {
 		t.Error("Repository directories do not match")
 	}
@@ -125,9 +120,7 @@ func TestGetUser(t *testing.T) {
 	user, _ := repo.CreateUser(randomUserName())
 	// Get the user
 	user2, err := repo.GetUser(user.Name())
-	if err != nil {
-		t.Error("Error getting user: ", err.Error())
-	}
+	assertions.AssertNoError(t, err, "Error getting user: ")
 	if user2.Name() != user.Name() {
 		t.Error("User names do not match")
 	}
@@ -171,9 +164,7 @@ func TestNewRepoGetsStaticFilesPicoCSSWithContent(t *testing.T) {
 	// Create a new user
 	repo := getTestRepo(owl.RepoConfig{})
 	file, err := os.Open(path.Join(repo.StaticDir(), "pico.min.css"))
-	if err != nil {
-		t.Error("Error opening pico.min.css")
-	}
+	assertions.AssertNoError(t, err, "Error opening pico.min.css")
 	// check that the file has content
 	stat, _ := file.Stat()
 	if stat.Size() == 0 {
@@ -194,9 +185,7 @@ func TestCanGetRepoTemplate(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	// Get the user
 	template, err := repo.Template()
-	if err != nil {
-		t.Error("Error getting template: ", err.Error())
-	}
+	assertions.AssertNoError(t, err, "Error getting template: ")
 	if template == "" {
 		t.Error("Template not returned")
 	}
@@ -215,9 +204,7 @@ func TestCanOpenRepositoryInSingleUserMode(t *testing.T) {
 	repo, _ := owl.OpenRepository(repoName)
 
 	users, _ := repo.Users()
-	if len(users) != 1 {
-		t.Error("Wrong number of users returned, expected 1, got ", len(users))
-	}
+	assertions.AssertLen(t, users, 1)
 	if users[0].Name() != userName {
 		t.Error("User name does not match")
 	}
@@ -253,19 +240,12 @@ func TestCanGetMapWithAllPostAliases(t *testing.T) {
 	os.WriteFile(post.ContentFile(), []byte(content), 0644)
 
 	posts, _ := user.Posts()
-	if len(posts) != 1 {
-		t.Error("Wrong number of posts returned, expected 1, got ", len(posts))
-	}
+	assertions.AssertLen(t, posts, 1)
 
 	var aliases map[string]*owl.Post
 	aliases, err := repo.PostAliases()
-	if err != nil {
-		t.Error("Error getting post aliases: ", err.Error())
-	}
-	if len(aliases) != 2 {
-		t.Error("Wrong number of aliases returned, expected 2, got ", len(aliases))
-		t.Error("Aliases: ", aliases)
-	}
+	assertions.AssertNoError(t, err, "Error getting post aliases: ")
+	assertions.AssertMapLen(t, aliases, 2)
 	if aliases["/foo/bar"] == nil {
 		t.Error("Alias '/foo/bar' not found")
 	}
@@ -298,19 +278,12 @@ func TestAliasesHaveCorrectPost(t *testing.T) {
 	os.WriteFile(post2.ContentFile(), []byte(content), 0644)
 
 	posts, _ := user.Posts()
-	if len(posts) != 2 {
-		t.Error("Wrong number of posts returned, expected 1, got ", len(posts))
-	}
+	assertions.AssertLen(t, posts, 2)
 
 	var aliases map[string]*owl.Post
 	aliases, err := repo.PostAliases()
-	if err != nil {
-		t.Error("Error getting post aliases: ", err.Error())
-	}
-	if len(aliases) != 2 {
-		t.Error("Wrong number of aliases returned, expected 2, got ", len(aliases))
-		t.Error("Aliases: ", aliases)
-	}
+	assertions.AssertNoError(t, err, "Error getting post aliases: ")
+	assertions.AssertMapLen(t, aliases, 2)
 	if aliases["/foo/1"].Id() != post1.Id() {
 		t.Error("Alias '/foo/1' points to wrong post: ", aliases["/foo/1"].Id())
 	}

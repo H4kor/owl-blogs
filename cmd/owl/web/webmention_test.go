@@ -3,6 +3,7 @@ package web_test
 import (
 	"h4kor/owl-blogs"
 	main "h4kor/owl-blogs/cmd/owl/web"
+	"h4kor/owl-blogs/priv/assertions"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -34,14 +35,6 @@ func setupWebmentionTest(repo owl.Repository, user owl.User, target string, sour
 	return rr, nil
 }
 
-func assertStatus(t *testing.T, rr *httptest.ResponseRecorder, expStatus int) {
-	if status := rr.Code; status != expStatus {
-		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, expStatus)
-		return
-	}
-}
-
 func TestWebmentionHandleAccepts(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("test-1")
@@ -51,11 +44,9 @@ func TestWebmentionHandleAccepts(t *testing.T) {
 	source := "https://example.com"
 
 	rr, err := setupWebmentionTest(repo, user, target, source)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assertions.AssertNoError(t, err, "Error setting up webmention test")
 
-	assertStatus(t, rr, http.StatusAccepted)
+	assertions.AssertStatus(t, rr, http.StatusAccepted)
 
 }
 
@@ -69,16 +60,10 @@ func TestWebmentionWrittenToPost(t *testing.T) {
 	source := "https://example.com"
 
 	rr, err := setupWebmentionTest(repo, user, target, source)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assertions.AssertNoError(t, err, "Error setting up webmention test")
 
-	// Check the status code is what we expect.
-	assertStatus(t, rr, http.StatusAccepted)
-
-	if len(post.IncomingWebmentions()) != 1 {
-		t.Errorf("no webmention written to post")
-	}
+	assertions.AssertStatus(t, rr, http.StatusAccepted)
+	assertions.AssertLen(t, post.IncomingWebmentions(), 1)
 }
 
 //
@@ -98,11 +83,9 @@ func TestWebmentionSourceValidation(t *testing.T) {
 	source := "ftp://example.com"
 
 	rr, err := setupWebmentionTest(repo, user, target, source)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assertions.AssertNoError(t, err, "Error setting up webmention test")
 
-	assertStatus(t, rr, http.StatusBadRequest)
+	assertions.AssertStatus(t, rr, http.StatusBadRequest)
 }
 
 func TestWebmentionTargetValidation(t *testing.T) {
@@ -115,11 +98,9 @@ func TestWebmentionTargetValidation(t *testing.T) {
 	source := post.FullUrl()
 
 	rr, err := setupWebmentionTest(repo, user, target, source)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assertions.AssertNoError(t, err, "Error setting up webmention test")
 
-	assertStatus(t, rr, http.StatusBadRequest)
+	assertions.AssertStatus(t, rr, http.StatusBadRequest)
 }
 
 // The receiver MUST reject the request if the source URL is the same as the target URL.
@@ -134,11 +115,9 @@ func TestWebmentionSameTargetAndSource(t *testing.T) {
 	source := post.FullUrl()
 
 	rr, err := setupWebmentionTest(repo, user, target, source)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assertions.AssertNoError(t, err, "Error setting up webmention test")
 
-	assertStatus(t, rr, http.StatusBadRequest)
+	assertions.AssertStatus(t, rr, http.StatusBadRequest)
 }
 
 // The receiver SHOULD check that target is a valid resource for which it can accept Webmentions.
@@ -154,11 +133,9 @@ func TestValidationOfTarget(t *testing.T) {
 	source := post.FullUrl()
 
 	rr, err := setupWebmentionTest(repo, user, target, source)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assertions.AssertNoError(t, err, "Error setting up webmention test")
 
-	assertStatus(t, rr, http.StatusBadRequest)
+	assertions.AssertStatus(t, rr, http.StatusBadRequest)
 }
 
 func TestAcceptWebmentionForAlias(t *testing.T) {
@@ -179,9 +156,7 @@ func TestAcceptWebmentionForAlias(t *testing.T) {
 	source := "https://example.com"
 
 	rr, err := setupWebmentionTest(repo, user, target, source)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assertions.AssertNoError(t, err, "Error setting up webmention test")
 
-	assertStatus(t, rr, http.StatusAccepted)
+	assertions.AssertStatus(t, rr, http.StatusAccepted)
 }

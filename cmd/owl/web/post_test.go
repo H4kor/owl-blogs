@@ -3,6 +3,7 @@ package web_test
 import (
 	"h4kor/owl-blogs"
 	main "h4kor/owl-blogs/cmd/owl/web"
+	"h4kor/owl-blogs/priv/assertions"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -24,16 +25,10 @@ func TestPostHandlerReturns404OnDrafts(t *testing.T) {
 
 	// Create Request and Response
 	req, err := http.NewRequest("GET", post.UrlPath(), nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assertions.AssertNoError(t, err, "Error creating request")
 	rr := httptest.NewRecorder()
 	router := main.Router(&repo)
 	router.ServeHTTP(rr, req)
 
-	// Check the status code is what we expect.
-	if status := rr.Code; status != http.StatusNotFound {
-		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusNotFound)
-	}
+	assertions.AssertStatus(t, rr, http.StatusNotFound)
 }

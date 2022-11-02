@@ -3,9 +3,9 @@ package web_test
 import (
 	"h4kor/owl-blogs"
 	main "h4kor/owl-blogs/cmd/owl/web"
+	"h4kor/owl-blogs/priv/assertions"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 )
 
@@ -16,28 +16,16 @@ func TestMultiUserUserRssIndexHandler(t *testing.T) {
 
 	// Create Request and Response
 	req, err := http.NewRequest("GET", user.UrlPath()+"index.xml", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assertions.AssertNoError(t, err, "Error creating request")
 	rr := httptest.NewRecorder()
 	router := main.Router(&repo)
 	router.ServeHTTP(rr, req)
 
-	// Check the status code is what we expect.
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusOK)
-	}
+	assertions.AssertStatus(t, rr, http.StatusOK)
 
 	// Check the response Content-Type is what we expect.
-	if !strings.Contains(rr.Header().Get("Content-Type"), "application/rss+xml") {
-		t.Errorf("handler returned wrong Content-Type: got %v want %v",
-			rr.Header().Get("Content-Type"), "application/rss+xml")
-	}
+	assertions.AssertContains(t, rr.Header().Get("Content-Type"), "application/rss+xml")
 
 	// Check the response body contains names of users
-	if !strings.Contains(rr.Body.String(), "post-1") {
-		t.Error("post-1 not listed on index page. Got: ")
-		t.Error(rr.Body.String())
-	}
+	assertions.AssertContains(t, rr.Body.String(), "post-1")
 }

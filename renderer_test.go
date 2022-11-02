@@ -2,6 +2,7 @@ package owl_test
 
 import (
 	"h4kor/owl-blogs"
+	"h4kor/owl-blogs/priv/assertions"
 	"os"
 	"path"
 	"strings"
@@ -14,14 +15,8 @@ func TestCanRenderPost(t *testing.T) {
 	post, _ := user.CreateNewPost("testpost", false)
 	result, err := owl.RenderPost(post)
 
-	if err != nil {
-		t.Error("Error rendering post: " + err.Error())
-		return
-	}
-
-	if !strings.Contains(result, "<h1 class=\"p-name\">testpost</h1>") {
-		t.Error("Post title not rendered as h1. Got: " + result)
-	}
+	assertions.AssertNoError(t, err, "Error rendering post")
+	assertions.AssertContains(t, result, "testpost")
 
 }
 
@@ -37,14 +32,8 @@ func TestRenderOneMe(t *testing.T) {
 	post, _ := user.CreateNewPost("testpost", false)
 	result, err := owl.RenderPost(post)
 
-	if err != nil {
-		t.Error("Error rendering post: " + err.Error())
-		return
-	}
-
-	if !strings.Contains(result, "href=\"https://twitter.com/testhandle\" rel=\"me\"") {
-		t.Error("Twitter handle not rendered. Got: " + result)
-	}
+	assertions.AssertNoError(t, err, "Error rendering post")
+	assertions.AssertContains(t, result, "href=\"https://twitter.com/testhandle\" rel=\"me\"")
 
 }
 
@@ -64,17 +53,9 @@ func TestRenderTwoMe(t *testing.T) {
 	post, _ := user.CreateNewPost("testpost", false)
 	result, err := owl.RenderPost(post)
 
-	if err != nil {
-		t.Error("Error rendering post: " + err.Error())
-		return
-	}
-
-	if !strings.Contains(result, "href=\"https://twitter.com/testhandle\" rel=\"me\"") {
-		t.Error("Twitter handle not rendered. Got: " + result)
-	}
-	if !strings.Contains(result, "href=\"https://github.com/testhandle\" rel=\"me\"") {
-		t.Error("Github handle not rendered. Got: " + result)
-	}
+	assertions.AssertNoError(t, err, "Error rendering post")
+	assertions.AssertContains(t, result, "href=\"https://twitter.com/testhandle\" rel=\"me\"")
+	assertions.AssertContains(t, result, "href=\"https://github.com/testhandle\" rel=\"me\"")
 
 }
 
@@ -82,15 +63,9 @@ func TestRenderPostHEntry(t *testing.T) {
 	user := getTestUser()
 	post, _ := user.CreateNewPost("testpost", false)
 	result, _ := owl.RenderPost(post)
-	if !strings.Contains(result, "class=\"h-entry\"") {
-		t.Error("h-entry container not rendered. Got: " + result)
-	}
-	if !strings.Contains(result, "class=\"p-name\"") {
-		t.Error("p-name not rendered. Got: " + result)
-	}
-	if !strings.Contains(result, "class=\"e-content\"") {
-		t.Error("e-content not rendered. Got: " + result)
-	}
+	assertions.AssertContains(t, result, "class=\"h-entry\"")
+	assertions.AssertContains(t, result, "class=\"p-name\"")
+	assertions.AssertContains(t, result, "class=\"e-content\"")
 
 }
 
@@ -99,14 +74,8 @@ func TestRendererUsesBaseTemplate(t *testing.T) {
 	post, _ := user.CreateNewPost("testpost", false)
 	result, err := owl.RenderPost(post)
 
-	if err != nil {
-		t.Error("Error rendering post: " + err.Error())
-		return
-	}
-
-	if !strings.Contains(result, "<html") {
-		t.Error("Base template not used. Got: " + result)
-	}
+	assertions.AssertNoError(t, err, "Error rendering post")
+	assertions.AssertContains(t, result, "<html")
 }
 
 func TestCanRenderIndexPage(t *testing.T) {
@@ -114,12 +83,8 @@ func TestCanRenderIndexPage(t *testing.T) {
 	user.CreateNewPost("testpost1", false)
 	user.CreateNewPost("testpost2", false)
 	result, _ := owl.RenderIndexPage(user)
-	if !strings.Contains(result, "testpost1") {
-		t.Error("Post title not rendered. Got: " + result)
-	}
-	if !strings.Contains(result, "testpost2") {
-		t.Error("Post title not rendered. Got: " + result)
-	}
+	assertions.AssertContains(t, result, "testpost1")
+	assertions.AssertContains(t, result, "testpost2")
 }
 
 func TestIndexPageContainsHFeedContainer(t *testing.T) {
@@ -127,9 +92,7 @@ func TestIndexPageContainsHFeedContainer(t *testing.T) {
 	user.CreateNewPost("testpost1", false)
 
 	result, _ := owl.RenderIndexPage(user)
-	if !strings.Contains(result, "<div class=\"h-feed\">") {
-		t.Error("h-feed container not rendered. Got: " + result)
-	}
+	assertions.AssertContains(t, result, "<div class=\"h-feed\">")
 }
 
 func TestIndexPageContainsHEntryAndUUrl(t *testing.T) {
@@ -137,12 +100,8 @@ func TestIndexPageContainsHEntryAndUUrl(t *testing.T) {
 	user.CreateNewPost("testpost1", false)
 
 	result, _ := owl.RenderIndexPage(user)
-	if !strings.Contains(result, "class=\"h-entry\"") {
-		t.Error("h-entry container not rendered. Got: " + result)
-	}
-	if !strings.Contains(result, "class=\"u-url\"") {
-		t.Error("u-url not rendered. Got: " + result)
-	}
+	assertions.AssertContains(t, result, "class=\"h-entry\"")
+	assertions.AssertContains(t, result, "class=\"u-url\"")
 
 }
 
@@ -165,16 +124,9 @@ func TestRenderUserList(t *testing.T) {
 	repo.CreateUser("user2")
 
 	result, err := owl.RenderUserList(repo)
-	if err != nil {
-		t.Error("Error rendering user list: " + err.Error())
-	}
-
-	if !strings.Contains(result, "user1") {
-		t.Error("Post title not rendered. Got: " + result)
-	}
-	if !strings.Contains(result, "user2") {
-		t.Error("Post title not rendered. Got: " + result)
-	}
+	assertions.AssertNoError(t, err, "Error rendering user list")
+	assertions.AssertContains(t, result, "user1")
+	assertions.AssertContains(t, result, "user2")
 }
 
 func TestRendersHeaderTitle(t *testing.T) {
@@ -187,15 +139,9 @@ func TestRendersHeaderTitle(t *testing.T) {
 	post, _ := user.CreateNewPost("testpost", false)
 
 	result, _ := owl.RenderPost(post)
-	if !strings.Contains(result, "Test Title") {
-		t.Error("Header title not rendered. Got: " + result)
-	}
-	if !strings.Contains(result, "Test SubTitle") {
-		t.Error("Header subtitle not rendered. Got: " + result)
-	}
-	if !strings.Contains(result, "#ff1337") {
-		t.Error("Header color not rendered. Got: " + result)
-	}
+	assertions.AssertContains(t, result, "Test Title")
+	assertions.AssertContains(t, result, "Test SubTitle")
+	assertions.AssertContains(t, result, "#ff1337")
 }
 
 func TestRenderPostIncludesRelToWebMention(t *testing.T) {
@@ -203,13 +149,9 @@ func TestRenderPostIncludesRelToWebMention(t *testing.T) {
 	post, _ := user.CreateNewPost("testpost", false)
 
 	result, _ := owl.RenderPost(post)
-	if !strings.Contains(result, "rel=\"webmention\"") {
-		t.Error("webmention rel not rendered. Got: " + result)
-	}
+	assertions.AssertContains(t, result, "rel=\"webmention\"")
 
-	if !strings.Contains(result, "href=\""+user.WebmentionUrl()+"\"") {
-		t.Error("webmention href not rendered. Got: " + result)
-	}
+	assertions.AssertContains(t, result, "href=\""+user.WebmentionUrl()+"\"")
 }
 
 func TestRenderPostAddsLinksToApprovedWebmention(t *testing.T) {
@@ -230,12 +172,8 @@ func TestRenderPostAddsLinksToApprovedWebmention(t *testing.T) {
 	post.PersistIncomingWebmention(webmention)
 
 	result, _ := owl.RenderPost(post)
-	if !strings.Contains(result, "http://example.com/source3") {
-		t.Error("webmention not rendered. Got: " + result)
-	}
-	if !strings.Contains(result, "Test Title") {
-		t.Error("webmention title not rendered. Got: " + result)
-	}
+	assertions.AssertContains(t, result, "http://example.com/source3")
+	assertions.AssertContains(t, result, "Test Title")
 	if strings.Contains(result, "http://example.com/source4") {
 		t.Error("unapproved webmention rendered. Got: " + result)
 	}
@@ -258,13 +196,8 @@ func TestRenderIncludesFullUrl(t *testing.T) {
 	post, _ := user.CreateNewPost("testpost", false)
 	result, _ := owl.RenderPost(post)
 
-	if !strings.Contains(result, "class=\"u-url\"") {
-		t.Error("u-url not rendered. Got: " + result)
-	}
-	if !strings.Contains(result, post.FullUrl()) {
-		t.Error("Full url not rendered. Got: " + result)
-		t.Error("Expected: " + post.FullUrl())
-	}
+	assertions.AssertContains(t, result, "class=\"u-url\"")
+	assertions.AssertContains(t, result, post.FullUrl())
 }
 
 func TestAddAvatarIfExist(t *testing.T) {
@@ -272,9 +205,7 @@ func TestAddAvatarIfExist(t *testing.T) {
 	os.WriteFile(path.Join(user.MediaDir(), "avatar.png"), []byte("test"), 0644)
 
 	result, _ := owl.RenderIndexPage(user)
-	if !strings.Contains(result, "avatar.png") {
-		t.Error("Avatar not rendered. Got: " + result)
-	}
+	assertions.AssertContains(t, result, "avatar.png")
 }
 
 func TestAuthorNameInPost(t *testing.T) {
@@ -288,9 +219,7 @@ func TestAuthorNameInPost(t *testing.T) {
 	post, _ := user.CreateNewPost("testpost", false)
 
 	result, _ := owl.RenderPost(post)
-	if !strings.Contains(result, "Test Author") {
-		t.Error("Author Name not included. Got: " + result)
-	}
+	assertions.AssertContains(t, result, "Test Author")
 }
 
 func TestRenderReplyWithoutText(t *testing.T) {
@@ -309,9 +238,7 @@ func TestRenderReplyWithoutText(t *testing.T) {
 	os.WriteFile(post.ContentFile(), []byte(content), 0644)
 
 	result, _ := owl.RenderPost(post)
-	if !strings.Contains(result, "https://example.com/post") {
-		t.Error("Reply url not rendered. Got: " + result)
-	}
+	assertions.AssertContains(t, result, "https://example.com/post")
 }
 
 func TestRenderReplyWithText(t *testing.T) {
@@ -330,13 +257,9 @@ func TestRenderReplyWithText(t *testing.T) {
 	os.WriteFile(post.ContentFile(), []byte(content), 0644)
 
 	result, _ := owl.RenderPost(post)
-	if !strings.Contains(result, "https://example.com/post") {
-		t.Error("Reply url not rendered. Got: " + result)
-	}
+	assertions.AssertContains(t, result, "https://example.com/post")
 
-	if !strings.Contains(result, "This is a reply") {
-		t.Error("Reply text not rendered. Got: " + result)
-	}
+	assertions.AssertContains(t, result, "This is a reply")
 }
 
 func TestOpenGraphTags(t *testing.T) {
@@ -351,28 +274,14 @@ func TestOpenGraphTags(t *testing.T) {
 	content += "\n"
 	content += "Hi \n"
 
-	err := os.WriteFile(post.ContentFile(), []byte(content), 0644)
-	if err != nil {
-		t.Error(err)
-	}
+	os.WriteFile(post.ContentFile(), []byte(content), 0644)
 	post, _ = user.GetPost(post.Id())
-
 	result, _ := owl.RenderPost(post)
 
-	if !strings.Contains(result, "<meta property=\"og:title\" content=\"The Rock\" />") {
-		t.Error("incorrent og:title . Got: " + result)
-	}
-
-	if !strings.Contains(result, "<meta property=\"og:description\" content=\"Dwayne Johnson\" />") {
-		t.Error("incorrent og:description . Got: " + result)
-	}
-
-	if !strings.Contains(result, "<meta property=\"og:type\" content=\"article\" />") {
-		t.Error("incorrent og:type . Got: " + result)
-	}
-	if !strings.Contains(result, "<meta property=\"og:url\" content=\""+post.FullUrl()+"\" />") {
-		t.Error("incorrent og:url . Got: " + result)
-	}
+	assertions.AssertContains(t, result, "<meta property=\"og:title\" content=\"The Rock\" />")
+	assertions.AssertContains(t, result, "<meta property=\"og:description\" content=\"Dwayne Johnson\" />")
+	assertions.AssertContains(t, result, "<meta property=\"og:type\" content=\"article\" />")
+	assertions.AssertContains(t, result, "<meta property=\"og:url\" content=\""+post.FullUrl()+"\" />")
 
 }
 
@@ -381,7 +290,5 @@ func TestAddFaviconIfExist(t *testing.T) {
 	os.WriteFile(path.Join(user.MediaDir(), "favicon.png"), []byte("test"), 0644)
 
 	result, _ := owl.RenderIndexPage(user)
-	if !strings.Contains(result, "favicon.png") {
-		t.Error("favicon not rendered. Got: " + result)
-	}
+	assertions.AssertContains(t, result, "favicon.png")
 }

@@ -2,8 +2,8 @@ package owl_test
 
 import (
 	"h4kor/owl-blogs"
+	"h4kor/owl-blogs/priv/assertions"
 	"os"
-	"strings"
 	"testing"
 )
 
@@ -14,16 +14,9 @@ func TestRenderRSSFeedMeta(t *testing.T) {
 		SubTitle: "Test SubTitle",
 	})
 	res, err := owl.RenderRSSFeed(user)
-	if err != nil {
-		t.Error("Error rendering RSS feed: " + err.Error())
-		return
-	}
-	if !strings.Contains(res, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>") {
-		t.Error("xml version not rendered. Got: " + res)
-	}
-	if !strings.Contains(res, "<rss version=\"2.0\">") {
-		t.Error("rss version not rendered. Got: " + res)
-	}
+	assertions.AssertNoError(t, err, "Error rendering RSS feed")
+	assertions.AssertContains(t, res, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
+	assertions.AssertContains(t, res, "<rss version=\"2.0\">")
 
 }
 
@@ -34,19 +27,10 @@ func TestRenderRSSFeedUserData(t *testing.T) {
 		SubTitle: "Test SubTitle",
 	})
 	res, err := owl.RenderRSSFeed(user)
-	if err != nil {
-		t.Error("Error rendering RSS feed: " + err.Error())
-		return
-	}
-	if !strings.Contains(res, "Test Title") {
-		t.Error("Title not rendered. Got: " + res)
-	}
-	if !strings.Contains(res, "Test SubTitle") {
-		t.Error("SubTitle not rendered. Got: " + res)
-	}
-	if !strings.Contains(res, "http://localhost:8080/user/") {
-		t.Error("SubTitle not rendered. Got: " + res)
-	}
+	assertions.AssertNoError(t, err, "Error rendering RSS feed")
+	assertions.AssertContains(t, res, "Test Title")
+	assertions.AssertContains(t, res, "Test SubTitle")
+	assertions.AssertContains(t, res, "http://localhost:8080/user/")
 }
 
 func TestRenderRSSFeedPostData(t *testing.T) {
@@ -61,19 +45,10 @@ func TestRenderRSSFeedPostData(t *testing.T) {
 	os.WriteFile(post.ContentFile(), []byte(content), 0644)
 
 	res, err := owl.RenderRSSFeed(user)
-	if err != nil {
-		t.Error("Error rendering RSS feed: " + err.Error())
-		return
-	}
-	if !strings.Contains(res, "Test Post") {
-		t.Error("Title not rendered. Got: " + res)
-	}
-	if !strings.Contains(res, post.FullUrl()) {
-		t.Error("SubTitle not rendered. Got: " + res)
-	}
-	if !strings.Contains(res, "Thu, 01 Jan 2015 00:00:00 +0000") {
-		t.Error("Date not rendered. Got: " + res)
-	}
+	assertions.AssertNoError(t, err, "Error rendering RSS feed")
+	assertions.AssertContains(t, res, "Test Post")
+	assertions.AssertContains(t, res, post.FullUrl())
+	assertions.AssertContains(t, res, "Thu, 01 Jan 2015 00:00:00 +0000")
 }
 
 func TestRenderRSSFeedPostDataWithoutDate(t *testing.T) {
@@ -87,14 +62,7 @@ func TestRenderRSSFeedPostDataWithoutDate(t *testing.T) {
 	os.WriteFile(post.ContentFile(), []byte(content), 0644)
 
 	res, err := owl.RenderRSSFeed(user)
-	if err != nil {
-		t.Error("Error rendering RSS feed: " + err.Error())
-		return
-	}
-	if !strings.Contains(res, "Test Post") {
-		t.Error("Title not rendered. Got: " + res)
-	}
-	if !strings.Contains(res, post.FullUrl()) {
-		t.Error("SubTitle not rendered. Got: " + res)
-	}
+	assertions.AssertNoError(t, err, "Error rendering RSS feed")
+	assertions.AssertContains(t, res, "Test Post")
+	assertions.AssertContains(t, res, post.FullUrl())
 }
