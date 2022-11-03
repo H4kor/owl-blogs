@@ -245,3 +245,10 @@ func (user User) ResetPassword(password string) error {
 	config.PassworHash = string(bytes)
 	return user.SetConfig(config)
 }
+
+func (user User) VerifyPassword(password string) bool {
+	err := bcrypt.CompareHashAndPassword(
+		[]byte(user.Config().PassworHash), []byte(password),
+	)
+	return err == nil
+}

@@ -302,3 +302,15 @@ func TestResetUserPassword(t *testing.T) {
 	assertions.Assert(t, user.Config().PassworHash != "", "Password Hash should not be empty")
 	assertions.Assert(t, user.Config().PassworHash != "test", "Password Hash should not be test")
 }
+
+func TestVerifyPassword(t *testing.T) {
+	user := getTestUser()
+	user.ResetPassword("test")
+	assertions.Assert(t, user.VerifyPassword("test"), "Password should be correct")
+	assertions.Assert(t, !user.VerifyPassword("test2"), "Password should be incorrect")
+	assertions.Assert(t, !user.VerifyPassword(""), "Password should be incorrect")
+	assertions.Assert(t, !user.VerifyPassword("Test"), "Password should be incorrect")
+	assertions.Assert(t, !user.VerifyPassword("TEST"), "Password should be incorrect")
+	assertions.Assert(t, !user.VerifyPassword("0000000"), "Password should be incorrect")
+
+}
