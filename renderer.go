@@ -107,7 +107,18 @@ func RenderIndexPage(user User) (string, error) {
 		Title:   "Index",
 		Content: template.HTML(postHtml),
 	})
+}
 
+func RenderUserAuthPage(user User) (string, error) {
+	authHtml, err := renderEmbedTemplate("embed/auth.html", user)
+	if err != nil {
+		return "", err
+	}
+
+	return renderIntoBaseTemplate(user, PageContent{
+		Title:   "Auth",
+		Content: template.HTML(authHtml),
+	})
 }
 
 func RenderUserList(repo Repository) (string, error) {

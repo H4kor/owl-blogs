@@ -285,3 +285,11 @@ func TestAddFaviconIfExist(t *testing.T) {
 	result, _ := owl.RenderIndexPage(user)
 	assertions.AssertContains(t, result, "favicon.png")
 }
+
+func TestRenderUserAuth(t *testing.T) {
+	user := getTestUser()
+	user.ResetPassword("test")
+	result, err := owl.RenderUserAuthPage(user)
+	assertions.AssertNoError(t, err, "Error rendering user auth page")
+	assertions.AssertContains(t, result, "<form")
+}

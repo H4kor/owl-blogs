@@ -27,6 +27,9 @@
 
     <link rel="stylesheet" href="/static/pico.min.css">
     <link rel="webmention" href="{{ .User.WebmentionUrl }}">
+    {{ if .User.AuthUrl }}
+    <link rel="authorization_endpoint" href="{{ .User.AuthUrl}}">
+    {{ end }}
     <style>
         header {
             background-color: {{.User.Config.HeaderColor}};

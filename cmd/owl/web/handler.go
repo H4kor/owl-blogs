@@ -59,6 +59,26 @@ func userIndexHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Requ
 	}
 }
 
+func userAuthHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Request, httprouter.Params) {
+	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		user, err := getUserFromRepo(repo, ps)
+		if err != nil {
+			println("Error getting user: ", err.Error())
+			notFoundHandler(repo)(w, r)
+			return
+		}
+		html, err := owl.RenderUserAuthPage(user)
+		if err != nil {
+			println("Error rendering auth page: ", err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("Internal server error"))
+			return
+		}
+		println("Rendering auth page for user", user.Name())
+		w.Write([]byte(html))
+	}
+}
+
 func userWebmentionHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Request, httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		user, err := getUserFromRepo(repo, ps)

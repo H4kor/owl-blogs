@@ -44,6 +44,14 @@ func (user User) FullUrl() string {
 	return url
 }
 
+func (user User) AuthUrl() string {
+	if user.Config().PassworHash == "" {
+		return ""
+	}
+	url, _ := url.JoinPath(user.FullUrl(), "auth/")
+	return url
+}
+
 func (user User) WebmentionUrl() string {
 	url, _ := url.JoinPath(user.FullUrl(), "webmention/")
 	return url
