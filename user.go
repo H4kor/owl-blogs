@@ -8,6 +8,7 @@ import (
 	"sort"
 	"time"
 
+	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/yaml.v2"
 )
 
@@ -22,6 +23,7 @@ type UserConfig struct {
 	HeaderColor string   `yaml:"header_color"`
 	AuthorName  string   `yaml:"author_name"`
 	Me          []UserMe `yaml:"me"`
+	PassworHash string   `yaml:"password_hash"`
 }
 
 type UserMe struct {
@@ -207,10 +209,10 @@ func (user User) Template() (string, error) {
 	return string(base_html), nil
 }
 
-func (user User) Config() (UserConfig, error) {
+func (user User) Config() UserConfig {
 	meta := UserConfig{}
-	err := loadFromYaml(user.ConfigFile(), &meta)
-	return meta, err
+	loadFromYaml(user.ConfigFile(), &meta)
+	return meta
 }
 
 func (user User) SetConfig(new_config UserConfig) error {
@@ -232,4 +234,14 @@ func (user User) PostAliases() (map[string]*Post, error) {
 		}
 	}
 	return post_aliases, nil
+}
+
+func (user User) ResetPassword(password string) error {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 10)
+	if err != nil {
+		return err
+	}
+	config := user.Config()
+	config.PassworHash = string(bytes)
+	return user.SetConfig(config)
 }

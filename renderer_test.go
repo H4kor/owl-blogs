@@ -21,7 +21,7 @@ func TestCanRenderPost(t *testing.T) {
 
 func TestRenderOneMe(t *testing.T) {
 	user := getTestUser()
-	config, _ := user.Config()
+	config := user.Config()
 	config.Me = append(config.Me, owl.UserMe{
 		Name: "Twitter",
 		Url:  "https://twitter.com/testhandle",
@@ -38,7 +38,7 @@ func TestRenderOneMe(t *testing.T) {
 
 func TestRenderTwoMe(t *testing.T) {
 	user := getTestUser()
-	config, _ := user.Config()
+	config := user.Config()
 	config.Me = append(config.Me, owl.UserMe{
 		Name: "Twitter",
 		Url:  "https://twitter.com/testhandle",

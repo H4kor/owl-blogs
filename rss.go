@@ -29,7 +29,7 @@ type RSSItem struct {
 
 func RenderRSSFeed(user User) (string, error) {
 
-	config, _ := user.Config()
+	config := user.Config()
 
 	rss := RSS{
 		Version: "2.0",

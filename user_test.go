@@ -295,3 +295,10 @@ func TestFaviconSetIfFileExist(t *testing.T) {
 	os.WriteFile(path.Join(user.MediaDir(), "favicon.ico"), []byte("test"), 0644)
 	assertions.Assert(t, user.FaviconUrl() != "", "Favicon should not be empty")
 }
+
+func TestResetUserPassword(t *testing.T) {
+	user := getTestUser()
+	user.ResetPassword("test")
+	assertions.Assert(t, user.Config().PassworHash != "", "Password Hash should not be empty")
+	assertions.Assert(t, user.Config().PassworHash != "test", "Password Hash should not be test")
+}
