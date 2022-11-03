@@ -5,7 +5,6 @@ import (
 	"h4kor/owl-blogs/priv/assertions"
 	"os"
 	"path"
-	"strings"
 	"testing"
 	"time"
 )
@@ -113,9 +112,7 @@ func TestRenderIndexPageWithBrokenBaseTemplate(t *testing.T) {
 	os.WriteFile(path.Join(user.Dir(), "meta/base.html"), []byte("{{content}}"), 0644)
 
 	_, err := owl.RenderIndexPage(user)
-	if err == nil {
-		t.Error("Expected error rendering index page, got nil")
-	}
+	assertions.AssertError(t, err, "Expected error rendering index page")
 }
 
 func TestRenderUserList(t *testing.T) {
@@ -174,9 +171,7 @@ func TestRenderPostAddsLinksToApprovedWebmention(t *testing.T) {
 	result, _ := owl.RenderPost(post)
 	assertions.AssertContains(t, result, "http://example.com/source3")
 	assertions.AssertContains(t, result, "Test Title")
-	if strings.Contains(result, "http://example.com/source4") {
-		t.Error("unapproved webmention rendered. Got: " + result)
-	}
+	assertions.AssertNotContains(t, result, "http://example.com/source4")
 
 }
 
@@ -185,9 +180,7 @@ func TestRenderPostNotMentioningWebmentionsIfNoAvail(t *testing.T) {
 	post, _ := user.CreateNewPost("testpost", false)
 	result, _ := owl.RenderPost(post)
 
-	if strings.Contains(result, "Webmention") {
-		t.Error("Webmention mentioned. Got: " + result)
-	}
+	assertions.AssertNotContains(t, result, "Webmention")
 
 }
 

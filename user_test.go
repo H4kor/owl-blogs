@@ -50,9 +50,7 @@ func TestCreateNewPostMultipleCalls(t *testing.T) {
 	user.CreateNewPost("testpost", false)
 	files, err := os.ReadDir(path.Join(user.Dir(), "public"))
 	assertions.AssertNoError(t, err, "Error reading directory")
-	if len(files) < 3 {
-		t.Errorf("Only %d posts created", len(files))
-	}
+	assertions.AssertEqual(t, len(files), 3)
 }
 
 func TestCanListUserPosts(t *testing.T) {
@@ -186,23 +184,17 @@ func TestCanLoadPost(t *testing.T) {
 
 	posts, _ := user.Posts()
 	post, _ := user.GetPost(posts[0].Id())
-	if post.Title() != "testpost" {
-		t.Error("Wrong title, Got: " + post.Title())
-	}
+	assertions.Assert(t, post.Title() == "testpost", "Post title is not correct")
 }
 
 func TestUserUrlPath(t *testing.T) {
 	user := getTestUser()
-	if !(user.UrlPath() == "/user/"+user.Name()+"/") {
-		t.Error("Wrong url path, Expected: " + "/user/" + user.Name() + "/" + " Got: " + user.UrlPath())
-	}
+	assertions.Assert(t, user.UrlPath() == "/user/"+user.Name()+"/", "Wrong url path")
 }
 
 func TestUserFullUrl(t *testing.T) {
 	user := getTestUser()
-	if !(user.FullUrl() == "http://localhost:8080/user/"+user.Name()+"/") {
-		t.Error("Wrong url path, Expected: " + "http://localhost:8080/user/" + user.Name() + "/" + " Got: " + user.FullUrl())
-	}
+	assertions.Assert(t, user.FullUrl() == "http://localhost:8080/user/"+user.Name()+"/", "Wrong url path")
 }
 
 func TestPostsSortedByPublishingDateLatestFirst(t *testing.T) {
@@ -226,12 +218,8 @@ func TestPostsSortedByPublishingDateLatestFirst(t *testing.T) {
 	os.WriteFile(post2.ContentFile(), []byte(content), 0644)
 
 	posts, _ := user.Posts()
-	if posts[0].Id() != post2.Id() {
-		t.Error("Wrong Id, Got: " + posts[0].Id())
-	}
-	if posts[1].Id() != post1.Id() {
-		t.Error("Wrong Id, Got: " + posts[1].Id())
-	}
+	assertions.Assert(t, posts[0].Id() == post2.Id(), "Wrong Id")
+	assertions.Assert(t, posts[1].Id() == post1.Id(), "Wrong Id")
 }
 
 func TestPostsSortedByPublishingDateLatestFirst2(t *testing.T) {
@@ -251,9 +239,7 @@ func TestPostsSortedByPublishingDateLatestFirst2(t *testing.T) {
 
 	retPosts, _ := user.Posts()
 	for i, p := range retPosts {
-		if p.Id() != posts[i].Id() {
-			t.Error("Wrong Id, Got: " + p.Id())
-		}
+		assertions.Assert(t, p.Id() == posts[i].Id(), "Wrong Id")
 	}
 }
 
@@ -278,27 +264,19 @@ func TestPostsSortedByPublishingDateBrokenAtBottom(t *testing.T) {
 	os.WriteFile(post2.ContentFile(), []byte(content), 0644)
 
 	posts, _ := user.Posts()
-	if posts[0].Id() != post2.Id() {
-		t.Error("Wrong Id, Got: " + posts[0].Id())
-	}
-	if posts[1].Id() != post1.Id() {
-		t.Error("Wrong Id, Got: " + posts[1].Id())
-	}
+	assertions.Assert(t, posts[0].Id() == post2.Id(), "Wrong Id")
+	assertions.Assert(t, posts[1].Id() == post1.Id(), "Wrong Id")
 }
 
 func TestAvatarEmptyIfNotExist(t *testing.T) {
 	user := getTestUser()
-	if user.AvatarUrl() != "" {
-		t.Error("Avatar should be empty")
-	}
+	assertions.Assert(t, user.AvatarUrl() == "", "Avatar should be empty")
 }
 
 func TestAvatarSetIfFileExist(t *testing.T) {
 	user := getTestUser()
 	os.WriteFile(path.Join(user.MediaDir(), "avatar.png"), []byte("test"), 0644)
-	if user.AvatarUrl() == "" {
-		t.Error("Avatar should not be empty")
-	}
+	assertions.Assert(t, user.AvatarUrl() != "", "Avatar should not be empty")
 }
 
 func TestPostNameIllegalFileName(t *testing.T) {
@@ -309,15 +287,11 @@ func TestPostNameIllegalFileName(t *testing.T) {
 
 func TestFaviconIfNotExist(t *testing.T) {
 	user := getTestUser()
-	if user.FaviconUrl() != "" {
-		t.Error("Favicon should be empty")
-	}
+	assertions.Assert(t, user.FaviconUrl() == "", "Favicon should be empty")
 }
 
 func TestFaviconSetIfFileExist(t *testing.T) {
 	user := getTestUser()
 	os.WriteFile(path.Join(user.MediaDir(), "favicon.ico"), []byte("test"), 0644)
-	if user.FaviconUrl() == "" {
-		t.Error("Favicon should not be empty")
-	}
+	assertions.Assert(t, user.FaviconUrl() != "", "Favicon should not be empty")
 }

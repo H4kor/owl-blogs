@@ -8,7 +8,6 @@ import (
 	"net/http/httptest"
 	"os"
 	"path"
-	"strings"
 	"testing"
 )
 
@@ -68,10 +67,7 @@ func TestSingleUserPostMediaHandler(t *testing.T) {
 	assertions.AssertStatus(t, rr, http.StatusOK)
 
 	// Check the response body contains data of media file
-	if !(rr.Body.String() == "test") {
-		t.Error("Got wrong media file content. Expected 'test' Got: ")
-		t.Error(rr.Body.String())
-	}
+	assertions.Assert(t, rr.Body.String() == "test", "Media file data not returned")
 }
 
 func TestHasNoDraftsInList(t *testing.T) {
@@ -101,8 +97,5 @@ func TestHasNoDraftsInList(t *testing.T) {
 	router.ServeHTTP(rr, req)
 
 	// Check if title is in the response body
-	if strings.Contains(rr.Body.String(), "Articles September 2019") {
-		t.Error("Articles September 2019 listed on index page. Got: ")
-		t.Error(rr.Body.String())
-	}
+	assertions.AssertNotContains(t, rr.Body.String(), "Articles September 2019")
 }

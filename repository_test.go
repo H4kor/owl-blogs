@@ -19,18 +19,15 @@ func TestCannotCreateExistingRepository(t *testing.T) {
 	repoName := testRepoName()
 	owl.CreateRepository(repoName, owl.RepoConfig{})
 	_, err := owl.CreateRepository(repoName, owl.RepoConfig{})
-	if err == nil {
-		t.Error("No error returned when creating existing repository")
-	}
+	assertions.AssertError(t, err, "No error returned when creating existing repository")
 }
 
 func TestCanCreateANewUser(t *testing.T) {
 	// Create a new user
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser(randomUserName())
-	if _, err := os.Stat(path.Join(user.Dir(), "")); err != nil {
-		t.Error("User directory not created")
-	}
+	_, err := os.Stat(path.Join(user.Dir(), ""))
+	assertions.AssertNoError(t, err, "Error creating user: ")
 }
 
 func TestCannotRecreateExisitingUser(t *testing.T) {
@@ -39,45 +36,39 @@ func TestCannotRecreateExisitingUser(t *testing.T) {
 	userName := randomUserName()
 	repo.CreateUser(userName)
 	_, err := repo.CreateUser(userName)
-	if err == nil {
-		t.Error("No error returned when creating existing user")
-	}
+	assertions.AssertError(t, err, "No error returned when creating existing user")
 }
 
 func TestCreateUserAddsVersionFile(t *testing.T) {
 	// Create a new user
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser(randomUserName())
-	if _, err := os.Stat(path.Join(user.Dir(), "/meta/VERSION")); err != nil {
-		t.Error("Version file not created")
-	}
+	_, err := os.Stat(path.Join(user.Dir(), "/meta/VERSION"))
+	assertions.AssertNoError(t, err, "Version file not created")
 }
 
 func TestCreateUserAddsBaseHtmlFile(t *testing.T) {
 	// Create a new user
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser(randomUserName())
-	if _, err := os.Stat(path.Join(user.Dir(), "/meta/base.html")); err != nil {
-		t.Error("Base html file not created")
-	}
+	_, err := os.Stat(path.Join(user.Dir(), "/meta/base.html"))
+	assertions.AssertNoError(t, err, "Base html file not created")
 }
 
 func TestCreateUserAddConfigYml(t *testing.T) {
 	// Create a new user
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser(randomUserName())
-	if _, err := os.Stat(path.Join(user.Dir(), "/meta/config.yml")); err != nil {
-		t.Error("Config file not created")
-	}
+	_, err := os.Stat(path.Join(user.Dir(), "/meta/config.yml"))
+	assertions.AssertNoError(t, err, "Config file not created")
 }
 
 func TestCreateUserAddsPublicFolder(t *testing.T) {
 	// Create a new user
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser(randomUserName())
-	if _, err := os.Stat(path.Join(user.Dir(), "/public")); err != nil {
-		t.Error("Public folder not created")
-	}
+	_, err := os.Stat(path.Join(user.Dir(), "/public"))
+	assertions.AssertNoError(t, err, "Public folder not created")
 }
 
 func TestCanListRepoUsers(t *testing.T) {
@@ -89,9 +80,11 @@ func TestCanListRepoUsers(t *testing.T) {
 	users, _ := repo.Users()
 	assertions.AssertLen(t, users, 2)
 	for _, user := range users {
-		if user.Name() != user1.Name() && user.Name() != user2.Name() {
-			t.Error("User found: " + user.Name())
-		}
+		assertions.AssertNot(
+			t,
+			user.Name() != user1.Name() && user.Name() != user2.Name(),
+			"User found: "+user.Name(),
+		)
 	}
 }
 
@@ -102,16 +95,12 @@ func TestCanOpenRepository(t *testing.T) {
 	// Open the repository
 	repo2, err := owl.OpenRepository(repoName)
 	assertions.AssertNoError(t, err, "Error opening repository: ")
-	if repo2.Dir() != repo.Dir() {
-		t.Error("Repository directories do not match")
-	}
+	assertions.Assert(t, repo2.Dir() == repo.Dir(), "Repository directories do not match")
 }
 
 func TestCannotOpenNonExisitingRepo(t *testing.T) {
 	_, err := owl.OpenRepository(testRepoName())
-	if err == nil {
-		t.Error("No error returned when opening non-existing repository")
-	}
+	assertions.AssertError(t, err, "No error returned when opening non-existing repository")
 }
 
 func TestGetUser(t *testing.T) {
@@ -121,18 +110,14 @@ func TestGetUser(t *testing.T) {
 	// Get the user
 	user2, err := repo.GetUser(user.Name())
 	assertions.AssertNoError(t, err, "Error getting user: ")
-	if user2.Name() != user.Name() {
-		t.Error("User names do not match")
-	}
+	assertions.Assert(t, user2.Name() == user.Name(), "User names do not match")
 }
 
 func TestCannotGetNonexistingUser(t *testing.T) {
 	// Create a new user
 	repo := getTestRepo(owl.RepoConfig{})
 	_, err := repo.GetUser(randomUserName())
-	if err == nil {
-		t.Error("No error returned when getting non-existing user")
-	}
+	assertions.AssertError(t, err, "No error returned when getting non-existing user")
 }
 
 func TestGetStaticDirOfRepo(t *testing.T) {
@@ -140,24 +125,19 @@ func TestGetStaticDirOfRepo(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	// Get the user
 	staticDir := repo.StaticDir()
-	if staticDir == "" {
-		t.Error("Static dir not returned")
-	}
+	assertions.Assert(t, staticDir != "", "Static dir is empty")
 }
 
 func TestNewRepoGetsStaticFiles(t *testing.T) {
 	// Create a new user
 	repo := getTestRepo(owl.RepoConfig{})
-	if _, err := os.Stat(repo.StaticDir()); err != nil {
-		t.Error("Static directory not found")
-	}
+	_, err := os.Stat(repo.StaticDir())
+	assertions.AssertNoError(t, err, "Static dir not created")
 	dir, _ := os.Open(repo.StaticDir())
 	defer dir.Close()
 	files, _ := dir.Readdirnames(-1)
 
-	if len(files) == 0 {
-		t.Error("No static files found")
-	}
+	assertions.AssertLen(t, files, 1)
 }
 
 func TestNewRepoGetsStaticFilesPicoCSSWithContent(t *testing.T) {
@@ -167,17 +147,14 @@ func TestNewRepoGetsStaticFilesPicoCSSWithContent(t *testing.T) {
 	assertions.AssertNoError(t, err, "Error opening pico.min.css")
 	// check that the file has content
 	stat, _ := file.Stat()
-	if stat.Size() == 0 {
-		t.Error("pico.min.css is empty")
-	}
+	assertions.Assert(t, stat.Size() > 0, "pico.min.css is empty")
 }
 
 func TestNewRepoGetsBaseHtml(t *testing.T) {
 	// Create a new user
 	repo := getTestRepo(owl.RepoConfig{})
-	if _, err := os.Stat(path.Join(repo.Dir(), "/base.html")); err != nil {
-		t.Error("Base html file not found")
-	}
+	_, err := os.Stat(path.Join(repo.Dir(), "/base.html"))
+	assertions.AssertNoError(t, err, "Base html file not found")
 }
 
 func TestCanGetRepoTemplate(t *testing.T) {
@@ -186,9 +163,7 @@ func TestCanGetRepoTemplate(t *testing.T) {
 	// Get the user
 	template, err := repo.Template()
 	assertions.AssertNoError(t, err, "Error getting template: ")
-	if template == "" {
-		t.Error("Template not returned")
-	}
+	assertions.Assert(t, template != "", "Template is empty")
 }
 
 func TestCanOpenRepositoryInSingleUserMode(t *testing.T) {
@@ -205,9 +180,7 @@ func TestCanOpenRepositoryInSingleUserMode(t *testing.T) {
 
 	users, _ := repo.Users()
 	assertions.AssertLen(t, users, 1)
-	if users[0].Name() != userName {
-		t.Error("User name does not match")
-	}
+	assertions.Assert(t, users[0].Name() == userName, "User name does not match")
 }
 
 func TestSingleUserRepoUserUrlPathIsSimple(t *testing.T) {
@@ -220,9 +193,7 @@ func TestSingleUserRepoUserUrlPathIsSimple(t *testing.T) {
 	// Open the repository
 	repo, _ := owl.OpenRepository(repoName)
 	user, _ := repo.GetUser(userName)
-	if user.UrlPath() != "/" {
-		t.Error("User url is not '/'. Got: ", user.UrlPath())
-	}
+	assertions.Assert(t, user.UrlPath() == "/", "User url path is not /")
 }
 
 func TestCanGetMapWithAllPostAliases(t *testing.T) {
@@ -246,12 +217,8 @@ func TestCanGetMapWithAllPostAliases(t *testing.T) {
 	aliases, err := repo.PostAliases()
 	assertions.AssertNoError(t, err, "Error getting post aliases: ")
 	assertions.AssertMapLen(t, aliases, 2)
-	if aliases["/foo/bar"] == nil {
-		t.Error("Alias '/foo/bar' not found")
-	}
-	if aliases["/foo/baz"] == nil {
-		t.Error("Alias '/foo/baz' not found")
-	}
+	assertions.Assert(t, aliases["/foo/bar"] != nil, "Alias '/foo/bar' not found")
+	assertions.Assert(t, aliases["/foo/baz"] != nil, "Alias '/foo/baz' not found")
 
 }
 
@@ -284,11 +251,7 @@ func TestAliasesHaveCorrectPost(t *testing.T) {
 	aliases, err := repo.PostAliases()
 	assertions.AssertNoError(t, err, "Error getting post aliases: ")
 	assertions.AssertMapLen(t, aliases, 2)
-	if aliases["/foo/1"].Id() != post1.Id() {
-		t.Error("Alias '/foo/1' points to wrong post: ", aliases["/foo/1"].Id())
-	}
-	if aliases["/foo/2"].Id() != post2.Id() {
-		t.Error("Alias '/foo/2' points to wrong post: ", aliases["/foo/2"].Id())
-	}
+	assertions.Assert(t, aliases["/foo/1"].Id() == post1.Id(), "Alias '/foo/1' does not point to post 1")
+	assertions.Assert(t, aliases["/foo/2"].Id() == post2.Id(), "Alias '/foo/2' does not point to post 2")
 
 }

@@ -104,8 +104,5 @@ func TestMultiUserPostMediaHandler(t *testing.T) {
 	assertions.AssertStatus(t, rr, http.StatusOK)
 
 	// Check the response body contains data of media file
-	if !(rr.Body.String() == "test") {
-		t.Error("Got wrong media file content. Expected 'test' Got: ")
-		t.Error(rr.Body.String())
-	}
+	assertions.Assert(t, rr.Body.String() == "test", "Response body is not equal to test")
 }

@@ -310,9 +310,7 @@ func TestCanSendWebmention(t *testing.T) {
 
 	assertions.AssertLen(t, webmentions, 1)
 	assertions.AssertEqual(t, webmentions[0].Target, "http://example.com")
-	if webmentions[0].LastSentAt.IsZero() {
-		t.Errorf("Expected LastSentAt to be set")
-	}
+	assertions.AssertEqual(t, webmentions[0].LastSentAt.IsZero(), false)
 }
 
 func TestSendWebmentionOnlyScansOncePerWeek(t *testing.T) {
@@ -332,9 +330,7 @@ func TestSendWebmentionOnlyScansOncePerWeek(t *testing.T) {
 	webmention = webmentions[0]
 
 	err := post.SendWebmention(webmention)
-	if err == nil {
-		t.Errorf("Expected error, got nil")
-	}
+	assertions.AssertError(t, err, "Expected error, got nil")
 
 	webmentions = post.OutgoingWebmentions()
 

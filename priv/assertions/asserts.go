@@ -41,6 +41,13 @@ func AssertNoError(t *testing.T, err error, message string) {
 	}
 }
 
+func AssertError(t *testing.T, err error, message string) {
+	t.Helper()
+	if err == nil {
+		t.Errorf(message)
+	}
+}
+
 func AssertLen[T any](t *testing.T, list []T, expected int) {
 	t.Helper()
 	if len(list) != expected {
@@ -67,5 +74,19 @@ func AssertStatus(t *testing.T, rr *httptest.ResponseRecorder, expStatus int) {
 		t.Errorf("handler returned wrong status code: got %v want %v",
 			status, expStatus)
 		return
+	}
+}
+
+func AssertLessThan(t *testing.T, actual int, expected int) {
+	t.Helper()
+	if actual >= expected {
+		t.Errorf("Expected '%d' to be less than '%d'", actual, expected)
+	}
+}
+
+func AssertGreaterThan(t *testing.T, actual int, expected int) {
+	t.Helper()
+	if actual <= expected {
+		t.Errorf("Expected '%d' to be greater than '%d'", actual, expected)
 	}
 }
