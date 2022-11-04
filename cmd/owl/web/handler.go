@@ -67,7 +67,48 @@ func userAuthHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Reque
 			notFoundHandler(repo)(w, r)
 			return
 		}
-		html, err := owl.RenderUserAuthPage(user)
+		// get me, cleint_id, redirect_uri, state and response_type from query
+		me := r.URL.Query().Get("me")
+		clientId := r.URL.Query().Get("client_id")
+		redirectUri := r.URL.Query().Get("redirect_uri")
+		state := r.URL.Query().Get("state")
+		responseType := r.URL.Query().Get("response_type")
+
+		// check if request is valid
+		missing_params := []string{}
+		if clientId == "" {
+			missing_params = append(missing_params, "client_id")
+		}
+		if redirectUri == "" {
+			missing_params = append(missing_params, "redirect_uri")
+		}
+		if responseType == "" {
+			missing_params = append(missing_params, "response_type")
+		}
+		if len(missing_params) > 0 {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(fmt.Sprintf("Missing parameters: %s", strings.Join(missing_params, ", "))))
+			return
+		}
+		if responseType != "id" {
+			responseType = "code"
+		}
+		if responseType != "code" {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("Invalid response_type. Must be 'code' ('id' converted to 'code' for legacy support)."))
+			return
+		}
+
+		reqData := owl.AuthRequestData{
+			Me:           me,
+			ClientId:     clientId,
+			RedirectUri:  redirectUri,
+			State:        state,
+			ResponseType: responseType,
+			User:         user,
+		}
+
+		html, err := owl.RenderUserAuthPage(reqData)
 		if err != nil {
 			println("Error rendering auth page: ", err.Error())
 			w.WriteHeader(http.StatusInternalServerError)

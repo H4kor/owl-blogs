@@ -20,6 +20,15 @@ type PostRenderData struct {
 	Content template.HTML
 }
 
+type AuthRequestData struct {
+	Me           string
+	ClientId     string
+	RedirectUri  string
+	State        string
+	ResponseType string
+	User         User
+}
+
 func renderEmbedTemplate(templateFile string, data interface{}) (string, error) {
 	templateStr, err := embed_files.ReadFile(templateFile)
 	if err != nil {
@@ -109,13 +118,13 @@ func RenderIndexPage(user User) (string, error) {
 	})
 }
 
-func RenderUserAuthPage(user User) (string, error) {
-	authHtml, err := renderEmbedTemplate("embed/auth.html", user)
+func RenderUserAuthPage(reqData AuthRequestData) (string, error) {
+	authHtml, err := renderEmbedTemplate("embed/auth.html", reqData)
 	if err != nil {
 		return "", err
 	}
 
-	return renderIntoBaseTemplate(user, PageContent{
+	return renderIntoBaseTemplate(reqData.User, PageContent{
 		Title:   "Auth",
 		Content: template.HTML(authHtml),
 	})

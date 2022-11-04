@@ -289,7 +289,37 @@ func TestAddFaviconIfExist(t *testing.T) {
 func TestRenderUserAuth(t *testing.T) {
 	user := getTestUser()
 	user.ResetPassword("test")
-	result, err := owl.RenderUserAuthPage(user)
+	result, err := owl.RenderUserAuthPage(owl.AuthRequestData{
+		User: user,
+	})
 	assertions.AssertNoError(t, err, "Error rendering user auth page")
 	assertions.AssertContains(t, result, "<form")
+}
+
+func TestRenderUserAuthIncludesClientId(t *testing.T) {
+	user := getTestUser()
+	user.ResetPassword("test")
+	result, err := owl.RenderUserAuthPage(owl.AuthRequestData{
+		User:     user,
+		ClientId: "https://example.com/",
+	})
+	assertions.AssertNoError(t, err, "Error rendering user auth page")
+	assertions.AssertContains(t, result, "https://example.com/")
+}
+
+func TestRenderUserAuthHiddenFields(t *testing.T) {
+	user := getTestUser()
+	user.ResetPassword("test")
+	result, err := owl.RenderUserAuthPage(owl.AuthRequestData{
+		User:         user,
+		ClientId:     "https://example.com/",
+		RedirectUri:  "https://example.com/redirect",
+		ResponseType: "code",
+		State:        "teststate",
+	})
+	assertions.AssertNoError(t, err, "Error rendering user auth page")
+	assertions.AssertContains(t, result, "name=\"client_id\" value=\"https://example.com/\"")
+	assertions.AssertContains(t, result, "name=\"redirect_uri\" value=\"https://example.com/redirect\"")
+	assertions.AssertContains(t, result, "name=\"response_type\" value=\"code\"")
+	assertions.AssertContains(t, result, "name=\"state\" value=\"teststate\"")
 }

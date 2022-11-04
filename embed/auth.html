@@ -1,5 +1,11 @@
+<h2>Authorization for {{.ClientId}}</h2>
+
 <form action="" method="post">
     <label for="password">Password</label>
     <input type="password" name="password" placeholder="Password">
+    <input type="hidden" name="client_id" value="{{.ClientId}}">
+    <input type="hidden" name="redirect_uri" value="{{.RedirectUri}}">
+    <input type="hidden" name="response_type" value="{{.ResponseType}}">
+    <input type="hidden" name="state" value="{{.State}}">
     <input type="submit" value="Login">
 </form>
