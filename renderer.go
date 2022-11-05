@@ -27,6 +27,7 @@ type AuthRequestData struct {
 	State        string
 	ResponseType string
 	User         User
+	CsrfToken    string
 }
 
 func renderEmbedTemplate(templateFile string, data interface{}) (string, error) {

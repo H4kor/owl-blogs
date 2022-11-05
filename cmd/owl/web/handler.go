@@ -100,6 +100,15 @@ func userAuthHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Reque
 			return
 		}
 
+		// Double Submit Cookie Pattern
+		// https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#double-submit-cookie
+		csrfToken := owl.GenerateRandomString(32)
+		cookie := http.Cookie{
+			Name:  "csrf_token",
+			Value: csrfToken,
+		}
+		http.SetCookie(w, &cookie)
+
 		reqData := owl.AuthRequestData{
 			Me:           me,
 			ClientId:     clientId,
@@ -107,6 +116,7 @@ func userAuthHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Reque
 			State:        state,
 			ResponseType: responseType,
 			User:         user,
+			CsrfToken:    csrfToken,
 		}
 
 		html, err := owl.RenderUserAuthPage(reqData)
@@ -203,6 +213,23 @@ func userAuthVerifyHandler(repo *owl.Repository) func(http.ResponseWriter, *http
 		redirect_uri := r.FormValue("redirect_uri")
 		response_type := r.FormValue("response_type")
 		state := r.FormValue("state")
+
+		// CSRF check
+		formCsrfToken := r.FormValue("csrf_token")
+		cookieCsrfToken, err := r.Cookie("csrf_token")
+
+		if err != nil {
+			println("Error getting csrf token from cookie: ", err.Error())
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("Error getting csrf token from cookie"))
+			return
+		}
+		if formCsrfToken != cookieCsrfToken.Value {
+			println("Invalid csrf token")
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("Invalid csrf token"))
+			return
+		}
 
 		password_valid := user.VerifyPassword(password)
 		if !password_valid {

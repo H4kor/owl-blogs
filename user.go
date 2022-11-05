@@ -2,7 +2,6 @@ package owl
 
 import (
 	"fmt"
-	"math/rand"
 	"net/url"
 	"os"
 	"path"
@@ -287,12 +286,7 @@ func (user User) addAuthCode(code AuthCode) error {
 
 func (user User) GenerateAuthCode(client_id string, redirect_uri string) (string, error) {
 	// generate code
-	const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	b := make([]byte, 32)
-	for i := range b {
-		b[i] = chars[rand.Intn(len(chars))]
-	}
-	code := string(b)
+	code := GenerateRandomString(32)
 	return code, user.addAuthCode(AuthCode{
 		Code:        code,
 		ClientId:    client_id,

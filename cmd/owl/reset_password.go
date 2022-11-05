@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"h4kor/owl-blogs"
-	"math/rand"
 
 	"github.com/spf13/cobra"
 )
@@ -35,14 +34,7 @@ var resetPasswordCmd = &cobra.Command{
 		}
 
 		// generate a random password and print it
-		const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-
-		b := make([]byte, 16)
-		for i := range b {
-			b[i] = chars[rand.Intn(len(chars))]
-		}
-		password := string(b)
-
+		password := owl.GenerateRandomString(16)
 		user.ResetPassword(password)
 
 		fmt.Println("User:         ", user.Name())

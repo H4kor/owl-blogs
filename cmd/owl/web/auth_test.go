@@ -16,6 +16,8 @@ func TestAuthPostWrongPassword(t *testing.T) {
 	repo, user := getSingleUserTestRepo()
 	user.ResetPassword("testpassword")
 
+	csrfToken := "test_csrf_token"
+
 	// Create Request and Response
 	form := url.Values{}
 	form.Add("password", "wrongpassword")
@@ -23,9 +25,12 @@ func TestAuthPostWrongPassword(t *testing.T) {
 	form.Add("redirect_uri", "http://example.com/response")
 	form.Add("response_type", "code")
 	form.Add("state", "test_state")
+	form.Add("csrf_token", csrfToken)
+
 	req, err := http.NewRequest("POST", user.AuthUrl()+"verify/", strings.NewReader(form.Encode()))
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Add("Content-Length", strconv.Itoa(len(form.Encode())))
+	req.AddCookie(&http.Cookie{Name: "csrf_token", Value: csrfToken})
 	assertions.AssertNoError(t, err, "Error creating request")
 	rr := httptest.NewRecorder()
 	router := main.SingleUserRouter(&repo)
@@ -39,6 +44,8 @@ func TestAuthPostCorrectPassword(t *testing.T) {
 	repo, user := getSingleUserTestRepo()
 	user.ResetPassword("testpassword")
 
+	csrfToken := "test_csrf_token"
+
 	// Create Request and Response
 	form := url.Values{}
 	form.Add("password", "testpassword")
@@ -46,9 +53,11 @@ func TestAuthPostCorrectPassword(t *testing.T) {
 	form.Add("redirect_uri", "http://example.com/response")
 	form.Add("response_type", "code")
 	form.Add("state", "test_state")
+	form.Add("csrf_token", csrfToken)
 	req, err := http.NewRequest("POST", user.AuthUrl()+"verify/", strings.NewReader(form.Encode()))
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Add("Content-Length", strconv.Itoa(len(form.Encode())))
+	req.AddCookie(&http.Cookie{Name: "csrf_token", Value: csrfToken})
 	assertions.AssertNoError(t, err, "Error creating request")
 	rr := httptest.NewRecorder()
 	router := main.SingleUserRouter(&repo)
