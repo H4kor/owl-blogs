@@ -2,6 +2,7 @@ package owl
 
 import (
 	"fmt"
+	"math/rand"
 	"net/url"
 	"os"
 	"path"
@@ -29,6 +30,13 @@ type UserConfig struct {
 type UserMe struct {
 	Name string `yaml:"name"`
 	Url  string `yaml:"url"`
+}
+
+type AuthCode struct {
+	Code        string    `yaml:"code"`
+	ClientId    string    `yaml:"client_id"`
+	RedirectUri string    `yaml:"redirect_uri"`
+	Created     time.Time `yaml:"created"`
 }
 
 func (user User) Dir() string {
@@ -76,6 +84,10 @@ func (user User) MediaDir() string {
 
 func (user User) ConfigFile() string {
 	return path.Join(user.MetaDir(), "config.yml")
+}
+
+func (user User) AuthCodesFile() string {
+	return path.Join(user.MetaDir(), "access_tokens.yml")
 }
 
 func (user User) Name() string {
@@ -259,4 +271,41 @@ func (user User) VerifyPassword(password string) bool {
 		[]byte(user.Config().PassworHash), []byte(password),
 	)
 	return err == nil
+}
+
+func (user User) getAuthCodes() []AuthCode {
+	codes := make([]AuthCode, 0)
+	loadFromYaml(user.AuthCodesFile(), &codes)
+	return codes
+}
+
+func (user User) addAuthCode(code AuthCode) error {
+	codes := user.getAuthCodes()
+	codes = append(codes, code)
+	return saveToYaml(user.AuthCodesFile(), codes)
+}
+
+func (user User) GenerateAuthCode(client_id string, redirect_uri string) (string, error) {
+	// generate code
+	const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	b := make([]byte, 32)
+	for i := range b {
+		b[i] = chars[rand.Intn(len(chars))]
+	}
+	code := string(b)
+	return code, user.addAuthCode(AuthCode{
+		Code:        code,
+		ClientId:    client_id,
+		RedirectUri: redirect_uri,
+	})
+}
+
+func (user User) VerifyAuthCode(code string, client_id string, redirect_uri string) bool {
+	codes := user.getAuthCodes()
+	for _, c := range codes {
+		if c.Code == code && c.ClientId == client_id && c.RedirectUri == redirect_uri {
+			return true
+		}
+	}
+	return false
 }

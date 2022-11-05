@@ -1,6 +1,7 @@
 package web
 
 import (
+	"encoding/json"
 	"fmt"
 	"h4kor/owl-blogs"
 	"net/http"
@@ -117,6 +118,121 @@ func userAuthHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Reque
 		}
 		println("Rendering auth page for user", user.Name())
 		w.Write([]byte(html))
+	}
+}
+
+func userAuthProfileHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Request, httprouter.Params) {
+	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		user, err := getUserFromRepo(repo, ps)
+		if err != nil {
+			println("Error getting user: ", err.Error())
+			notFoundHandler(repo)(w, r)
+			return
+		}
+
+		// get form data from post request
+		err = r.ParseForm()
+		if err != nil {
+			println("Error parsing form: ", err.Error())
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("Error parsing form"))
+			return
+		}
+		code := r.Form.Get("code")
+		client_id := r.Form.Get("client_id")
+		redirect_uri := r.Form.Get("redirect_uri")
+
+		// check if request is valid
+		valid := user.VerifyAuthCode(code, client_id, redirect_uri)
+		if !valid {
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte("Invalid code"))
+			return
+		} else {
+			w.WriteHeader(http.StatusOK)
+			type ResponseProfile struct {
+				Name  string `json:"name"`
+				Url   string `json:"url"`
+				Photo string `json:"photo"`
+			}
+			type Response struct {
+				Me      string          `json:"me"`
+				Profile ResponseProfile `json:"profile"`
+			}
+			response := Response{
+				Me: user.FullUrl(),
+				Profile: ResponseProfile{
+					Name:  user.Name(),
+					Url:   user.FullUrl(),
+					Photo: user.AvatarUrl(),
+				},
+			}
+			jsonData, err := json.Marshal(response)
+			if err != nil {
+				println("Error marshalling json: ", err.Error())
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte("Internal server error"))
+			}
+			w.Write(jsonData)
+			return
+		}
+
+	}
+}
+
+func userAuthVerifyHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Request, httprouter.Params) {
+	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		user, err := getUserFromRepo(repo, ps)
+		if err != nil {
+			println("Error getting user: ", err.Error())
+			notFoundHandler(repo)(w, r)
+			return
+		}
+
+		// get form data from post request
+		err = r.ParseForm()
+		if err != nil {
+			println("Error parsing form: ", err.Error())
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("Error parsing form"))
+			return
+		}
+		password := r.FormValue("password")
+		println("Password: ", password)
+		client_id := r.FormValue("client_id")
+		redirect_uri := r.FormValue("redirect_uri")
+		response_type := r.FormValue("response_type")
+		state := r.FormValue("state")
+
+		password_valid := user.VerifyPassword(password)
+		if !password_valid {
+			http.Redirect(w, r,
+				fmt.Sprintf(
+					"%s?error=invalid_password&client_id=%s&redirect_uri=%s&response_type=%s&state=%s",
+					user.AuthUrl(), client_id, redirect_uri, response_type, state,
+				),
+				http.StatusFound,
+			)
+			return
+		} else {
+			// password is valid, generate code
+			code, err := user.GenerateAuthCode(client_id, redirect_uri)
+			if err != nil {
+				println("Error generating code: ", err.Error())
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte("Internal server error"))
+				return
+			}
+			http.Redirect(w, r,
+				fmt.Sprintf(
+					"%s?code=%s&state=%s",
+					redirect_uri, code, state,
+				),
+				http.StatusFound,
+			)
+			return
+		}
+
 	}
 }
 
