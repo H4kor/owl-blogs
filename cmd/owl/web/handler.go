@@ -100,6 +100,23 @@ func userAuthHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Reque
 			return
 		}
 
+		// check if redirect_uri is registered
+		resp, _ := repo.HttpClient.Get(clientId)
+		registered_redirects, _ := repo.Parser.GetRedirctUris(resp)
+		is_registered := false
+		for _, registered_redirect := range registered_redirects {
+			if registered_redirect == redirectUri {
+				// redirect_uri is registered
+				is_registered = true
+				break
+			}
+		}
+		if !is_registered {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("Invalid redirect_uri. Must be registered with client_id."))
+			return
+		}
+
 		// Double Submit Cookie Pattern
 		// https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#double-submit-cookie
 		csrfToken := owl.GenerateRandomString(32)

@@ -27,6 +27,16 @@ func AssertContains(t *testing.T, containing string, search string) {
 	}
 }
 
+func AssertArrayContains[T comparable](t *testing.T, list []T, search T) {
+	t.Helper()
+	for _, item := range list {
+		if item == search {
+			return
+		}
+	}
+	t.Errorf("Expected '%v' to be in '%v'", search, list)
+}
+
 func AssertNotContains(t *testing.T, containing string, search string) {
 	t.Helper()
 	if strings.Contains(containing, search) {

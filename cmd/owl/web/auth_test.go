@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	main "h4kor/owl-blogs/cmd/owl/web"
 	"h4kor/owl-blogs/test/assertions"
+	"h4kor/owl-blogs/test/mocks"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -120,4 +121,66 @@ func TestAuthPostWithCorrectCode(t *testing.T) {
 	json.Unmarshal(rr.Body.Bytes(), &response)
 	assertions.AssertEqual(t, response.Me, user.FullUrl())
 
+}
+
+func TestAuthRedirectUriNotSet(t *testing.T) {
+	repo, user := getSingleUserTestRepo()
+	repo.HttpClient = &mocks.MockHttpClient{}
+	repo.Parser = &mocks.MockParseLinksHtmlParser{
+		Links: []string{"http://example.com/response"},
+	}
+	user.ResetPassword("testpassword")
+
+	csrfToken := "test_csrf_token"
+
+	// Create Request and Response
+	form := url.Values{}
+	form.Add("password", "wrongpassword")
+	form.Add("client_id", "http://example.com")
+	form.Add("redirect_uri", "http://example.com/response_not_set")
+	form.Add("response_type", "code")
+	form.Add("state", "test_state")
+	form.Add("csrf_token", csrfToken)
+
+	req, err := http.NewRequest("GET", user.AuthUrl()+"?"+form.Encode(), nil)
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Add("Content-Length", strconv.Itoa(len(form.Encode())))
+	req.AddCookie(&http.Cookie{Name: "csrf_token", Value: csrfToken})
+	assertions.AssertNoError(t, err, "Error creating request")
+	rr := httptest.NewRecorder()
+	router := main.SingleUserRouter(&repo)
+	router.ServeHTTP(rr, req)
+
+	assertions.AssertStatus(t, rr, http.StatusBadRequest)
+}
+
+func TestAuthRedirectUriSet(t *testing.T) {
+	repo, user := getSingleUserTestRepo()
+	repo.HttpClient = &mocks.MockHttpClient{}
+	repo.Parser = &mocks.MockParseLinksHtmlParser{
+		Links: []string{"http://example.com/response"},
+	}
+	user.ResetPassword("testpassword")
+
+	csrfToken := "test_csrf_token"
+
+	// Create Request and Response
+	form := url.Values{}
+	form.Add("password", "wrongpassword")
+	form.Add("client_id", "http://example.com")
+	form.Add("redirect_uri", "http://example.com/response")
+	form.Add("response_type", "code")
+	form.Add("state", "test_state")
+	form.Add("csrf_token", csrfToken)
+
+	req, err := http.NewRequest("GET", user.AuthUrl()+"?"+form.Encode(), nil)
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Add("Content-Length", strconv.Itoa(len(form.Encode())))
+	req.AddCookie(&http.Cookie{Name: "csrf_token", Value: csrfToken})
+	assertions.AssertNoError(t, err, "Error creating request")
+	rr := httptest.NewRecorder()
+	router := main.SingleUserRouter(&repo)
+	router.ServeHTTP(rr, req)
+
+	assertions.AssertStatus(t, rr, http.StatusOK)
 }

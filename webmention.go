@@ -259,6 +259,30 @@ func (OwlHtmlParser) GetRedirctUris(resp *http.Response) ([]string, error) {
 	}
 
 	var findLinks func(*html.Node) ([]string, error)
+	// Check link headers
+	header_links := make([]string, 0)
+	for _, linkHeader := range resp.Header["Link"] {
+		linkHeaderParts := strings.Split(linkHeader, ",")
+		for _, linkHeaderPart := range linkHeaderParts {
+			linkHeaderPart = strings.TrimSpace(linkHeaderPart)
+			params := strings.Split(linkHeaderPart, ";")
+			if len(params) != 2 {
+				continue
+			}
+			for _, param := range params[1:] {
+				param = strings.TrimSpace(param)
+				if strings.Contains(param, "redirect_uri") {
+					link := strings.Split(params[0], ";")[0]
+					link = strings.Trim(link, "<>")
+					linkUrl, err := url.Parse(link)
+					if err == nil {
+						header_links = append(header_links, requestUrl.ResolveReference(linkUrl).String())
+					}
+				}
+			}
+		}
+	}
+
 	findLinks = func(n *html.Node) ([]string, error) {
 		links := make([]string, 0)
 		if n.Type == html.ElementNode && n.Data == "link" {
@@ -287,5 +311,6 @@ func (OwlHtmlParser) GetRedirctUris(resp *http.Response) ([]string, error) {
 		}
 		return links, nil
 	}
-	return findLinks(doc)
+	body_links, err := findLinks(doc)
+	return append(body_links, header_links...), err
 }
