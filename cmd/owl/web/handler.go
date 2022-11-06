@@ -76,6 +76,7 @@ func userAuthHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Reque
 		responseType := r.URL.Query().Get("response_type")
 		codeChallenge := r.URL.Query().Get("code_challenge")
 		codeChallengeMethod := r.URL.Query().Get("code_challenge_method")
+		scope := r.URL.Query().Get("scope")
 
 		// check if request is valid
 		missing_params := []string{}
@@ -152,6 +153,7 @@ func userAuthHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Reque
 			ClientId:            clientId,
 			RedirectUri:         redirectUri,
 			State:               state,
+			Scope:               scope,
 			ResponseType:        responseType,
 			CodeChallenge:       codeChallenge,
 			CodeChallengeMethod: codeChallengeMethod,
@@ -171,14 +173,14 @@ func userAuthHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Reque
 	}
 }
 
-func verifyAuthCodeRequest(user owl.User, w http.ResponseWriter, r *http.Request) bool {
+func verifyAuthCodeRequest(user owl.User, w http.ResponseWriter, r *http.Request) (bool, owl.AuthCode) {
 	// get form data from post request
 	err := r.ParseForm()
 	if err != nil {
 		println("Error parsing form: ", err.Error())
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("Error parsing form"))
-		return false
+		return false, owl.AuthCode{}
 	}
 	code := r.Form.Get("code")
 	client_id := r.Form.Get("client_id")
@@ -186,13 +188,12 @@ func verifyAuthCodeRequest(user owl.User, w http.ResponseWriter, r *http.Request
 	code_verifier := r.Form.Get("code_verifier")
 
 	// check if request is valid
-	valid := user.VerifyAuthCode(code, client_id, redirect_uri, code_verifier)
+	valid, authCode := user.VerifyAuthCode(code, client_id, redirect_uri, code_verifier)
 	if !valid {
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write([]byte("Invalid code"))
-		return false
 	}
-	return true
+	return valid, authCode
 }
 
 func userAuthProfileHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Request, httprouter.Params) {
@@ -204,7 +205,8 @@ func userAuthProfileHandler(repo *owl.Repository) func(http.ResponseWriter, *htt
 			return
 		}
 
-		if verifyAuthCodeRequest(user, w, r) {
+		valid, _ := verifyAuthCodeRequest(user, w, r)
+		if valid {
 			w.WriteHeader(http.StatusOK)
 			type ResponseProfile struct {
 				Name  string `json:"name"`
@@ -244,15 +246,23 @@ func userAuthTokenHandler(repo *owl.Repository) func(http.ResponseWriter, *http.
 			return
 		}
 
-		if verifyAuthCodeRequest(user, w, r) {
+		valid, authCode := verifyAuthCodeRequest(user, w, r)
+		if valid {
+			if authCode.Scope == "" {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write([]byte("Empty scope, no token issued"))
+				return
+			}
+
 			type Response struct {
 				Me           string `json:"me"`
 				TokenType    string `json:"token_type"`
 				AccessToken  string `json:"access_token"`
+				Scope        string `json:"scope"`
 				ExpiresIn    int    `json:"expires_in"`
 				RefreshToken string `json:"refresh_token"`
 			}
-			accessToken, duration, err := user.GenerateAccessToken()
+			accessToken, duration, err := user.GenerateAccessToken(authCode)
 			if err != nil {
 				println("Error generating access token: ", err.Error())
 				w.WriteHeader(http.StatusInternalServerError)
@@ -263,6 +273,7 @@ func userAuthTokenHandler(repo *owl.Repository) func(http.ResponseWriter, *http.
 				Me:          user.FullUrl(),
 				TokenType:   "Bearer",
 				AccessToken: accessToken,
+				Scope:       authCode.Scope,
 				ExpiresIn:   duration,
 			}
 			jsonData, err := json.Marshal(response)
@@ -301,6 +312,7 @@ func userAuthVerifyHandler(repo *owl.Repository) func(http.ResponseWriter, *http
 		state := r.FormValue("state")
 		code_challenge := r.FormValue("code_challenge")
 		code_challenge_method := r.FormValue("code_challenge_method")
+		scope := r.FormValue("scope")
 
 		// CSRF check
 		formCsrfToken := r.FormValue("csrf_token")
@@ -336,7 +348,7 @@ func userAuthVerifyHandler(repo *owl.Repository) func(http.ResponseWriter, *http
 		} else {
 			// password is valid, generate code
 			code, err := user.GenerateAuthCode(
-				client_id, redirect_uri, code_challenge, code_challenge_method)
+				client_id, redirect_uri, code_challenge, code_challenge_method, scope)
 			if err != nil {
 				println("Error generating code: ", err.Error())
 				w.WriteHeader(http.StatusInternalServerError)

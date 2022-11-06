@@ -39,13 +39,17 @@ type AuthCode struct {
 	RedirectUri         string    `yaml:"redirect_uri"`
 	CodeChallenge       string    `yaml:"code_challenge"`
 	CodeChallengeMethod string    `yaml:"code_challenge_method"`
+	Scope               string    `yaml:"scope"`
 	Created             time.Time `yaml:"created"`
 }
 
 type AccessToken struct {
-	Token     string    `yaml:"token"`
-	Created   time.Time `yaml:"created"`
-	ExpiresIn int       `yaml:"expires_in"`
+	Token       string    `yaml:"token"`
+	Scope       string    `yaml:"scope"`
+	ClientId    string    `yaml:"client_id"`
+	RedirectUri string    `yaml:"redirect_uri"`
+	Created     time.Time `yaml:"created"`
+	ExpiresIn   int       `yaml:"expires_in"`
 }
 
 func (user User) Dir() string {
@@ -306,6 +310,7 @@ func (user User) addAuthCode(code AuthCode) error {
 func (user User) GenerateAuthCode(
 	client_id string, redirect_uri string,
 	code_challenge string, code_challenge_method string,
+	scope string,
 ) (string, error) {
 	// generate code
 	code := GenerateRandomString(32)
@@ -315,28 +320,29 @@ func (user User) GenerateAuthCode(
 		RedirectUri:         redirect_uri,
 		CodeChallenge:       code_challenge,
 		CodeChallengeMethod: code_challenge_method,
+		Scope:               scope,
 		Created:             time.Now(),
 	})
 }
 
 func (user User) VerifyAuthCode(
 	code string, client_id string, redirect_uri string, code_verifier string,
-) bool {
+) (bool, AuthCode) {
 	codes := user.getAuthCodes()
 	for _, c := range codes {
 		if c.Code == code && c.ClientId == client_id && c.RedirectUri == redirect_uri {
 			if c.CodeChallengeMethod == "plain" {
-				return c.CodeChallenge == code_verifier
+				return c.CodeChallenge == code_verifier, c
 			} else if c.CodeChallengeMethod == "S256" {
 				// hash code_verifier
 				hash := sha256.Sum256([]byte(code_verifier))
-				return c.CodeChallenge == base64.RawURLEncoding.EncodeToString(hash[:])
+				return c.CodeChallenge == base64.RawURLEncoding.EncodeToString(hash[:]), c
 			} else if c.CodeChallengeMethod == "" {
-				return true
+				return true, c
 			}
 		}
 	}
-	return false
+	return false, AuthCode{}
 }
 
 func (user User) getAccessTokens() []AccessToken {
@@ -351,13 +357,16 @@ func (user User) addAccessToken(code AccessToken) error {
 	return saveToYaml(user.AccessTokensFile(), codes)
 }
 
-func (user User) GenerateAccessToken() (string, int, error) {
+func (user User) GenerateAccessToken(authCode AuthCode) (string, int, error) {
 	// generate code
 	token := GenerateRandomString(32)
 	duration := 24 * 60 * 60
 	return token, duration, user.addAccessToken(AccessToken{
-		Token:     token,
-		ExpiresIn: duration,
-		Created:   time.Now(),
+		Token:       token,
+		ClientId:    authCode.ClientId,
+		RedirectUri: authCode.RedirectUri,
+		Scope:       authCode.Scope,
+		ExpiresIn:   duration,
+		Created:     time.Now(),
 	})
 }

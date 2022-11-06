@@ -75,7 +75,7 @@ func TestAuthPostCorrectPassword(t *testing.T) {
 func TestAuthPostWithIncorrectCode(t *testing.T) {
 	repo, user := getSingleUserTestRepo()
 	user.ResetPassword("testpassword")
-	user.GenerateAuthCode("http://example.com", "http://example.com/response", "", "")
+	user.GenerateAuthCode("http://example.com", "http://example.com/response", "", "", "profile")
 
 	// Create Request and Response
 	form := url.Values{}
@@ -97,7 +97,7 @@ func TestAuthPostWithIncorrectCode(t *testing.T) {
 func TestAuthPostWithCorrectCode(t *testing.T) {
 	repo, user := getSingleUserTestRepo()
 	user.ResetPassword("testpassword")
-	code, _ := user.GenerateAuthCode("http://example.com", "http://example.com/response", "", "")
+	code, _ := user.GenerateAuthCode("http://example.com", "http://example.com/response", "", "", "profile")
 
 	// Create Request and Response
 	form := url.Values{}
@@ -135,7 +135,7 @@ func TestAuthPostWithCorrectCodeAndPKCE(t *testing.T) {
 	h := sha256.New()
 	h.Write([]byte(code_verifier))
 	code_challenge := base64.RawURLEncoding.EncodeToString(h.Sum(nil))
-	code, _ := user.GenerateAuthCode("http://example.com", "http://example.com/response", code_challenge, "S256")
+	code, _ := user.GenerateAuthCode("http://example.com", "http://example.com/response", code_challenge, "S256", "profile")
 
 	form := url.Values{}
 	form.Add("code", code)
@@ -173,7 +173,7 @@ func TestAuthPostWithCorrectCodeAndWrongPKCE(t *testing.T) {
 	h := sha256.New()
 	h.Write([]byte(code_verifier + "wrong"))
 	code_challenge := base64.RawURLEncoding.EncodeToString(h.Sum(nil))
-	code, _ := user.GenerateAuthCode("http://example.com", "http://example.com/response", code_challenge, "S256")
+	code, _ := user.GenerateAuthCode("http://example.com", "http://example.com/response", code_challenge, "S256", "profile")
 
 	form := url.Values{}
 	form.Add("code", code)
@@ -200,7 +200,7 @@ func TestAuthPostWithCorrectCodePKCEPlain(t *testing.T) {
 	// Create Request and Response
 	code_verifier := "test_code_verifier"
 	code_challenge := code_verifier
-	code, _ := user.GenerateAuthCode("http://example.com", "http://example.com/response", code_challenge, "plain")
+	code, _ := user.GenerateAuthCode("http://example.com", "http://example.com/response", code_challenge, "plain", "profile")
 
 	form := url.Values{}
 	form.Add("code", code)
@@ -227,7 +227,7 @@ func TestAuthPostWithCorrectCodePKCEPlainWrong(t *testing.T) {
 	// Create Request and Response
 	code_verifier := "test_code_verifier"
 	code_challenge := code_verifier + "wrong"
-	code, _ := user.GenerateAuthCode("http://example.com", "http://example.com/response", code_challenge, "plain")
+	code, _ := user.GenerateAuthCode("http://example.com", "http://example.com/response", code_challenge, "plain", "profile")
 
 	form := url.Values{}
 	form.Add("code", code)
@@ -343,7 +343,7 @@ func TestAuthRedirectUriSameHost(t *testing.T) {
 func TestAccessTokenCorrectPassword(t *testing.T) {
 	repo, user := getSingleUserTestRepo()
 	user.ResetPassword("testpassword")
-	code, _ := user.GenerateAuthCode("http://example.com", "http://example.com/response", "", "")
+	code, _ := user.GenerateAuthCode("http://example.com", "http://example.com/response", "", "", "profile create")
 
 	// Create Request and Response
 	form := url.Values{}
@@ -367,11 +367,13 @@ func TestAccessTokenCorrectPassword(t *testing.T) {
 		AccessToken  string `json:"access_token"`
 		ExpiresIn    int    `json:"expires_in"`
 		RefreshToken string `json:"refresh_token"`
+		Scope        string `json:"scope"`
 	}
 	var response responseType
 	json.Unmarshal(rr.Body.Bytes(), &response)
 	assertions.AssertEqual(t, response.Me, user.FullUrl())
 	assertions.AssertEqual(t, response.TokenType, "Bearer")
+	assertions.AssertEqual(t, response.Scope, "profile create")
 	assertions.Assert(t, response.ExpiresIn > 0, "ExpiresIn should be greater than 0")
 	assertions.Assert(t, len(response.AccessToken) > 0, "AccessToken should be greater than 0")
 }
@@ -379,7 +381,7 @@ func TestAccessTokenCorrectPassword(t *testing.T) {
 func TestAccessTokenWithIncorrectCode(t *testing.T) {
 	repo, user := getSingleUserTestRepo()
 	user.ResetPassword("testpassword")
-	user.GenerateAuthCode("http://example.com", "http://example.com/response", "", "")
+	user.GenerateAuthCode("http://example.com", "http://example.com/response", "", "", "profile")
 
 	// Create Request and Response
 	form := url.Values{}

@@ -25,6 +25,7 @@ type AuthRequestData struct {
 	ClientId            string
 	RedirectUri         string
 	State               string
+	Scope               string
 	ResponseType        string
 	CodeChallenge       string
 	CodeChallengeMethod string
