@@ -29,6 +29,7 @@
     <link rel="webmention" href="{{ .User.WebmentionUrl }}">
     {{ if .User.AuthUrl }}
     <link rel="authorization_endpoint" href="{{ .User.AuthUrl}}">
+    <link rel="token_endpoint" href="{{ .User.TokenUrl}}">
     {{ end }}
     <style>
         header {

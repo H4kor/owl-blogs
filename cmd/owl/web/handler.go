@@ -171,6 +171,30 @@ func userAuthHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Reque
 	}
 }
 
+func verifyAuthCodeRequest(user owl.User, w http.ResponseWriter, r *http.Request) bool {
+	// get form data from post request
+	err := r.ParseForm()
+	if err != nil {
+		println("Error parsing form: ", err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Error parsing form"))
+		return false
+	}
+	code := r.Form.Get("code")
+	client_id := r.Form.Get("client_id")
+	redirect_uri := r.Form.Get("redirect_uri")
+	code_verifier := r.Form.Get("code_verifier")
+
+	// check if request is valid
+	valid := user.VerifyAuthCode(code, client_id, redirect_uri, code_verifier)
+	if !valid {
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte("Invalid code"))
+		return false
+	}
+	return true
+}
+
 func userAuthProfileHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Request, httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		user, err := getUserFromRepo(repo, ps)
@@ -180,26 +204,7 @@ func userAuthProfileHandler(repo *owl.Repository) func(http.ResponseWriter, *htt
 			return
 		}
 
-		// get form data from post request
-		err = r.ParseForm()
-		if err != nil {
-			println("Error parsing form: ", err.Error())
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("Error parsing form"))
-			return
-		}
-		code := r.Form.Get("code")
-		client_id := r.Form.Get("client_id")
-		redirect_uri := r.Form.Get("redirect_uri")
-		code_verifier := r.Form.Get("code_verifier")
-
-		// check if request is valid
-		valid := user.VerifyAuthCode(code, client_id, redirect_uri, code_verifier)
-		if !valid {
-			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte("Invalid code"))
-			return
-		} else {
+		if verifyAuthCodeRequest(user, w, r) {
 			w.WriteHeader(http.StatusOK)
 			type ResponseProfile struct {
 				Name  string `json:"name"`
@@ -227,7 +232,48 @@ func userAuthProfileHandler(repo *owl.Repository) func(http.ResponseWriter, *htt
 			w.Write(jsonData)
 			return
 		}
+	}
+}
 
+func userAuthTokenHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Request, httprouter.Params) {
+	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		user, err := getUserFromRepo(repo, ps)
+		if err != nil {
+			println("Error getting user: ", err.Error())
+			notFoundHandler(repo)(w, r)
+			return
+		}
+
+		if verifyAuthCodeRequest(user, w, r) {
+			type Response struct {
+				Me           string `json:"me"`
+				TokenType    string `json:"token_type"`
+				AccessToken  string `json:"access_token"`
+				ExpiresIn    int    `json:"expires_in"`
+				RefreshToken string `json:"refresh_token"`
+			}
+			accessToken, duration, err := user.GenerateAccessToken()
+			if err != nil {
+				println("Error generating access token: ", err.Error())
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte("Internal server error"))
+				return
+			}
+			response := Response{
+				Me:          user.FullUrl(),
+				TokenType:   "Bearer",
+				AccessToken: accessToken,
+				ExpiresIn:   duration,
+			}
+			jsonData, err := json.Marshal(response)
+			if err != nil {
+				println("Error marshalling json: ", err.Error())
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte("Internal server error"))
+			}
+			w.Write(jsonData)
+			return
+		}
 	}
 }
 

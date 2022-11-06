@@ -42,6 +42,12 @@ type AuthCode struct {
 	Created             time.Time `yaml:"created"`
 }
 
+type AccessToken struct {
+	Token     string    `yaml:"token"`
+	Created   time.Time `yaml:"created"`
+	ExpiresIn int       `yaml:"expires_in"`
+}
+
 func (user User) Dir() string {
 	return path.Join(user.repo.UsersDir(), user.name)
 }
@@ -60,6 +66,11 @@ func (user User) AuthUrl() string {
 		return ""
 	}
 	url, _ := url.JoinPath(user.FullUrl(), "auth/")
+	return url
+}
+
+func (user User) TokenUrl() string {
+	url, _ := url.JoinPath(user.AuthUrl(), "token/")
 	return url
 }
 
@@ -91,6 +102,10 @@ func (user User) ConfigFile() string {
 
 func (user User) AuthCodesFile() string {
 	return path.Join(user.MetaDir(), "auth_codes.yml")
+}
+
+func (user User) AccessTokensFile() string {
+	return path.Join(user.MetaDir(), "access_tokens.yml")
 }
 
 func (user User) Name() string {
@@ -322,4 +337,27 @@ func (user User) VerifyAuthCode(
 		}
 	}
 	return false
+}
+
+func (user User) getAccessTokens() []AccessToken {
+	codes := make([]AccessToken, 0)
+	loadFromYaml(user.AccessTokensFile(), &codes)
+	return codes
+}
+
+func (user User) addAccessToken(code AccessToken) error {
+	codes := user.getAccessTokens()
+	codes = append(codes, code)
+	return saveToYaml(user.AccessTokensFile(), codes)
+}
+
+func (user User) GenerateAccessToken() (string, int, error) {
+	// generate code
+	token := GenerateRandomString(32)
+	duration := 24 * 60 * 60
+	return token, duration, user.addAccessToken(AccessToken{
+		Token:     token,
+		ExpiresIn: duration,
+		Created:   time.Now(),
+	})
 }

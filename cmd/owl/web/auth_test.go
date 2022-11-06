@@ -339,3 +339,61 @@ func TestAuthRedirectUriSameHost(t *testing.T) {
 
 	assertions.AssertStatus(t, rr, http.StatusOK)
 }
+
+func TestAccessTokenCorrectPassword(t *testing.T) {
+	repo, user := getSingleUserTestRepo()
+	user.ResetPassword("testpassword")
+	code, _ := user.GenerateAuthCode("http://example.com", "http://example.com/response", "", "")
+
+	// Create Request and Response
+	form := url.Values{}
+	form.Add("code", code)
+	form.Add("client_id", "http://example.com")
+	form.Add("redirect_uri", "http://example.com/response")
+	form.Add("grant_type", "authorization_code")
+	req, err := http.NewRequest("POST", user.AuthUrl()+"token/", strings.NewReader(form.Encode()))
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Add("Content-Length", strconv.Itoa(len(form.Encode())))
+	assertions.AssertNoError(t, err, "Error creating request")
+	rr := httptest.NewRecorder()
+	router := main.SingleUserRouter(&repo)
+	router.ServeHTTP(rr, req)
+
+	assertions.AssertStatus(t, rr, http.StatusOK)
+	// parse response as json
+	type responseType struct {
+		Me           string `json:"me"`
+		TokenType    string `json:"token_type"`
+		AccessToken  string `json:"access_token"`
+		ExpiresIn    int    `json:"expires_in"`
+		RefreshToken string `json:"refresh_token"`
+	}
+	var response responseType
+	json.Unmarshal(rr.Body.Bytes(), &response)
+	assertions.AssertEqual(t, response.Me, user.FullUrl())
+	assertions.AssertEqual(t, response.TokenType, "Bearer")
+	assertions.Assert(t, response.ExpiresIn > 0, "ExpiresIn should be greater than 0")
+	assertions.Assert(t, len(response.AccessToken) > 0, "AccessToken should be greater than 0")
+}
+
+func TestAccessTokenWithIncorrectCode(t *testing.T) {
+	repo, user := getSingleUserTestRepo()
+	user.ResetPassword("testpassword")
+	user.GenerateAuthCode("http://example.com", "http://example.com/response", "", "")
+
+	// Create Request and Response
+	form := url.Values{}
+	form.Add("code", "wrongcode")
+	form.Add("client_id", "http://example.com")
+	form.Add("redirect_uri", "http://example.com/response")
+	form.Add("grant_type", "authorization_code")
+	req, err := http.NewRequest("POST", user.AuthUrl()+"token/", strings.NewReader(form.Encode()))
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Add("Content-Length", strconv.Itoa(len(form.Encode())))
+	assertions.AssertNoError(t, err, "Error creating request")
+	rr := httptest.NewRecorder()
+	router := main.SingleUserRouter(&repo)
+	router.ServeHTTP(rr, req)
+
+	assertions.AssertStatus(t, rr, http.StatusUnauthorized)
+}
