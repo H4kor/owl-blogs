@@ -251,7 +251,7 @@ func TestAuthRedirectUriNotSet(t *testing.T) {
 	repo, user := getSingleUserTestRepo()
 	repo.HttpClient = &mocks.MockHttpClient{}
 	repo.Parser = &mocks.MockParseLinksHtmlParser{
-		Links: []string{"http://example.com/response"},
+		Links: []string{"http://example2.com/response"},
 	}
 	user.ResetPassword("testpassword")
 
@@ -261,7 +261,7 @@ func TestAuthRedirectUriNotSet(t *testing.T) {
 	form := url.Values{}
 	form.Add("password", "wrongpassword")
 	form.Add("client_id", "http://example.com")
-	form.Add("redirect_uri", "http://example.com/response_not_set")
+	form.Add("redirect_uri", "http://example2.com/response_not_set")
 	form.Add("response_type", "code")
 	form.Add("state", "test_state")
 	form.Add("csrf_token", csrfToken)
@@ -283,6 +283,37 @@ func TestAuthRedirectUriSet(t *testing.T) {
 	repo.HttpClient = &mocks.MockHttpClient{}
 	repo.Parser = &mocks.MockParseLinksHtmlParser{
 		Links: []string{"http://example.com/response"},
+	}
+	user.ResetPassword("testpassword")
+
+	csrfToken := "test_csrf_token"
+
+	// Create Request and Response
+	form := url.Values{}
+	form.Add("password", "wrongpassword")
+	form.Add("client_id", "http://example.com")
+	form.Add("redirect_uri", "http://example.com/response")
+	form.Add("response_type", "code")
+	form.Add("state", "test_state")
+	form.Add("csrf_token", csrfToken)
+
+	req, err := http.NewRequest("GET", user.AuthUrl()+"?"+form.Encode(), nil)
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Add("Content-Length", strconv.Itoa(len(form.Encode())))
+	req.AddCookie(&http.Cookie{Name: "csrf_token", Value: csrfToken})
+	assertions.AssertNoError(t, err, "Error creating request")
+	rr := httptest.NewRecorder()
+	router := main.SingleUserRouter(&repo)
+	router.ServeHTTP(rr, req)
+
+	assertions.AssertStatus(t, rr, http.StatusOK)
+}
+
+func TestAuthRedirectUriSameHost(t *testing.T) {
+	repo, user := getSingleUserTestRepo()
+	repo.HttpClient = &mocks.MockHttpClient{}
+	repo.Parser = &mocks.MockParseLinksHtmlParser{
+		Links: []string{},
 	}
 	user.ResetPassword("testpassword")
 
