@@ -107,21 +107,35 @@ func userAuthHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Reque
 			return
 		}
 
-		// check if redirect_uri is registered
-		resp, _ := repo.HttpClient.Get(clientId)
-		registered_redirects, _ := repo.Parser.GetRedirctUris(resp)
-		is_registered := false
-		for _, registered_redirect := range registered_redirects {
-			if registered_redirect == redirectUri {
-				// redirect_uri is registered
-				is_registered = true
-				break
-			}
-		}
-		if !is_registered {
+		client_id_url, err := url.Parse(clientId)
+		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("Invalid redirect_uri. Must be registered with client_id."))
+			w.Write([]byte("Invalid client_id."))
 			return
+		}
+		redirect_uri_url, err := url.Parse(redirectUri)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("Invalid redirect_uri."))
+			return
+		}
+		if client_id_url.Host != redirect_uri_url.Host || client_id_url.Scheme != redirect_uri_url.Scheme {
+			// check if redirect_uri is registered
+			resp, _ := repo.HttpClient.Get(clientId)
+			registered_redirects, _ := repo.Parser.GetRedirctUris(resp)
+			is_registered := false
+			for _, registered_redirect := range registered_redirects {
+				if registered_redirect == redirectUri {
+					// redirect_uri is registered
+					is_registered = true
+					break
+				}
+			}
+			if !is_registered {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write([]byte("Invalid redirect_uri. Must be registered with client_id."))
+				return
+			}
 		}
 
 		// Double Submit Cookie Pattern

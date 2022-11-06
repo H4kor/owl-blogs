@@ -90,7 +90,7 @@ func (user User) ConfigFile() string {
 }
 
 func (user User) AuthCodesFile() string {
-	return path.Join(user.MetaDir(), "access_tokens.yml")
+	return path.Join(user.MetaDir(), "auth_codes.yml")
 }
 
 func (user User) Name() string {
