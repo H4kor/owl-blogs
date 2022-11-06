@@ -3,7 +3,7 @@ package owl_test
 import (
 	"fmt"
 	"h4kor/owl-blogs"
-	"h4kor/owl-blogs/priv/assertions"
+	"h4kor/owl-blogs/test/assertions"
 	"os"
 	"path"
 	"testing"

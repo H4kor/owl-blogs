@@ -3,7 +3,7 @@ package owl_test
 import (
 	"bytes"
 	"h4kor/owl-blogs"
-	"h4kor/owl-blogs/priv/assertions"
+	"h4kor/owl-blogs/test/assertions"
 	"io"
 	"net/http"
 	"net/url"

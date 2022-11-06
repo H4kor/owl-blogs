@@ -3,7 +3,7 @@ package web_test
 import (
 	"encoding/json"
 	main "h4kor/owl-blogs/cmd/owl/web"
-	"h4kor/owl-blogs/priv/assertions"
+	"h4kor/owl-blogs/test/assertions"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
