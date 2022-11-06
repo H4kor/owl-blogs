@@ -74,6 +74,8 @@ func userAuthHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Reque
 		redirectUri := r.URL.Query().Get("redirect_uri")
 		state := r.URL.Query().Get("state")
 		responseType := r.URL.Query().Get("response_type")
+		codeChallenge := r.URL.Query().Get("code_challenge")
+		codeChallengeMethod := r.URL.Query().Get("code_challenge_method")
 
 		// check if request is valid
 		missing_params := []string{}
@@ -97,6 +99,11 @@ func userAuthHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Reque
 		if responseType != "code" {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte("Invalid response_type. Must be 'code' ('id' converted to 'code' for legacy support)."))
+			return
+		}
+		if codeChallengeMethod != "" && (codeChallengeMethod != "S256" && codeChallengeMethod != "plain") {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("Invalid code_challenge_method. Must be 'S256' or 'plain'."))
 			return
 		}
 
@@ -127,13 +134,15 @@ func userAuthHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Reque
 		http.SetCookie(w, &cookie)
 
 		reqData := owl.AuthRequestData{
-			Me:           me,
-			ClientId:     clientId,
-			RedirectUri:  redirectUri,
-			State:        state,
-			ResponseType: responseType,
-			User:         user,
-			CsrfToken:    csrfToken,
+			Me:                  me,
+			ClientId:            clientId,
+			RedirectUri:         redirectUri,
+			State:               state,
+			ResponseType:        responseType,
+			CodeChallenge:       codeChallenge,
+			CodeChallengeMethod: codeChallengeMethod,
+			User:                user,
+			CsrfToken:           csrfToken,
 		}
 
 		html, err := owl.RenderUserAuthPage(reqData)
@@ -168,9 +177,10 @@ func userAuthProfileHandler(repo *owl.Repository) func(http.ResponseWriter, *htt
 		code := r.Form.Get("code")
 		client_id := r.Form.Get("client_id")
 		redirect_uri := r.Form.Get("redirect_uri")
+		code_verifier := r.Form.Get("code_verifier")
 
 		// check if request is valid
-		valid := user.VerifyAuthCode(code, client_id, redirect_uri)
+		valid := user.VerifyAuthCode(code, client_id, redirect_uri, code_verifier)
 		if !valid {
 			w.WriteHeader(http.StatusUnauthorized)
 			w.Write([]byte("Invalid code"))
@@ -225,11 +235,12 @@ func userAuthVerifyHandler(repo *owl.Repository) func(http.ResponseWriter, *http
 			return
 		}
 		password := r.FormValue("password")
-		println("Password: ", password)
 		client_id := r.FormValue("client_id")
 		redirect_uri := r.FormValue("redirect_uri")
 		response_type := r.FormValue("response_type")
 		state := r.FormValue("state")
+		code_challenge := r.FormValue("code_challenge")
+		code_challenge_method := r.FormValue("code_challenge_method")
 
 		// CSRF check
 		formCsrfToken := r.FormValue("csrf_token")
@@ -250,17 +261,22 @@ func userAuthVerifyHandler(repo *owl.Repository) func(http.ResponseWriter, *http
 
 		password_valid := user.VerifyPassword(password)
 		if !password_valid {
+			redirect := fmt.Sprintf(
+				"%s?error=invalid_password&client_id=%s&redirect_uri=%s&response_type=%s&state=%s",
+				user.AuthUrl(), client_id, redirect_uri, response_type, state,
+			)
+			if code_challenge != "" {
+				redirect += fmt.Sprintf("&code_challenge=%s&code_challenge_method=%s", code_challenge, code_challenge_method)
+			}
 			http.Redirect(w, r,
-				fmt.Sprintf(
-					"%s?error=invalid_password&client_id=%s&redirect_uri=%s&response_type=%s&state=%s",
-					user.AuthUrl(), client_id, redirect_uri, response_type, state,
-				),
+				redirect,
 				http.StatusFound,
 			)
 			return
 		} else {
 			// password is valid, generate code
-			code, err := user.GenerateAuthCode(client_id, redirect_uri)
+			code, err := user.GenerateAuthCode(
+				client_id, redirect_uri, code_challenge, code_challenge_method)
 			if err != nil {
 				println("Error generating code: ", err.Error())
 				w.WriteHeader(http.StatusInternalServerError)

@@ -1,6 +1,8 @@
 package web_test
 
 import (
+	"crypto/sha256"
+	"encoding/base64"
 	"encoding/json"
 	main "h4kor/owl-blogs/cmd/owl/web"
 	"h4kor/owl-blogs/test/assertions"
@@ -73,7 +75,7 @@ func TestAuthPostCorrectPassword(t *testing.T) {
 func TestAuthPostWithIncorrectCode(t *testing.T) {
 	repo, user := getSingleUserTestRepo()
 	user.ResetPassword("testpassword")
-	user.GenerateAuthCode("http://example.com", "http://example.com/response")
+	user.GenerateAuthCode("http://example.com", "http://example.com/response", "", "")
 
 	// Create Request and Response
 	form := url.Values{}
@@ -95,7 +97,7 @@ func TestAuthPostWithIncorrectCode(t *testing.T) {
 func TestAuthPostWithCorrectCode(t *testing.T) {
 	repo, user := getSingleUserTestRepo()
 	user.ResetPassword("testpassword")
-	code, _ := user.GenerateAuthCode("http://example.com", "http://example.com/response")
+	code, _ := user.GenerateAuthCode("http://example.com", "http://example.com/response", "", "")
 
 	// Create Request and Response
 	form := url.Values{}
@@ -121,6 +123,128 @@ func TestAuthPostWithCorrectCode(t *testing.T) {
 	json.Unmarshal(rr.Body.Bytes(), &response)
 	assertions.AssertEqual(t, response.Me, user.FullUrl())
 
+}
+
+func TestAuthPostWithCorrectCodeAndPKCE(t *testing.T) {
+	repo, user := getSingleUserTestRepo()
+	user.ResetPassword("testpassword")
+
+	// Create Request and Response
+	code_verifier := "test_code_verifier"
+	// create code challenge
+	h := sha256.New()
+	h.Write([]byte(code_verifier))
+	code_challenge := base64.RawURLEncoding.EncodeToString(h.Sum(nil))
+	code, _ := user.GenerateAuthCode("http://example.com", "http://example.com/response", code_challenge, "S256")
+
+	form := url.Values{}
+	form.Add("code", code)
+	form.Add("client_id", "http://example.com")
+	form.Add("redirect_uri", "http://example.com/response")
+	form.Add("grant_type", "authorization_code")
+	form.Add("code_verifier", code_verifier)
+	req, err := http.NewRequest("POST", user.AuthUrl(), strings.NewReader(form.Encode()))
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Add("Content-Length", strconv.Itoa(len(form.Encode())))
+	req.Header.Add("Accept", "application/json")
+	assertions.AssertNoError(t, err, "Error creating request")
+	rr := httptest.NewRecorder()
+	router := main.SingleUserRouter(&repo)
+	router.ServeHTTP(rr, req)
+
+	assertions.AssertStatus(t, rr, http.StatusOK)
+	// parse response as json
+	type responseType struct {
+		Me string `json:"me"`
+	}
+	var response responseType
+	json.Unmarshal(rr.Body.Bytes(), &response)
+	assertions.AssertEqual(t, response.Me, user.FullUrl())
+
+}
+
+func TestAuthPostWithCorrectCodeAndWrongPKCE(t *testing.T) {
+	repo, user := getSingleUserTestRepo()
+	user.ResetPassword("testpassword")
+
+	// Create Request and Response
+	code_verifier := "test_code_verifier"
+	// create code challenge
+	h := sha256.New()
+	h.Write([]byte(code_verifier + "wrong"))
+	code_challenge := base64.RawURLEncoding.EncodeToString(h.Sum(nil))
+	code, _ := user.GenerateAuthCode("http://example.com", "http://example.com/response", code_challenge, "S256")
+
+	form := url.Values{}
+	form.Add("code", code)
+	form.Add("client_id", "http://example.com")
+	form.Add("redirect_uri", "http://example.com/response")
+	form.Add("grant_type", "authorization_code")
+	form.Add("code_verifier", code_verifier)
+	req, err := http.NewRequest("POST", user.AuthUrl(), strings.NewReader(form.Encode()))
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Add("Content-Length", strconv.Itoa(len(form.Encode())))
+	req.Header.Add("Accept", "application/json")
+	assertions.AssertNoError(t, err, "Error creating request")
+	rr := httptest.NewRecorder()
+	router := main.SingleUserRouter(&repo)
+	router.ServeHTTP(rr, req)
+
+	assertions.AssertStatus(t, rr, http.StatusUnauthorized)
+}
+
+func TestAuthPostWithCorrectCodePKCEPlain(t *testing.T) {
+	repo, user := getSingleUserTestRepo()
+	user.ResetPassword("testpassword")
+
+	// Create Request and Response
+	code_verifier := "test_code_verifier"
+	code_challenge := code_verifier
+	code, _ := user.GenerateAuthCode("http://example.com", "http://example.com/response", code_challenge, "plain")
+
+	form := url.Values{}
+	form.Add("code", code)
+	form.Add("client_id", "http://example.com")
+	form.Add("redirect_uri", "http://example.com/response")
+	form.Add("grant_type", "authorization_code")
+	form.Add("code_verifier", code_verifier)
+	req, err := http.NewRequest("POST", user.AuthUrl(), strings.NewReader(form.Encode()))
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Add("Content-Length", strconv.Itoa(len(form.Encode())))
+	req.Header.Add("Accept", "application/json")
+	assertions.AssertNoError(t, err, "Error creating request")
+	rr := httptest.NewRecorder()
+	router := main.SingleUserRouter(&repo)
+	router.ServeHTTP(rr, req)
+
+	assertions.AssertStatus(t, rr, http.StatusOK)
+}
+
+func TestAuthPostWithCorrectCodePKCEPlainWrong(t *testing.T) {
+	repo, user := getSingleUserTestRepo()
+	user.ResetPassword("testpassword")
+
+	// Create Request and Response
+	code_verifier := "test_code_verifier"
+	code_challenge := code_verifier + "wrong"
+	code, _ := user.GenerateAuthCode("http://example.com", "http://example.com/response", code_challenge, "plain")
+
+	form := url.Values{}
+	form.Add("code", code)
+	form.Add("client_id", "http://example.com")
+	form.Add("redirect_uri", "http://example.com/response")
+	form.Add("grant_type", "authorization_code")
+	form.Add("code_verifier", code_verifier)
+	req, err := http.NewRequest("POST", user.AuthUrl(), strings.NewReader(form.Encode()))
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Add("Content-Length", strconv.Itoa(len(form.Encode())))
+	req.Header.Add("Accept", "application/json")
+	assertions.AssertNoError(t, err, "Error creating request")
+	rr := httptest.NewRecorder()
+	router := main.SingleUserRouter(&repo)
+	router.ServeHTTP(rr, req)
+
+	assertions.AssertStatus(t, rr, http.StatusUnauthorized)
 }
 
 func TestAuthRedirectUriNotSet(t *testing.T) {

@@ -1,6 +1,8 @@
 package owl
 
 import (
+	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
 	"net/url"
 	"os"
@@ -32,10 +34,12 @@ type UserMe struct {
 }
 
 type AuthCode struct {
-	Code        string    `yaml:"code"`
-	ClientId    string    `yaml:"client_id"`
-	RedirectUri string    `yaml:"redirect_uri"`
-	Created     time.Time `yaml:"created"`
+	Code                string    `yaml:"code"`
+	ClientId            string    `yaml:"client_id"`
+	RedirectUri         string    `yaml:"redirect_uri"`
+	CodeChallenge       string    `yaml:"code_challenge"`
+	CodeChallengeMethod string    `yaml:"code_challenge_method"`
+	Created             time.Time `yaml:"created"`
 }
 
 func (user User) Dir() string {
@@ -284,21 +288,37 @@ func (user User) addAuthCode(code AuthCode) error {
 	return saveToYaml(user.AuthCodesFile(), codes)
 }
 
-func (user User) GenerateAuthCode(client_id string, redirect_uri string) (string, error) {
+func (user User) GenerateAuthCode(
+	client_id string, redirect_uri string,
+	code_challenge string, code_challenge_method string,
+) (string, error) {
 	// generate code
 	code := GenerateRandomString(32)
 	return code, user.addAuthCode(AuthCode{
-		Code:        code,
-		ClientId:    client_id,
-		RedirectUri: redirect_uri,
+		Code:                code,
+		ClientId:            client_id,
+		RedirectUri:         redirect_uri,
+		CodeChallenge:       code_challenge,
+		CodeChallengeMethod: code_challenge_method,
+		Created:             time.Now(),
 	})
 }
 
-func (user User) VerifyAuthCode(code string, client_id string, redirect_uri string) bool {
+func (user User) VerifyAuthCode(
+	code string, client_id string, redirect_uri string, code_verifier string,
+) bool {
 	codes := user.getAuthCodes()
 	for _, c := range codes {
 		if c.Code == code && c.ClientId == client_id && c.RedirectUri == redirect_uri {
-			return true
+			if c.CodeChallengeMethod == "plain" {
+				return c.CodeChallenge == code_verifier
+			} else if c.CodeChallengeMethod == "S256" {
+				// hash code_verifier
+				hash := sha256.Sum256([]byte(code_verifier))
+				return c.CodeChallenge == base64.RawURLEncoding.EncodeToString(hash[:])
+			} else if c.CodeChallengeMethod == "" {
+				return true
+			}
 		}
 	}
 	return false

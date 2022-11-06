@@ -21,13 +21,15 @@ type PostRenderData struct {
 }
 
 type AuthRequestData struct {
-	Me           string
-	ClientId     string
-	RedirectUri  string
-	State        string
-	ResponseType string
-	User         User
-	CsrfToken    string
+	Me                  string
+	ClientId            string
+	RedirectUri         string
+	State               string
+	ResponseType        string
+	CodeChallenge       string
+	CodeChallengeMethod string
+	User                User
+	CsrfToken           string
 }
 
 func renderEmbedTemplate(templateFile string, data interface{}) (string, error) {
