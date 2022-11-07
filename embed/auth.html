@@ -1,11 +1,13 @@
-<h2>Authorization for {{.ClientId}}</h2>
+<h3>Authorization for {{.ClientId}}</h3>
 
-Requesting scope:
+<h5>Requesting scope:</h5>
 <ul>
-    {{range .Scopes}}
-    <li>{{.}}</li>
+    {{range $index, $element := .Scopes}}
+    <li>{{$element}}</li>
     {{end}}
 </ul>
+
+<br><br>
 
 <form action="verify/" method="post">
     <label for="password">Password</label>

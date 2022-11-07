@@ -125,12 +125,12 @@ func RenderIndexPage(user User) (string, error) {
 }
 
 func RenderUserAuthPage(reqData AuthRequestData) (string, error) {
+	reqData.Scopes = strings.Split(reqData.Scope, " ")
 	authHtml, err := renderEmbedTemplate("embed/auth.html", reqData)
 	if err != nil {
 		return "", err
 	}
 
-	reqData.Scopes = strings.Split(reqData.Scope, " ")
 	return renderIntoBaseTemplate(reqData.User, PageContent{
 		Title:   "Auth",
 		Content: template.HTML(authHtml),
