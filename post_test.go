@@ -2,7 +2,8 @@ package owl_test
 
 import (
 	"h4kor/owl-blogs"
-	"h4kor/owl-blogs/priv/assertions"
+	"h4kor/owl-blogs/test/assertions"
+	"h4kor/owl-blogs/test/mocks"
 	"os"
 	"path"
 	"strconv"
@@ -146,8 +147,8 @@ func TestPersistIncomingWebmention(t *testing.T) {
 
 func TestAddIncomingWebmentionCreatesFile(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
-	repo.HttpClient = &MockHttpClient{}
-	repo.Parser = &MockHtmlParser{}
+	repo.HttpClient = &mocks.MockHttpClient{}
+	repo.Parser = &mocks.MockHtmlParser{}
 	user, _ := repo.CreateUser("testuser")
 	post, _ := user.CreateNewPost("testpost", false)
 
@@ -160,8 +161,8 @@ func TestAddIncomingWebmentionCreatesFile(t *testing.T) {
 
 func TestAddIncomingWebmentionNotOverwritingWebmention(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
-	repo.HttpClient = &MockHttpClient{}
-	repo.Parser = &MockHtmlParser{}
+	repo.HttpClient = &mocks.MockHttpClient{}
+	repo.Parser = &mocks.MockHtmlParser{}
 	user, _ := repo.CreateUser("testuser")
 	post, _ := user.CreateNewPost("testpost", false)
 
@@ -180,8 +181,8 @@ func TestAddIncomingWebmentionNotOverwritingWebmention(t *testing.T) {
 
 func TestEnrichAddsTitle(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
-	repo.HttpClient = &MockHttpClient{}
-	repo.Parser = &MockHtmlParser{}
+	repo.HttpClient = &mocks.MockHttpClient{}
+	repo.Parser = &mocks.MockHtmlParser{}
 	user, _ := repo.CreateUser("testuser")
 	post, _ := user.CreateNewPost("testpost", false)
 
@@ -294,8 +295,8 @@ func TestScanningForLinksDoesAddReplyUrl(t *testing.T) {
 
 func TestCanSendWebmention(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
-	repo.HttpClient = &MockHttpClient{}
-	repo.Parser = &MockHtmlParser{}
+	repo.HttpClient = &mocks.MockHttpClient{}
+	repo.Parser = &mocks.MockHtmlParser{}
 	user, _ := repo.CreateUser("testuser")
 	post, _ := user.CreateNewPost("testpost", false)
 
@@ -315,8 +316,8 @@ func TestCanSendWebmention(t *testing.T) {
 
 func TestSendWebmentionOnlyScansOncePerWeek(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
-	repo.HttpClient = &MockHttpClient{}
-	repo.Parser = &MockHtmlParser{}
+	repo.HttpClient = &mocks.MockHttpClient{}
+	repo.Parser = &mocks.MockHtmlParser{}
 	user, _ := repo.CreateUser("testuser")
 	post, _ := user.CreateNewPost("testpost", false)
 
@@ -340,8 +341,8 @@ func TestSendWebmentionOnlyScansOncePerWeek(t *testing.T) {
 
 func TestSendingMultipleWebmentions(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
-	repo.HttpClient = &MockHttpClient{}
-	repo.Parser = &MockHtmlParser{}
+	repo.HttpClient = &mocks.MockHttpClient{}
+	repo.Parser = &mocks.MockHtmlParser{}
 	user, _ := repo.CreateUser("testuser")
 	post, _ := user.CreateNewPost("testpost", false)
 
@@ -367,8 +368,8 @@ func TestSendingMultipleWebmentions(t *testing.T) {
 
 func TestReceivingMultipleWebmentions(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
-	repo.HttpClient = &MockHttpClient{}
-	repo.Parser = &MockHtmlParser{}
+	repo.HttpClient = &mocks.MockHttpClient{}
+	repo.Parser = &mocks.MockHtmlParser{}
 	user, _ := repo.CreateUser("testuser")
 	post, _ := user.CreateNewPost("testpost", false)
 
@@ -392,8 +393,8 @@ func TestReceivingMultipleWebmentions(t *testing.T) {
 
 func TestSendingAndReceivingMultipleWebmentions(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
-	repo.HttpClient = &MockHttpClient{}
-	repo.Parser = &MockHtmlParser{}
+	repo.HttpClient = &mocks.MockHttpClient{}
+	repo.Parser = &mocks.MockHtmlParser{}
 	user, _ := repo.CreateUser("testuser")
 	post, _ := user.CreateNewPost("testpost", false)
 
@@ -425,8 +426,8 @@ func TestSendingAndReceivingMultipleWebmentions(t *testing.T) {
 
 func TestComplexParallelWebmentions(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
-	repo.HttpClient = &MockHttpClient{}
-	repo.Parser = &MockParseLinksHtmlParser{
+	repo.HttpClient = &mocks.MockHttpClient{}
+	repo.Parser = &mocks.MockParseLinksHtmlParser{
 		Links: []string{
 			"http://example.com/1",
 			"http://example.com/2",
@@ -469,7 +470,7 @@ func TestComplexParallelWebmentions(t *testing.T) {
 // func TestComplexParallelSimulatedProcessesWebmentions(t *testing.T) {
 // 	repoName := testRepoName()
 // 	repo, _ := owl.CreateRepository(repoName, owl.RepoConfig{})
-// 	repo.HttpClient = &MockHttpClient{}
+// 	repo.HttpClient = &mocks.MockHttpClient{}
 // 	repo.Parser = &MockParseLinksHtmlParser{
 // 		Links: []string{
 // 			"http://example.com/1",

@@ -2,7 +2,7 @@ package owl_test
 
 import (
 	"h4kor/owl-blogs"
-	"h4kor/owl-blogs/priv/assertions"
+	"h4kor/owl-blogs/test/assertions"
 	"os"
 	"path"
 	"testing"
@@ -284,4 +284,42 @@ func TestAddFaviconIfExist(t *testing.T) {
 
 	result, _ := owl.RenderIndexPage(user)
 	assertions.AssertContains(t, result, "favicon.png")
+}
+
+func TestRenderUserAuth(t *testing.T) {
+	user := getTestUser()
+	user.ResetPassword("test")
+	result, err := owl.RenderUserAuthPage(owl.AuthRequestData{
+		User: user,
+	})
+	assertions.AssertNoError(t, err, "Error rendering user auth page")
+	assertions.AssertContains(t, result, "<form")
+}
+
+func TestRenderUserAuthIncludesClientId(t *testing.T) {
+	user := getTestUser()
+	user.ResetPassword("test")
+	result, err := owl.RenderUserAuthPage(owl.AuthRequestData{
+		User:     user,
+		ClientId: "https://example.com/",
+	})
+	assertions.AssertNoError(t, err, "Error rendering user auth page")
+	assertions.AssertContains(t, result, "https://example.com/")
+}
+
+func TestRenderUserAuthHiddenFields(t *testing.T) {
+	user := getTestUser()
+	user.ResetPassword("test")
+	result, err := owl.RenderUserAuthPage(owl.AuthRequestData{
+		User:         user,
+		ClientId:     "https://example.com/",
+		RedirectUri:  "https://example.com/redirect",
+		ResponseType: "code",
+		State:        "teststate",
+	})
+	assertions.AssertNoError(t, err, "Error rendering user auth page")
+	assertions.AssertContains(t, result, "name=\"client_id\" value=\"https://example.com/\"")
+	assertions.AssertContains(t, result, "name=\"redirect_uri\" value=\"https://example.com/redirect\"")
+	assertions.AssertContains(t, result, "name=\"response_type\" value=\"code\"")
+	assertions.AssertContains(t, result, "name=\"state\" value=\"teststate\"")
 }

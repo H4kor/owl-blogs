@@ -61,6 +61,7 @@ type HtmlParser interface {
 	ParseLinks(resp *http.Response) ([]string, error)
 	ParseLinksFromString(string) ([]string, error)
 	GetWebmentionEndpoint(resp *http.Response) (string, error)
+	GetRedirctUris(resp *http.Response) ([]string, error)
 }
 
 type OwlHttpClient = http.Client
@@ -242,4 +243,74 @@ func (OwlHtmlParser) GetWebmentionEndpoint(resp *http.Response) (string, error) 
 		return "", err
 	}
 	return requestUrl.ResolveReference(linkUrl).String(), nil
+}
+
+func (OwlHtmlParser) GetRedirctUris(resp *http.Response) ([]string, error) {
+	//request url
+	requestUrl := resp.Request.URL
+
+	htmlStr, err := readResponseBody(resp)
+	if err != nil {
+		return make([]string, 0), err
+	}
+	doc, err := html.Parse(strings.NewReader(htmlStr))
+	if err != nil {
+		return make([]string, 0), err
+	}
+
+	var findLinks func(*html.Node) ([]string, error)
+	// Check link headers
+	header_links := make([]string, 0)
+	for _, linkHeader := range resp.Header["Link"] {
+		linkHeaderParts := strings.Split(linkHeader, ",")
+		for _, linkHeaderPart := range linkHeaderParts {
+			linkHeaderPart = strings.TrimSpace(linkHeaderPart)
+			params := strings.Split(linkHeaderPart, ";")
+			if len(params) != 2 {
+				continue
+			}
+			for _, param := range params[1:] {
+				param = strings.TrimSpace(param)
+				if strings.Contains(param, "redirect_uri") {
+					link := strings.Split(params[0], ";")[0]
+					link = strings.Trim(link, "<>")
+					linkUrl, err := url.Parse(link)
+					if err == nil {
+						header_links = append(header_links, requestUrl.ResolveReference(linkUrl).String())
+					}
+				}
+			}
+		}
+	}
+
+	findLinks = func(n *html.Node) ([]string, error) {
+		links := make([]string, 0)
+		if n.Type == html.ElementNode && n.Data == "link" {
+			// check for rel="redirect_uri"
+			rel := ""
+			href := ""
+
+			for _, attr := range n.Attr {
+				if attr.Key == "href" {
+					href = attr.Val
+				}
+				if attr.Key == "rel" {
+					rel = attr.Val
+				}
+			}
+			if rel == "redirect_uri" {
+				linkUrl, err := url.Parse(href)
+				if err == nil {
+					links = append(links, requestUrl.ResolveReference(linkUrl).String())
+				}
+			}
+		}
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			childLinks, _ := findLinks(c)
+			links = append(links, childLinks...)
+		}
+		return links, nil
+	}
+	body_links, err := findLinks(doc)
+	return append(body_links, header_links...), err
 }

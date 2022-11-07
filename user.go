@@ -1,6 +1,8 @@
 package owl
 
 import (
+	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
 	"net/url"
 	"os"
@@ -31,6 +33,25 @@ type UserMe struct {
 	Url  string `yaml:"url"`
 }
 
+type AuthCode struct {
+	Code                string    `yaml:"code"`
+	ClientId            string    `yaml:"client_id"`
+	RedirectUri         string    `yaml:"redirect_uri"`
+	CodeChallenge       string    `yaml:"code_challenge"`
+	CodeChallengeMethod string    `yaml:"code_challenge_method"`
+	Scope               string    `yaml:"scope"`
+	Created             time.Time `yaml:"created"`
+}
+
+type AccessToken struct {
+	Token       string    `yaml:"token"`
+	Scope       string    `yaml:"scope"`
+	ClientId    string    `yaml:"client_id"`
+	RedirectUri string    `yaml:"redirect_uri"`
+	Created     time.Time `yaml:"created"`
+	ExpiresIn   int       `yaml:"expires_in"`
+}
+
 func (user User) Dir() string {
 	return path.Join(user.repo.UsersDir(), user.name)
 }
@@ -41,6 +62,24 @@ func (user User) UrlPath() string {
 
 func (user User) FullUrl() string {
 	url, _ := url.JoinPath(user.repo.FullUrl(), user.UrlPath())
+	return url
+}
+
+func (user User) AuthUrl() string {
+	if user.Config().PassworHash == "" {
+		return ""
+	}
+	url, _ := url.JoinPath(user.FullUrl(), "auth/")
+	return url
+}
+
+func (user User) TokenUrl() string {
+	url, _ := url.JoinPath(user.AuthUrl(), "token/")
+	return url
+}
+
+func (user User) IndieauthMetadataUrl() string {
+	url, _ := url.JoinPath(user.FullUrl(), ".well-known/oauth-authorization-server")
 	return url
 }
 
@@ -68,6 +107,14 @@ func (user User) MediaDir() string {
 
 func (user User) ConfigFile() string {
 	return path.Join(user.MetaDir(), "config.yml")
+}
+
+func (user User) AuthCodesFile() string {
+	return path.Join(user.MetaDir(), "auth_codes.yml")
+}
+
+func (user User) AccessTokensFile() string {
+	return path.Join(user.MetaDir(), "access_tokens.yml")
 }
 
 func (user User) Name() string {
@@ -251,4 +298,84 @@ func (user User) VerifyPassword(password string) bool {
 		[]byte(user.Config().PassworHash), []byte(password),
 	)
 	return err == nil
+}
+
+func (user User) getAuthCodes() []AuthCode {
+	codes := make([]AuthCode, 0)
+	loadFromYaml(user.AuthCodesFile(), &codes)
+	return codes
+}
+
+func (user User) addAuthCode(code AuthCode) error {
+	codes := user.getAuthCodes()
+	codes = append(codes, code)
+	return saveToYaml(user.AuthCodesFile(), codes)
+}
+
+func (user User) GenerateAuthCode(
+	client_id string, redirect_uri string,
+	code_challenge string, code_challenge_method string,
+	scope string,
+) (string, error) {
+	// generate code
+	code := GenerateRandomString(32)
+	return code, user.addAuthCode(AuthCode{
+		Code:                code,
+		ClientId:            client_id,
+		RedirectUri:         redirect_uri,
+		CodeChallenge:       code_challenge,
+		CodeChallengeMethod: code_challenge_method,
+		Scope:               scope,
+		Created:             time.Now(),
+	})
+}
+
+func (user User) VerifyAuthCode(
+	code string, client_id string, redirect_uri string, code_verifier string,
+) (bool, AuthCode) {
+	codes := user.getAuthCodes()
+	for _, c := range codes {
+		if c.Code == code && c.ClientId == client_id && c.RedirectUri == redirect_uri {
+			if c.CodeChallengeMethod == "plain" {
+				return c.CodeChallenge == code_verifier, c
+			} else if c.CodeChallengeMethod == "S256" {
+				// hash code_verifier
+				hash := sha256.Sum256([]byte(code_verifier))
+				return c.CodeChallenge == base64.RawURLEncoding.EncodeToString(hash[:]), c
+			} else if c.CodeChallengeMethod == "" {
+				// Check age of code
+				// A maximum lifetime of 10 minutes is recommended ( https://indieauth.spec.indieweb.org/#authorization-response)
+				if time.Since(c.Created) < 10*time.Minute {
+					return true, c
+				}
+			}
+		}
+	}
+	return false, AuthCode{}
+}
+
+func (user User) getAccessTokens() []AccessToken {
+	codes := make([]AccessToken, 0)
+	loadFromYaml(user.AccessTokensFile(), &codes)
+	return codes
+}
+
+func (user User) addAccessToken(code AccessToken) error {
+	codes := user.getAccessTokens()
+	codes = append(codes, code)
+	return saveToYaml(user.AccessTokensFile(), codes)
+}
+
+func (user User) GenerateAccessToken(authCode AuthCode) (string, int, error) {
+	// generate code
+	token := GenerateRandomString(32)
+	duration := 24 * 60 * 60
+	return token, duration, user.addAccessToken(AccessToken{
+		Token:       token,
+		ClientId:    authCode.ClientId,
+		RedirectUri: authCode.RedirectUri,
+		Scope:       authCode.Scope,
+		ExpiresIn:   duration,
+		Created:     time.Now(),
+	})
 }

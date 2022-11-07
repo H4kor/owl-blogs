@@ -4,6 +4,7 @@ import (
 	"bytes"
 	_ "embed"
 	"html/template"
+	"strings"
 )
 
 type PageContent struct {
@@ -18,6 +19,20 @@ type PostRenderData struct {
 	Title   string
 	Post    *Post
 	Content template.HTML
+}
+
+type AuthRequestData struct {
+	Me                  string
+	ClientId            string
+	RedirectUri         string
+	State               string
+	Scope               string
+	Scopes              []string // Split version of scope. filled by rendering function.
+	ResponseType        string
+	CodeChallenge       string
+	CodeChallengeMethod string
+	User                User
+	CsrfToken           string
 }
 
 func renderEmbedTemplate(templateFile string, data interface{}) (string, error) {
@@ -107,7 +122,19 @@ func RenderIndexPage(user User) (string, error) {
 		Title:   "Index",
 		Content: template.HTML(postHtml),
 	})
+}
 
+func RenderUserAuthPage(reqData AuthRequestData) (string, error) {
+	reqData.Scopes = strings.Split(reqData.Scope, " ")
+	authHtml, err := renderEmbedTemplate("embed/auth.html", reqData)
+	if err != nil {
+		return "", err
+	}
+
+	return renderIntoBaseTemplate(reqData.User, PageContent{
+		Title:   "Auth",
+		Content: template.HTML(authHtml),
+	})
 }
 
 func RenderUserList(repo Repository) (string, error) {

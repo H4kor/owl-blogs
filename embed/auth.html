@@ -1,0 +1,24 @@
+<h3>Authorization for {{.ClientId}}</h3>
+
+<h5>Requesting scope:</h5>
+<ul>
+    {{range $index, $element := .Scopes}}
+    <li>{{$element}}</li>
+    {{end}}
+</ul>
+
+<br><br>
+
+<form action="verify/" method="post">
+    <label for="password">Password</label>
+    <input type="password" name="password" placeholder="Password">
+    <input type="hidden" name="client_id" value="{{.ClientId}}">
+    <input type="hidden" name="redirect_uri" value="{{.RedirectUri}}">
+    <input type="hidden" name="response_type" value="{{.ResponseType}}">
+    <input type="hidden" name="state" value="{{.State}}">
+    <input type="hidden" name="csrf_token" value="{{.CsrfToken}}">
+    <input type="hidden" name="code_challenge" value="{{.CodeChallenge}}">
+    <input type="hidden" name="code_challenge_method" value="{{.CodeChallengeMethod}}">
+    <input type="hidden" name="scope" value="{{.Scope}}">
+    <input type="submit" value="Login">
+</form>

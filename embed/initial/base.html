@@ -27,6 +27,11 @@
 
     <link rel="stylesheet" href="/static/pico.min.css">
     <link rel="webmention" href="{{ .User.WebmentionUrl }}">
+    {{ if .User.AuthUrl }}
+    <link rel="indieauth-metadata" href="{{ .User.IndieauthMetadataUrl }}">
+    <link rel="authorization_endpoint" href="{{ .User.AuthUrl}}">
+    <link rel="token_endpoint" href="{{ .User.TokenUrl}}">
+    {{ end }}
     <style>
         header {
             background-color: {{.User.Config.HeaderColor}};
