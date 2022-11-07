@@ -1,5 +1,12 @@
 <h2>Authorization for {{.ClientId}}</h2>
 
+Requesting scope:
+<ul>
+    {{range .Scopes}}
+    <li>{{.}}</li>
+    {{end}}
+</ul>
+
 <form action="verify/" method="post">
     <label for="password">Password</label>
     <input type="password" name="password" placeholder="Password">

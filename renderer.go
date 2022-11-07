@@ -4,6 +4,7 @@ import (
 	"bytes"
 	_ "embed"
 	"html/template"
+	"strings"
 )
 
 type PageContent struct {
@@ -26,6 +27,7 @@ type AuthRequestData struct {
 	RedirectUri         string
 	State               string
 	Scope               string
+	Scopes              []string // Split version of scope. filled by rendering function.
 	ResponseType        string
 	CodeChallenge       string
 	CodeChallengeMethod string
@@ -128,6 +130,7 @@ func RenderUserAuthPage(reqData AuthRequestData) (string, error) {
 		return "", err
 	}
 
+	reqData.Scopes = strings.Split(reqData.Scope, " ")
 	return renderIntoBaseTemplate(reqData.User, PageContent{
 		Title:   "Auth",
 		Content: template.HTML(authHtml),
