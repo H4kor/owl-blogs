@@ -396,7 +396,7 @@ func userAuthVerifyHandler(repo *owl.Repository) func(http.ResponseWriter, *http
 				fmt.Sprintf(
 					"%s?code=%s&state=%s&iss=%s",
 					redirect_uri, code, state,
-					user.AuthUrl(),
+					user.FullUrl(),
 				),
 				http.StatusFound,
 			)
