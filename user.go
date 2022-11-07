@@ -343,7 +343,11 @@ func (user User) VerifyAuthCode(
 				hash := sha256.Sum256([]byte(code_verifier))
 				return c.CodeChallenge == base64.RawURLEncoding.EncodeToString(hash[:]), c
 			} else if c.CodeChallengeMethod == "" {
-				return true, c
+				// Check age of code
+				// A maximum lifetime of 10 minutes is recommended ( https://indieauth.spec.indieweb.org/#authorization-response)
+				if time.Since(c.Created) < 10*time.Minute {
+					return true, c
+				}
 			}
 		}
 	}
