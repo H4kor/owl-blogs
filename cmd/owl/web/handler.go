@@ -180,8 +180,10 @@ func userAuthHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Reque
 		// https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#double-submit-cookie
 		csrfToken := owl.GenerateRandomString(32)
 		cookie := http.Cookie{
-			Name:  "csrf_token",
-			Value: csrfToken,
+			Name:     "csrf_token",
+			Value:    csrfToken,
+			HttpOnly: true,
+			SameSite: http.SameSiteStrictMode,
 		}
 		http.SetCookie(w, &cookie)
 
