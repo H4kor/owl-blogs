@@ -79,7 +79,7 @@ func (user User) TokenUrl() string {
 }
 
 func (user User) IndieauthMetadataUrl() string {
-	url, _ := url.JoinPath(user.AuthUrl(), "indieauth-metadata")
+	url, _ := url.JoinPath(user.FullUrl(), ".well-known/oauth-authorization-server")
 	return url
 }
 
