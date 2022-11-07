@@ -69,6 +69,7 @@ func TestAuthPostCorrectPassword(t *testing.T) {
 	assertions.AssertStatus(t, rr, http.StatusFound)
 	assertions.AssertContains(t, rr.Header().Get("Location"), "code=")
 	assertions.AssertContains(t, rr.Header().Get("Location"), "state=test_state")
+	assertions.AssertContains(t, rr.Header().Get("Location"), "iss="+user.FullUrl())
 	assertions.AssertContains(t, rr.Header().Get("Location"), "http://example.com/response")
 }
 
