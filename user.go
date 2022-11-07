@@ -78,6 +78,11 @@ func (user User) TokenUrl() string {
 	return url
 }
 
+func (user User) IndieauthMetadataUrl() string {
+	url, _ := url.JoinPath(user.AuthUrl(), "indieauth-metadata")
+	return url
+}
+
 func (user User) WebmentionUrl() string {
 	url, _ := url.JoinPath(user.FullUrl(), "webmention/")
 	return url

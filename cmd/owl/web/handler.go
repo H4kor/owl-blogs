@@ -60,6 +60,43 @@ func userIndexHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Requ
 	}
 }
 
+func userAuthMetadataHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Request, httprouter.Params) {
+	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		user, err := getUserFromRepo(repo, ps)
+		if err != nil {
+			println("Error getting user: ", err.Error())
+			notFoundHandler(repo)(w, r)
+			return
+		}
+
+		type Response struct {
+			Issuer                        string   `json:"issuer"`
+			AuthorizationEndpoint         string   `json:"authorization_endpoint"`
+			TokenEndpoint                 string   `json:"token_endpoint"`
+			CodeChallengeMethodsSupported []string `json:"code_challenge_methods_supported"`
+			ScopesSupported               []string `json:"scopes_supported"`
+			ResponseTypesSupported        []string `json:"response_types_supported"`
+			GrantTypesSupported           []string `json:"grant_types_supported"`
+		}
+		response := Response{
+			Issuer:                        user.FullUrl(),
+			AuthorizationEndpoint:         user.AuthUrl(),
+			TokenEndpoint:                 user.TokenUrl(),
+			CodeChallengeMethodsSupported: []string{"S256", "plain"},
+			ScopesSupported:               []string{"profile"},
+			ResponseTypesSupported:        []string{"code"},
+			GrantTypesSupported:           []string{"authorization_code"},
+		}
+		jsonData, err := json.Marshal(response)
+		if err != nil {
+			println("Error marshalling json: ", err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("Internal server error"))
+		}
+		w.Write(jsonData)
+	}
+}
+
 func userAuthHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Request, httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		user, err := getUserFromRepo(repo, ps)

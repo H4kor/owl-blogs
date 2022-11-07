@@ -399,3 +399,29 @@ func TestAccessTokenWithIncorrectCode(t *testing.T) {
 
 	assertions.AssertStatus(t, rr, http.StatusUnauthorized)
 }
+
+func TestIndieauthMetadata(t *testing.T) {
+	repo, user := getSingleUserTestRepo()
+	user.ResetPassword("testpassword")
+	req, _ := http.NewRequest("GET", user.IndieauthMetadataUrl(), nil)
+	rr := httptest.NewRecorder()
+	router := main.SingleUserRouter(&repo)
+	router.ServeHTTP(rr, req)
+
+	assertions.AssertStatus(t, rr, http.StatusOK)
+	// parse response as json
+	type responseType struct {
+		Issuer                        string   `json:"issuer"`
+		AuthorizationEndpoint         string   `json:"authorization_endpoint"`
+		TokenEndpoint                 string   `json:"token_endpoint"`
+		CodeChallengeMethodsSupported []string `json:"code_challenge_methods_supported"`
+		ScopesSupported               []string `json:"scopes_supported"`
+		ResponseTypesSupported        []string `json:"response_types_supported"`
+		GrantTypesSupported           []string `json:"grant_types_supported"`
+	}
+	var response responseType
+	json.Unmarshal(rr.Body.Bytes(), &response)
+	assertions.AssertEqual(t, response.Issuer, user.FullUrl())
+	assertions.AssertEqual(t, response.AuthorizationEndpoint, user.AuthUrl())
+	assertions.AssertEqual(t, response.TokenEndpoint, user.TokenUrl())
+}
