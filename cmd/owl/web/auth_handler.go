@@ -11,6 +11,35 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
+type IndieauthMetaDataResponse struct {
+	Issuer                        string   `json:"issuer"`
+	AuthorizationEndpoint         string   `json:"authorization_endpoint"`
+	TokenEndpoint                 string   `json:"token_endpoint"`
+	CodeChallengeMethodsSupported []string `json:"code_challenge_methods_supported"`
+	ScopesSupported               []string `json:"scopes_supported"`
+	ResponseTypesSupported        []string `json:"response_types_supported"`
+	GrantTypesSupported           []string `json:"grant_types_supported"`
+}
+
+type MeProfileResponse struct {
+	Name  string `json:"name"`
+	Url   string `json:"url"`
+	Photo string `json:"photo"`
+}
+type MeResponse struct {
+	Me      string            `json:"me"`
+	Profile MeProfileResponse `json:"profile"`
+}
+
+type AccessTokenResponse struct {
+	Me           string `json:"me"`
+	TokenType    string `json:"token_type"`
+	AccessToken  string `json:"access_token"`
+	Scope        string `json:"scope"`
+	ExpiresIn    int    `json:"expires_in"`
+	RefreshToken string `json:"refresh_token"`
+}
+
 func userAuthMetadataHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Request, httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		user, err := getUserFromRepo(repo, ps)
@@ -20,16 +49,7 @@ func userAuthMetadataHandler(repo *owl.Repository) func(http.ResponseWriter, *ht
 			return
 		}
 
-		type Response struct {
-			Issuer                        string   `json:"issuer"`
-			AuthorizationEndpoint         string   `json:"authorization_endpoint"`
-			TokenEndpoint                 string   `json:"token_endpoint"`
-			CodeChallengeMethodsSupported []string `json:"code_challenge_methods_supported"`
-			ScopesSupported               []string `json:"scopes_supported"`
-			ResponseTypesSupported        []string `json:"response_types_supported"`
-			GrantTypesSupported           []string `json:"grant_types_supported"`
-		}
-		response := Response{
+		response := IndieauthMetaDataResponse{
 			Issuer:                        user.FullUrl(),
 			AuthorizationEndpoint:         user.AuthUrl(),
 			TokenEndpoint:                 user.TokenUrl(),
@@ -225,18 +245,9 @@ func userAuthProfileHandler(repo *owl.Repository) func(http.ResponseWriter, *htt
 		valid, _ := verifyAuthCodeRequest(user, w, r)
 		if valid {
 			w.WriteHeader(http.StatusOK)
-			type ResponseProfile struct {
-				Name  string `json:"name"`
-				Url   string `json:"url"`
-				Photo string `json:"photo"`
-			}
-			type Response struct {
-				Me      string          `json:"me"`
-				Profile ResponseProfile `json:"profile"`
-			}
-			response := Response{
+			response := MeResponse{
 				Me: user.FullUrl(),
-				Profile: ResponseProfile{
+				Profile: MeProfileResponse{
 					Name:  user.Name(),
 					Url:   user.FullUrl(),
 					Photo: user.AvatarUrl(),
@@ -271,14 +282,6 @@ func userAuthTokenHandler(repo *owl.Repository) func(http.ResponseWriter, *http.
 				return
 			}
 
-			type Response struct {
-				Me           string `json:"me"`
-				TokenType    string `json:"token_type"`
-				AccessToken  string `json:"access_token"`
-				Scope        string `json:"scope"`
-				ExpiresIn    int    `json:"expires_in"`
-				RefreshToken string `json:"refresh_token"`
-			}
 			accessToken, duration, err := user.GenerateAccessToken(authCode)
 			if err != nil {
 				println("Error generating access token: ", err.Error())
@@ -286,7 +289,7 @@ func userAuthTokenHandler(repo *owl.Repository) func(http.ResponseWriter, *http.
 				w.Write([]byte("Internal server error"))
 				return
 			}
-			response := Response{
+			response := AccessTokenResponse{
 				Me:          user.FullUrl(),
 				TokenType:   "Bearer",
 				AccessToken: accessToken,
