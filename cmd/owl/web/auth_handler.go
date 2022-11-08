@@ -40,6 +40,17 @@ type AccessTokenResponse struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
+func jsonResponse(w http.ResponseWriter, response interface{}) {
+	jsonData, err := json.Marshal(response)
+	if err != nil {
+		println("Error marshalling json: ", err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Internal server error"))
+	}
+	w.Header().Add("Content-Type", "application/json")
+	w.Write(jsonData)
+}
+
 func userAuthMetadataHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Request, httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		user, err := getUserFromRepo(repo, ps)
@@ -48,8 +59,8 @@ func userAuthMetadataHandler(repo *owl.Repository) func(http.ResponseWriter, *ht
 			notFoundHandler(repo)(w, r)
 			return
 		}
-
-		response := IndieauthMetaDataResponse{
+		w.WriteHeader(http.StatusOK)
+		jsonResponse(w, IndieauthMetaDataResponse{
 			Issuer:                        user.FullUrl(),
 			AuthorizationEndpoint:         user.AuthUrl(),
 			TokenEndpoint:                 user.TokenUrl(),
@@ -57,14 +68,7 @@ func userAuthMetadataHandler(repo *owl.Repository) func(http.ResponseWriter, *ht
 			ScopesSupported:               []string{"profile"},
 			ResponseTypesSupported:        []string{"code"},
 			GrantTypesSupported:           []string{"authorization_code"},
-		}
-		jsonData, err := json.Marshal(response)
-		if err != nil {
-			println("Error marshalling json: ", err.Error())
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("Internal server error"))
-		}
-		w.Write(jsonData)
+		})
 	}
 }
 
@@ -245,21 +249,14 @@ func userAuthProfileHandler(repo *owl.Repository) func(http.ResponseWriter, *htt
 		valid, _ := verifyAuthCodeRequest(user, w, r)
 		if valid {
 			w.WriteHeader(http.StatusOK)
-			response := MeResponse{
+			jsonResponse(w, MeResponse{
 				Me: user.FullUrl(),
 				Profile: MeProfileResponse{
 					Name:  user.Name(),
 					Url:   user.FullUrl(),
 					Photo: user.AvatarUrl(),
 				},
-			}
-			jsonData, err := json.Marshal(response)
-			if err != nil {
-				println("Error marshalling json: ", err.Error())
-				w.WriteHeader(http.StatusInternalServerError)
-				w.Write([]byte("Internal server error"))
-			}
-			w.Write(jsonData)
+			})
 			return
 		}
 	}
@@ -289,20 +286,13 @@ func userAuthTokenHandler(repo *owl.Repository) func(http.ResponseWriter, *http.
 				w.Write([]byte("Internal server error"))
 				return
 			}
-			response := AccessTokenResponse{
+			jsonResponse(w, AccessTokenResponse{
 				Me:          user.FullUrl(),
 				TokenType:   "Bearer",
 				AccessToken: accessToken,
 				Scope:       authCode.Scope,
 				ExpiresIn:   duration,
-			}
-			jsonData, err := json.Marshal(response)
-			if err != nil {
-				println("Error marshalling json: ", err.Error())
-				w.WriteHeader(http.StatusInternalServerError)
-				w.Write([]byte("Internal server error"))
-			}
-			w.Write(jsonData)
+			})
 			return
 		}
 	}
