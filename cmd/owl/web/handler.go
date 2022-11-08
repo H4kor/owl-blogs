@@ -249,6 +249,76 @@ func postMediaHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Requ
 	}
 }
 
+func userMicropubHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Request, httprouter.Params) {
+	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		user, err := getUserFromRepo(repo, ps)
+		if err != nil {
+			println("Error getting user: ", err.Error())
+			notFoundHandler(repo)(w, r)
+			return
+		}
+
+		// verify access token
+		token := r.Header.Get("Authorization")
+		if token == "" {
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte("Unauthorized"))
+			return
+		}
+		token = strings.TrimPrefix(token, "Bearer ")
+		valid, _ := user.ValidateAccessToken(token)
+		if !valid {
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte("Unauthorized"))
+			return
+		}
+
+		// parse request form
+		err = r.ParseForm()
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("Bad request"))
+			return
+		}
+		h := r.Form.Get("h")
+		content := r.Form.Get("content")
+		name := r.Form.Get("name")
+		inReplyTo := r.Form.Get("in-reply-to")
+
+		if h != "entry" {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("Bad request. h must be entry"))
+			return
+		}
+		if content == "" || name == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("Bad request. content and name are required"))
+			return
+		}
+
+		// create post
+		post, err := user.CreateNewPostFull(
+			owl.PostMeta{
+				Title: name,
+				Reply: owl.Reply{
+					Url: inReplyTo,
+				},
+			},
+			content,
+		)
+
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("Internal server error"))
+			return
+		}
+
+		w.WriteHeader(http.StatusCreated)
+		w.Header().Set("Location", post.FullUrl())
+
+	}
+}
+
 func userMediaHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Request, httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		filepath := ps.ByName("filepath")

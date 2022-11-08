@@ -23,6 +23,7 @@ func Router(repo *owl.Repository) http.Handler {
 	router.GET("/user/:user/posts/:post/", postHandler(repo))
 	router.GET("/user/:user/posts/:post/media/*filepath", postMediaHandler(repo))
 	router.POST("/user/:user/webmention/", userWebmentionHandler(repo))
+	router.POST("/user/:user/micropub/", userMicropubHandler(repo))
 	router.GET("/user/:user/.well-known/oauth-authorization-server", userAuthMetadataHandler(repo))
 	router.NotFound = http.HandlerFunc(notFoundHandler(repo))
 	return router
@@ -41,6 +42,7 @@ func SingleUserRouter(repo *owl.Repository) http.Handler {
 	router.GET("/posts/:post/", postHandler(repo))
 	router.GET("/posts/:post/media/*filepath", postMediaHandler(repo))
 	router.POST("/webmention/", userWebmentionHandler(repo))
+	router.POST("/micropub/", userMicropubHandler(repo))
 	router.GET("/.well-known/oauth-authorization-server", userAuthMetadataHandler(repo))
 	router.NotFound = http.HandlerFunc(notFoundHandler(repo))
 	return router
