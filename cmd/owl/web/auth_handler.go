@@ -79,33 +79,53 @@ func userAuthHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Reque
 		}
 		if len(missing_params) > 0 {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(fmt.Sprintf("Missing parameters: %s", strings.Join(missing_params, ", "))))
+			html, _ := owl.RenderUserError(user, owl.ErrorMessage{
+				Error:   "Missing parameters",
+				Message: "Missing parameters: " + strings.Join(missing_params, ", "),
+			})
+			w.Write([]byte(html))
 			return
 		}
-		if responseType != "id" {
+		if responseType == "id" {
 			responseType = "code"
 		}
 		if responseType != "code" {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("Invalid response_type. Must be 'code' ('id' converted to 'code' for legacy support)."))
+			html, _ := owl.RenderUserError(user, owl.ErrorMessage{
+				Error:   "Invalid response_type",
+				Message: "Must be 'code' ('id' converted to 'code' for legacy support).",
+			})
+			w.Write([]byte(html))
 			return
 		}
 		if codeChallengeMethod != "" && (codeChallengeMethod != "S256" && codeChallengeMethod != "plain") {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("Invalid code_challenge_method. Must be 'S256' or 'plain'."))
+			html, _ := owl.RenderUserError(user, owl.ErrorMessage{
+				Error:   "Invalid code_challenge_method",
+				Message: "Must be 'S256' or 'plain'.",
+			})
+			w.Write([]byte(html))
 			return
 		}
 
 		client_id_url, err := url.Parse(clientId)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("Invalid client_id."))
+			html, _ := owl.RenderUserError(user, owl.ErrorMessage{
+				Error:   "Invalid client_id",
+				Message: "Invalid client_id: " + clientId,
+			})
+			w.Write([]byte(html))
 			return
 		}
 		redirect_uri_url, err := url.Parse(redirectUri)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("Invalid redirect_uri."))
+			html, _ := owl.RenderUserError(user, owl.ErrorMessage{
+				Error:   "Invalid redirect_uri",
+				Message: "Invalid redirect_uri: " + redirectUri,
+			})
+			w.Write([]byte(html))
 			return
 		}
 		if client_id_url.Host != redirect_uri_url.Host || client_id_url.Scheme != redirect_uri_url.Scheme {
@@ -122,7 +142,11 @@ func userAuthHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Reque
 			}
 			if !is_registered {
 				w.WriteHeader(http.StatusBadRequest)
-				w.Write([]byte("Invalid redirect_uri. Must be registered with client_id."))
+				html, _ := owl.RenderUserError(user, owl.ErrorMessage{
+					Error:   "Invalid redirect_uri",
+					Message: redirectUri + " is not registered for " + clientId,
+				})
+				w.Write([]byte(html))
 				return
 			}
 		}
@@ -155,10 +179,13 @@ func userAuthHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Reque
 		if err != nil {
 			println("Error rendering auth page: ", err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("Internal server error"))
+			html, _ := owl.RenderUserError(user, owl.ErrorMessage{
+				Error:   "Internal Server Error",
+				Message: "Internal Server Error",
+			})
+			w.Write([]byte(html))
 			return
 		}
-		println("Rendering auth page for user", user.Name())
 		w.Write([]byte(html))
 	}
 }
@@ -292,7 +319,11 @@ func userAuthVerifyHandler(repo *owl.Repository) func(http.ResponseWriter, *http
 		if err != nil {
 			println("Error parsing form: ", err.Error())
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("Error parsing form"))
+			html, _ := owl.RenderUserError(user, owl.ErrorMessage{
+				Error:   "Error parsing form",
+				Message: "Error parsing form",
+			})
+			w.Write([]byte(html))
 			return
 		}
 		password := r.FormValue("password")
@@ -311,13 +342,21 @@ func userAuthVerifyHandler(repo *owl.Repository) func(http.ResponseWriter, *http
 		if err != nil {
 			println("Error getting csrf token from cookie: ", err.Error())
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("Error getting csrf token from cookie"))
+			html, _ := owl.RenderUserError(user, owl.ErrorMessage{
+				Error:   "CSRF Error",
+				Message: "Error getting csrf token from cookie",
+			})
+			w.Write([]byte(html))
 			return
 		}
 		if formCsrfToken != cookieCsrfToken.Value {
 			println("Invalid csrf token")
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("Invalid csrf token"))
+			html, _ := owl.RenderUserError(user, owl.ErrorMessage{
+				Error:   "CSRF Error",
+				Message: "Invalid csrf token",
+			})
+			w.Write([]byte(html))
 			return
 		}
 
@@ -342,7 +381,11 @@ func userAuthVerifyHandler(repo *owl.Repository) func(http.ResponseWriter, *http
 			if err != nil {
 				println("Error generating code: ", err.Error())
 				w.WriteHeader(http.StatusInternalServerError)
-				w.Write([]byte("Internal server error"))
+				html, _ := owl.RenderUserError(user, owl.ErrorMessage{
+					Error:   "Internal Server Error",
+					Message: "Error generating code",
+				})
+				w.Write([]byte(html))
 				return
 			}
 			http.Redirect(w, r,

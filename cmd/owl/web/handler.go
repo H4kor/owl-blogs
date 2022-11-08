@@ -51,7 +51,11 @@ func userIndexHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Requ
 		if err != nil {
 			println("Error rendering index page: ", err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("Internal server error"))
+			html, _ := owl.RenderUserError(user, owl.ErrorMessage{
+				Error:   "Internal server error",
+				Message: "Internal server error",
+			})
+			w.Write([]byte(html))
 			return
 		}
 		println("Rendering index page for user", user.Name())
@@ -163,7 +167,11 @@ func userRSSHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Reques
 		if err != nil {
 			println("Error rendering index page: ", err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("Internal server error"))
+			html, _ := owl.RenderUserError(user, owl.ErrorMessage{
+				Error:   "Internal server error",
+				Message: "Internal server error",
+			})
+			w.Write([]byte(html))
 			return
 		}
 		println("Rendering index page for user", user.Name())
@@ -186,14 +194,14 @@ func postHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Request, 
 
 		if err != nil {
 			println("Error getting post: ", err.Error())
-			notFoundHandler(repo)(w, r)
+			notFoundUserHandler(repo, user)(w, r)
 			return
 		}
 
 		meta := post.Meta()
 		if meta.Draft {
 			println("Post is a draft")
-			notFoundHandler(repo)(w, r)
+			notFoundUserHandler(repo, user)(w, r)
 			return
 		}
 
@@ -201,7 +209,11 @@ func postHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Request, 
 		if err != nil {
 			println("Error rendering post: ", err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("Internal server error"))
+			html, _ := owl.RenderUserError(user, owl.ErrorMessage{
+				Error:   "Internal server error",
+				Message: "Internal server error",
+			})
+			w.Write([]byte(html))
 			return
 		}
 		println("Rendering post", postId)
@@ -224,13 +236,13 @@ func postMediaHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Requ
 		post, err := user.GetPost(postId)
 		if err != nil {
 			println("Error getting post: ", err.Error())
-			notFoundHandler(repo)(w, r)
+			notFoundUserHandler(repo, user)(w, r)
 			return
 		}
 		filepath = path.Join(post.MediaDir(), filepath)
 		if _, err := os.Stat(filepath); err != nil {
 			println("Error getting file: ", err.Error())
-			notFoundHandler(repo)(w, r)
+			notFoundUserHandler(repo, user)(w, r)
 			return
 		}
 		http.ServeFile(w, r, filepath)
@@ -250,7 +262,7 @@ func userMediaHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Requ
 		filepath = path.Join(user.MediaDir(), filepath)
 		if _, err := os.Stat(filepath); err != nil {
 			println("Error getting file: ", err.Error())
-			notFoundHandler(repo)(w, r)
+			notFoundUserHandler(repo, user)(w, r)
 			return
 		}
 		http.ServeFile(w, r, filepath)
@@ -267,5 +279,22 @@ func notFoundHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Reque
 		}
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte("Not found"))
+	}
+}
+
+func notFoundUserHandler(repo *owl.Repository, user owl.User) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		path := r.URL.Path
+		aliases, _ := repo.PostAliases()
+		if _, ok := aliases[path]; ok {
+			http.Redirect(w, r, aliases[path].UrlPath(), http.StatusMovedPermanently)
+			return
+		}
+		w.WriteHeader(http.StatusNotFound)
+		html, _ := owl.RenderUserError(user, owl.ErrorMessage{
+			Error:   "Not found",
+			Message: "The page you requested could not be found",
+		})
+		w.Write([]byte(html))
 	}
 }

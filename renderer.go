@@ -35,6 +35,11 @@ type AuthRequestData struct {
 	CsrfToken           string
 }
 
+type ErrorMessage struct {
+	Error   string
+	Message string
+}
+
 func renderEmbedTemplate(templateFile string, data interface{}) (string, error) {
 	templateStr, err := embed_files.ReadFile(templateFile)
 	if err != nil {
@@ -80,9 +85,8 @@ func renderIntoBaseTemplate(user User, data PageContent) (string, error) {
 	}
 
 	var html bytes.Buffer
-	t.Execute(&html, full_data)
-
-	return html.String(), nil
+	err = t.Execute(&html, full_data)
+	return html.String(), err
 }
 
 func renderPostContent(post *Post) (string, error) {
@@ -134,6 +138,18 @@ func RenderUserAuthPage(reqData AuthRequestData) (string, error) {
 	return renderIntoBaseTemplate(reqData.User, PageContent{
 		Title:   "Auth",
 		Content: template.HTML(authHtml),
+	})
+}
+
+func RenderUserError(user User, error ErrorMessage) (string, error) {
+	errHtml, err := renderEmbedTemplate("embed/error.html", error)
+	if err != nil {
+		return "", err
+	}
+
+	return renderIntoBaseTemplate(user, PageContent{
+		Title:   "Error",
+		Content: template.HTML(errHtml),
 	})
 }
 
