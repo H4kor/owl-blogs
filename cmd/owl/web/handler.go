@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -304,6 +305,7 @@ func userMicropubHandler(repo *owl.Repository) func(http.ResponseWriter, *http.R
 				Reply: owl.Reply{
 					Url: inReplyTo,
 				},
+				Date: time.Now(),
 			},
 			content,
 		)
