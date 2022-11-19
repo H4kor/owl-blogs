@@ -267,29 +267,11 @@ func userMicropubHandler(repo *owl.Repository) func(http.ResponseWriter, *http.R
 		}
 
 		// verify access token
-		header_token := r.Header.Get("Authorization")
-		form_token := r.Form.Get("access_token")
-		if header_token != "" {
-			header_token = strings.TrimPrefix(header_token, "Bearer ")
-		}
-
-		if header_token == "" && form_token == "" {
-			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte("Unauthorized"))
-			return
-		}
-
-		if header_token != "" && form_token != "" {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("Multiple access tokens provided"))
-			return
-		}
-
-		var token string
-		if header_token != "" {
-			token = header_token
+		token := r.Header.Get("Authorization")
+		if token == "" {
+			token = r.Form.Get("access_token")
 		} else {
-			token = form_token
+			token = strings.TrimPrefix(token, "Bearer ")
 		}
 
 		valid, _ := user.ValidateAccessToken(token)
