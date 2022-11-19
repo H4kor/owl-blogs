@@ -258,21 +258,6 @@ func userMicropubHandler(repo *owl.Repository) func(http.ResponseWriter, *http.R
 			return
 		}
 
-		// verify access token
-		token := r.Header.Get("Authorization")
-		if token == "" {
-			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte("Unauthorized"))
-			return
-		}
-		token = strings.TrimPrefix(token, "Bearer ")
-		valid, _ := user.ValidateAccessToken(token)
-		if !valid {
-			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte("Unauthorized"))
-			return
-		}
-
 		// parse request form
 		err = r.ParseForm()
 		if err != nil {
@@ -280,6 +265,40 @@ func userMicropubHandler(repo *owl.Repository) func(http.ResponseWriter, *http.R
 			w.Write([]byte("Bad request"))
 			return
 		}
+
+		// verify access token
+		header_token := r.Header.Get("Authorization")
+		form_token := r.Form.Get("access_token")
+		if header_token != "" {
+			header_token = strings.TrimPrefix(header_token, "Bearer ")
+		}
+
+		if header_token == "" && form_token == "" {
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte("Unauthorized"))
+			return
+		}
+
+		if header_token != "" && form_token != "" {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("Multiple access tokens provided"))
+			return
+		}
+
+		var token string
+		if header_token != "" {
+			token = header_token
+		} else {
+			token = form_token
+		}
+
+		valid, _ := user.ValidateAccessToken(token)
+		if !valid {
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte("Unauthorized"))
+			return
+		}
+
 		h := r.Form.Get("h")
 		content := r.Form.Get("content")
 		name := r.Form.Get("name")
@@ -290,9 +309,9 @@ func userMicropubHandler(repo *owl.Repository) func(http.ResponseWriter, *http.R
 			w.Write([]byte("Bad request. h must be entry"))
 			return
 		}
-		if content == "" || name == "" {
+		if content == "" {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("Bad request. content and name are required"))
+			w.Write([]byte("Bad request. content is required"))
 			return
 		}
 
@@ -313,8 +332,8 @@ func userMicropubHandler(repo *owl.Repository) func(http.ResponseWriter, *http.R
 			return
 		}
 
+		w.Header().Add("Location", post.FullUrl())
 		w.WriteHeader(http.StatusCreated)
-		w.Header().Set("Location", post.FullUrl())
 
 	}
 }
