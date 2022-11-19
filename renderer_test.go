@@ -86,6 +86,14 @@ func TestCanRenderIndexPage(t *testing.T) {
 	assertions.AssertContains(t, result, "testpost2")
 }
 
+func TestCanRenderIndexPageNoTitle(t *testing.T) {
+	user := getTestUser()
+	post, _ := user.CreateNewPostFull(owl.PostMeta{}, "hi")
+	result, _ := owl.RenderIndexPage(user)
+	assertions.AssertContains(t, result, post.Id())
+	assertions.AssertContains(t, result, "Note: ")
+}
+
 func TestIndexPageContainsHFeedContainer(t *testing.T) {
 	user := getTestUser()
 	user.CreateNewPost("testpost1", false)
