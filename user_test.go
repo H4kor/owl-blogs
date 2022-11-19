@@ -314,3 +314,39 @@ func TestVerifyPassword(t *testing.T) {
 	assertions.Assert(t, !user.VerifyPassword("0000000"), "Password should be incorrect")
 
 }
+
+func TestValidateAccessTokenWrongToken(t *testing.T) {
+	user := getTestUser()
+	code, _ := user.GenerateAuthCode(
+		"test", "test", "test", "test", "test",
+	)
+	user.GenerateAccessToken(owl.AuthCode{
+		Code:                code,
+		ClientId:            "test",
+		RedirectUri:         "test",
+		CodeChallenge:       "test",
+		CodeChallengeMethod: "test",
+		Scope:               "test",
+	})
+	valid, _ := user.ValidateAccessToken("test")
+	assertions.Assert(t, !valid, "Token should be invalid")
+}
+
+func TestValidateAccessTokenCorrectToken(t *testing.T) {
+	user := getTestUser()
+	code, _ := user.GenerateAuthCode(
+		"test", "test", "test", "test", "test",
+	)
+	token, _, _ := user.GenerateAccessToken(owl.AuthCode{
+		Code:                code,
+		ClientId:            "test",
+		RedirectUri:         "test",
+		CodeChallenge:       "test",
+		CodeChallengeMethod: "test",
+		Scope:               "test",
+	})
+	valid, aToken := user.ValidateAccessToken(token)
+	assertions.Assert(t, valid, "Token should be valid")
+	assertions.Assert(t, aToken.ClientId == "test", "Token should be valid")
+	assertions.Assert(t, aToken.Token == token, "Token should be valid")
+}

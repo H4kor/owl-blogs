@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -246,6 +247,78 @@ func postMediaHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Requ
 			return
 		}
 		http.ServeFile(w, r, filepath)
+	}
+}
+
+func userMicropubHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Request, httprouter.Params) {
+	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		user, err := getUserFromRepo(repo, ps)
+		if err != nil {
+			println("Error getting user: ", err.Error())
+			notFoundHandler(repo)(w, r)
+			return
+		}
+
+		// parse request form
+		err = r.ParseForm()
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("Bad request"))
+			return
+		}
+
+		// verify access token
+		token := r.Header.Get("Authorization")
+		if token == "" {
+			token = r.Form.Get("access_token")
+		} else {
+			token = strings.TrimPrefix(token, "Bearer ")
+		}
+
+		valid, _ := user.ValidateAccessToken(token)
+		if !valid {
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte("Unauthorized"))
+			return
+		}
+
+		h := r.Form.Get("h")
+		content := r.Form.Get("content")
+		name := r.Form.Get("name")
+		inReplyTo := r.Form.Get("in-reply-to")
+
+		if h != "entry" {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("Bad request. h must be entry. Got " + h))
+			return
+		}
+		if content == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("Bad request. content is required"))
+			return
+		}
+
+		// create post
+		post, err := user.CreateNewPostFull(
+			owl.PostMeta{
+				Title: name,
+				Reply: owl.Reply{
+					Url: inReplyTo,
+				},
+				Date: time.Now(),
+			},
+			content,
+		)
+
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("Internal server error"))
+			return
+		}
+
+		w.Header().Add("Location", post.FullUrl())
+		w.WriteHeader(http.StatusCreated)
+
 	}
 }
 

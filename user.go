@@ -88,6 +88,11 @@ func (user User) WebmentionUrl() string {
 	return url
 }
 
+func (user User) MicropubUrl() string {
+	url, _ := url.JoinPath(user.FullUrl(), "micropub/")
+	return url
+}
+
 func (user User) MediaUrl() string {
 	url, _ := url.JoinPath(user.UrlPath(), "media")
 	return url
@@ -203,8 +208,12 @@ func (user User) GetPost(id string) (*Post, error) {
 	return &post, nil
 }
 
-func (user User) CreateNewPost(title string, draft bool) (*Post, error) {
-	folder_name := toDirectoryName(title)
+func (user User) CreateNewPostFull(meta PostMeta, content string) (*Post, error) {
+	slugHint := meta.Title
+	if slugHint == "" {
+		slugHint = "note"
+	}
+	folder_name := toDirectoryName(slugHint)
 	post_dir := path.Join(user.Dir(), "public", folder_name)
 
 	// if post already exists, add -n to the end of the name
@@ -212,19 +221,13 @@ func (user User) CreateNewPost(title string, draft bool) (*Post, error) {
 	for {
 		if dirExists(post_dir) {
 			i++
-			folder_name = toDirectoryName(fmt.Sprintf("%s-%d", title, i))
+			folder_name = toDirectoryName(fmt.Sprintf("%s-%d", slugHint, i))
 			post_dir = path.Join(user.Dir(), "public", folder_name)
 		} else {
 			break
 		}
 	}
-	post := Post{user: &user, id: folder_name, title: title}
-	meta := PostMeta{
-		Title:   title,
-		Date:    time.Now(),
-		Aliases: []string{},
-		Draft:   draft,
-	}
+	post := Post{user: &user, id: folder_name, title: slugHint}
 
 	initial_content := ""
 	initial_content += "---\n"
@@ -236,7 +239,7 @@ func (user User) CreateNewPost(title string, draft bool) (*Post, error) {
 	initial_content += string(meta_bytes)
 	initial_content += "---\n"
 	initial_content += "\n"
-	initial_content += "Write your post here.\n"
+	initial_content += content
 
 	// create post file
 	os.Mkdir(post_dir, 0755)
@@ -244,6 +247,16 @@ func (user User) CreateNewPost(title string, draft bool) (*Post, error) {
 	// create media dir
 	os.Mkdir(post.MediaDir(), 0755)
 	return &post, nil
+}
+
+func (user User) CreateNewPost(title string, draft bool) (*Post, error) {
+	meta := PostMeta{
+		Title:   title,
+		Date:    time.Now(),
+		Aliases: []string{},
+		Draft:   draft,
+	}
+	return user.CreateNewPostFull(meta, title)
 }
 
 func (user User) Template() (string, error) {
@@ -378,4 +391,14 @@ func (user User) GenerateAccessToken(authCode AuthCode) (string, int, error) {
 		ExpiresIn:   duration,
 		Created:     time.Now(),
 	})
+}
+
+func (user User) ValidateAccessToken(token string) (bool, AccessToken) {
+	tokens := user.getAccessTokens()
+	for _, t := range tokens {
+		if t.Token == token {
+			return true, t
+		}
+	}
+	return false, AccessToken{}
 }
