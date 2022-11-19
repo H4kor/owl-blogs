@@ -289,7 +289,7 @@ func userMicropubHandler(repo *owl.Repository) func(http.ResponseWriter, *http.R
 
 		if h != "entry" {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("Bad request. h must be entry"))
+			w.Write([]byte("Bad request. h must be entry. Got " + h))
 			return
 		}
 		if content == "" {
