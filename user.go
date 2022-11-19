@@ -209,7 +209,11 @@ func (user User) GetPost(id string) (*Post, error) {
 }
 
 func (user User) CreateNewPostFull(meta PostMeta, content string) (*Post, error) {
-	folder_name := toDirectoryName(meta.Title)
+	slugHint := meta.Title
+	if slugHint == "" {
+		slugHint = "note"
+	}
+	folder_name := toDirectoryName(slugHint)
 	post_dir := path.Join(user.Dir(), "public", folder_name)
 
 	// if post already exists, add -n to the end of the name
@@ -217,13 +221,13 @@ func (user User) CreateNewPostFull(meta PostMeta, content string) (*Post, error)
 	for {
 		if dirExists(post_dir) {
 			i++
-			folder_name = toDirectoryName(fmt.Sprintf("%s-%d", meta.Title, i))
+			folder_name = toDirectoryName(fmt.Sprintf("%s-%d", slugHint, i))
 			post_dir = path.Join(user.Dir(), "public", folder_name)
 		} else {
 			break
 		}
 	}
-	post := Post{user: &user, id: folder_name, title: meta.Title}
+	post := Post{user: &user, id: folder_name, title: slugHint}
 
 	initial_content := ""
 	initial_content += "---\n"
