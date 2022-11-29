@@ -79,6 +79,13 @@ func AssertEqual[T comparable](t *testing.T, actual T, expected T) {
 	}
 }
 
+func AssertNotEqual[T comparable](t *testing.T, actual T, expected T) {
+	t.Helper()
+	if actual == expected {
+		t.Errorf("Expected '%v' to not be '%v'", expected, actual)
+	}
+}
+
 func AssertStatus(t *testing.T, rr *httptest.ResponseRecorder, expStatus int) {
 	if status := rr.Code; status != expStatus {
 		t.Errorf("handler returned wrong status code: got %v want %v",

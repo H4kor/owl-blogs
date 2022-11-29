@@ -225,7 +225,7 @@ func (user User) PrimaryFeedPosts() ([]*Post, error) {
 	n := 0
 	for _, post := range posts {
 		meta := post.Meta()
-		if meta.Type == "article" {
+		if meta.Type == "article" || meta.Type == "reply" {
 			posts[n] = post
 			n++
 		}

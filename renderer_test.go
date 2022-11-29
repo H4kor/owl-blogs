@@ -112,6 +112,24 @@ func TestIndexPageContainsHEntryAndUUrl(t *testing.T) {
 
 }
 
+func TestIndexPageDoesNotContainsArticle(t *testing.T) {
+	user := getTestUser()
+	user.CreateNewPostFull(owl.PostMeta{Type: "article"}, "hi")
+
+	result, _ := owl.RenderIndexPage(user)
+	assertions.AssertContains(t, result, "class=\"h-entry\"")
+	assertions.AssertContains(t, result, "class=\"u-url\"")
+}
+
+func TestIndexPageDoesNotContainsReply(t *testing.T) {
+	user := getTestUser()
+	user.CreateNewPostFull(owl.PostMeta{Type: "reply", Reply: owl.Reply{Url: "https://example.com/post"}}, "hi")
+
+	result, _ := owl.RenderIndexPage(user)
+	assertions.AssertContains(t, result, "class=\"h-entry\"")
+	assertions.AssertContains(t, result, "class=\"u-url\"")
+}
+
 func TestRenderIndexPageWithBrokenBaseTemplate(t *testing.T) {
 	user := getTestUser()
 	user.CreateNewPost("testpost1", false)
