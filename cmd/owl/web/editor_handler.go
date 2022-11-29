@@ -206,6 +206,10 @@ func userEditorPostHandler(repo *owl.Repository) func(http.ResponseWriter, *http
 			userEditorGetHandler(repo)(w, r, ps)
 			return
 		}
+		if post_type == "" {
+			userEditorGetHandler(repo)(w, r, ps)
+			return
+		}
 
 		// create post
 		post, err := user.CreateNewPostFull(owl.PostMeta{
