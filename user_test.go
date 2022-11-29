@@ -34,7 +34,7 @@ func TestCreateNewPostAddsDateToMetaBlock(t *testing.T) {
 	user := getTestUser()
 	// Create a new post
 	user.CreateNewPost("testpost", false)
-	posts, _ := user.Posts()
+	posts, _ := user.PublishedPosts()
 	post, _ := user.GetPost(posts[0].Id())
 	meta := post.Meta()
 	assertions.AssertNot(t, meta.Date.IsZero(), "Date not set")
@@ -61,7 +61,7 @@ func TestCanListUserPosts(t *testing.T) {
 	user.CreateNewPost("testpost", false)
 	user.CreateNewPost("testpost", false)
 	user.CreateNewPost("testpost", false)
-	posts, err := user.Posts()
+	posts, err := user.PublishedPosts()
 	assertions.AssertNoError(t, err, "Error reading posts")
 	assertions.AssertLen(t, posts, 3)
 }
@@ -83,7 +83,7 @@ func TestCannotListUserPostsInSubdirectories(t *testing.T) {
 
 	os.WriteFile(path.Join(user.PostDir(), "foo/index.md"), []byte(content), 0644)
 	os.WriteFile(path.Join(user.PostDir(), "foo/bar/index.md"), []byte(content), 0644)
-	posts, _ := user.Posts()
+	posts, _ := user.PublishedPosts()
 	postIds := []string{}
 	for _, p := range posts {
 		postIds = append(postIds, p.Id())
@@ -119,7 +119,7 @@ func TestCannotListUserPostsWithoutIndexMd(t *testing.T) {
 	content += "Write your post here.\n"
 
 	os.WriteFile(path.Join(user.PostDir(), "foo/bar/index.md"), []byte(content), 0644)
-	posts, _ := user.Posts()
+	posts, _ := user.PublishedPosts()
 	postIds := []string{}
 	for _, p := range posts {
 		postIds = append(postIds, p.Id())
@@ -147,7 +147,7 @@ func TestListUserPostsDoesNotIncludeDrafts(t *testing.T) {
 	content += "Write your post here.\n"
 	os.WriteFile(post.ContentFile(), []byte(content), 0644)
 
-	posts, _ := user.Posts()
+	posts, _ := user.PublishedPosts()
 	assertions.AssertLen(t, posts, 0)
 }
 
@@ -173,7 +173,7 @@ func TestListUsersDraftsExcludedRealWorld(t *testing.T) {
 
 	os.WriteFile(post.ContentFile(), []byte(content), 0644)
 
-	posts, _ := user.Posts()
+	posts, _ := user.PublishedPosts()
 	assertions.AssertLen(t, posts, 0)
 }
 
@@ -182,7 +182,7 @@ func TestCanLoadPost(t *testing.T) {
 	// Create a new post
 	user.CreateNewPost("testpost", false)
 
-	posts, _ := user.Posts()
+	posts, _ := user.PublishedPosts()
 	post, _ := user.GetPost(posts[0].Id())
 	assertions.Assert(t, post.Title() == "testpost", "Post title is not correct")
 }
@@ -217,7 +217,7 @@ func TestPostsSortedByPublishingDateLatestFirst(t *testing.T) {
 	content += "This is a test"
 	os.WriteFile(post2.ContentFile(), []byte(content), 0644)
 
-	posts, _ := user.Posts()
+	posts, _ := user.PublishedPosts()
 	assertions.Assert(t, posts[0].Id() == post2.Id(), "Wrong Id")
 	assertions.Assert(t, posts[1].Id() == post1.Id(), "Wrong Id")
 }
@@ -237,7 +237,7 @@ func TestPostsSortedByPublishingDateLatestFirst2(t *testing.T) {
 		posts = append(posts, post)
 	}
 
-	retPosts, _ := user.Posts()
+	retPosts, _ := user.PublishedPosts()
 	for i, p := range retPosts {
 		assertions.Assert(t, p.Id() == posts[i].Id(), "Wrong Id")
 	}
@@ -263,7 +263,7 @@ func TestPostsSortedByPublishingDateBrokenAtBottom(t *testing.T) {
 	content += "This is a test"
 	os.WriteFile(post2.ContentFile(), []byte(content), 0644)
 
-	posts, _ := user.Posts()
+	posts, _ := user.PublishedPosts()
 	assertions.Assert(t, posts[0].Id() == post2.Id(), "Wrong Id")
 	assertions.Assert(t, posts[1].Id() == post1.Id(), "Wrong Id")
 }

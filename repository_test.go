@@ -210,7 +210,7 @@ func TestCanGetMapWithAllPostAliases(t *testing.T) {
 	content += "This is a test"
 	os.WriteFile(post.ContentFile(), []byte(content), 0644)
 
-	posts, _ := user.Posts()
+	posts, _ := user.PublishedPosts()
 	assertions.AssertLen(t, posts, 1)
 
 	var aliases map[string]*owl.Post
@@ -244,7 +244,7 @@ func TestAliasesHaveCorrectPost(t *testing.T) {
 	content += "This is a test"
 	os.WriteFile(post2.ContentFile(), []byte(content), 0644)
 
-	posts, _ := user.Posts()
+	posts, _ := user.PublishedPosts()
 	assertions.AssertLen(t, posts, 2)
 
 	var aliases map[string]*owl.Post

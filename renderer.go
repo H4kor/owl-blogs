@@ -120,7 +120,7 @@ func RenderPost(post *Post) (string, error) {
 }
 
 func RenderIndexPage(user User) (string, error) {
-	posts, _ := user.Posts()
+	posts, _ := user.PrimaryFeedPosts()
 
 	postHtml, err := renderEmbedTemplate("embed/post-list.html", posts)
 	if err != nil {

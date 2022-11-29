@@ -41,7 +41,7 @@ func RenderRSSFeed(user User) (string, error) {
 		},
 	}
 
-	posts, _ := user.Posts()
+	posts, _ := user.PrimaryFeedPosts()
 	for _, post := range posts {
 		meta := post.Meta()
 		content, _ := renderPostContent(post)

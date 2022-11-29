@@ -86,7 +86,7 @@ var webmentionCmd = &cobra.Command{
 				return
 			}
 
-			posts, err := user.Posts()
+			posts, err := user.PublishedPosts()
 			if err != nil {
 				println("Error getting posts: ", err.Error())
 			}

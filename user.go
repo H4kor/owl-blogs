@@ -166,7 +166,7 @@ func (user User) FaviconUrl() string {
 	return ""
 }
 
-func (user User) Posts() ([]*Post, error) {
+func (user User) AllPosts() ([]*Post, error) {
 	postFiles := listDir(path.Join(user.Dir(), "public"))
 	posts := make([]*Post, 0)
 	for _, id := range postFiles {
@@ -178,17 +178,6 @@ func (user User) Posts() ([]*Post, error) {
 			}
 		}
 	}
-
-	// remove drafts
-	n := 0
-	for _, post := range posts {
-		meta := post.Meta()
-		if !meta.Draft {
-			posts[n] = post
-			n++
-		}
-	}
-	posts = posts[:n]
 
 	type PostWithDate struct {
 		post *Post
@@ -210,6 +199,38 @@ func (user User) Posts() ([]*Post, error) {
 		posts[i] = post.post
 	}
 
+	return posts, nil
+}
+
+func (user User) PublishedPosts() ([]*Post, error) {
+	posts, _ := user.AllPosts()
+
+	// remove drafts
+	n := 0
+	for _, post := range posts {
+		meta := post.Meta()
+		if !meta.Draft {
+			posts[n] = post
+			n++
+		}
+	}
+	posts = posts[:n]
+	return posts, nil
+}
+
+func (user User) PrimaryFeedPosts() ([]*Post, error) {
+	posts, _ := user.PublishedPosts()
+
+	// remove non-primary feed posts
+	n := 0
+	for _, post := range posts {
+		meta := post.Meta()
+		if meta.Type == "article" {
+			posts[n] = post
+			n++
+		}
+	}
+	posts = posts[:n]
 	return posts, nil
 }
 
@@ -301,7 +322,7 @@ func (user User) SetConfig(new_config UserConfig) error {
 
 func (user User) PostAliases() (map[string]*Post, error) {
 	post_aliases := make(map[string]*Post)
-	posts, err := user.Posts()
+	posts, err := user.PublishedPosts()
 	if err != nil {
 		return post_aliases, err
 	}
