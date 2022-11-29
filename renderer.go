@@ -35,6 +35,11 @@ type AuthRequestData struct {
 	CsrfToken           string
 }
 
+type EditorViewData struct {
+	User      User
+	CsrfToken string
+}
+
 type ErrorMessage struct {
 	Error   string
 	Message string
@@ -167,4 +172,34 @@ func RenderUserList(repo Repository) (string, error) {
 	}
 
 	return renderTemplateStr([]byte(baseTemplate), data)
+}
+
+func RenderLoginPage(user User, csrfToken string) (string, error) {
+	loginHtml, err := renderEmbedTemplate("embed/editor/login.html", EditorViewData{
+		User:      user,
+		CsrfToken: csrfToken,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return renderIntoBaseTemplate(user, PageContent{
+		Title:   "Login",
+		Content: template.HTML(loginHtml),
+	})
+}
+
+func RenderEditorPage(user User, csrfToken string) (string, error) {
+	editorHtml, err := renderEmbedTemplate("embed/editor/editor.html", EditorViewData{
+		User:      user,
+		CsrfToken: csrfToken,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return renderIntoBaseTemplate(user, PageContent{
+		Title:   "Editor",
+		Content: template.HTML(editorHtml),
+	})
 }

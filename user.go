@@ -52,6 +52,12 @@ type AccessToken struct {
 	ExpiresIn   int       `yaml:"expires_in"`
 }
 
+type Session struct {
+	Id        string    `yaml:"id"`
+	Created   time.Time `yaml:"created"`
+	ExpiresIn int       `yaml:"expires_in"`
+}
+
 func (user User) Dir() string {
 	return path.Join(user.repo.UsersDir(), user.name)
 }
@@ -98,6 +104,16 @@ func (user User) MediaUrl() string {
 	return url
 }
 
+func (user User) EditorUrl() string {
+	url, _ := url.JoinPath(user.UrlPath(), "editor/")
+	return url
+}
+
+func (user User) EditorLoginUrl() string {
+	url, _ := url.JoinPath(user.UrlPath(), "editor/auth/")
+	return url
+}
+
 func (user User) PostDir() string {
 	return path.Join(user.Dir(), "public")
 }
@@ -120,6 +136,10 @@ func (user User) AuthCodesFile() string {
 
 func (user User) AccessTokensFile() string {
 	return path.Join(user.MetaDir(), "access_tokens.yml")
+}
+
+func (user User) SessionsFile() string {
+	return path.Join(user.MetaDir(), "sessions.yml")
 }
 
 func (user User) Name() string {
@@ -397,8 +417,45 @@ func (user User) ValidateAccessToken(token string) (bool, AccessToken) {
 	tokens := user.getAccessTokens()
 	for _, t := range tokens {
 		if t.Token == token {
-			return true, t
+			if time.Since(t.Created) < time.Duration(t.ExpiresIn)*time.Second {
+				return true, t
+			}
 		}
 	}
 	return false, AccessToken{}
+}
+
+func (user User) getSessions() []Session {
+	sessions := make([]Session, 0)
+	loadFromYaml(user.SessionsFile(), &sessions)
+	return sessions
+}
+
+func (user User) addSession(session Session) error {
+	sessions := user.getSessions()
+	sessions = append(sessions, session)
+	return saveToYaml(user.SessionsFile(), sessions)
+}
+
+func (user User) CreateNewSession() string {
+	// generate code
+	code := GenerateRandomString(32)
+	user.addSession(Session{
+		Id:        code,
+		Created:   time.Now(),
+		ExpiresIn: 30 * 24 * 60 * 60,
+	})
+	return code
+}
+
+func (user User) ValidateSession(session_id string) bool {
+	sessions := user.getSessions()
+	for _, session := range sessions {
+		if session.Id == session_id {
+			if time.Since(session.Created) < time.Duration(session.ExpiresIn)*time.Second {
+				return true
+			}
+		}
+	}
+	return false
 }

@@ -32,6 +32,7 @@ type Reply struct {
 }
 
 type PostMeta struct {
+	Type        string    `yaml:"type"`
 	Title       string    `yaml:"title"`
 	Description string    `yaml:"description"`
 	Aliases     []string  `yaml:"aliases"`
@@ -46,6 +47,7 @@ func (pm PostMeta) FormattedDate() string {
 
 func (pm *PostMeta) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	type T struct {
+		Type        string   `yaml:"type"`
 		Title       string   `yaml:"title"`
 		Description string   `yaml:"description"`
 		Aliases     []string `yaml:"aliases"`
@@ -65,6 +67,10 @@ func (pm *PostMeta) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		return err
 	}
 
+	pm.Type = t.Type
+	if pm.Type == "" {
+		pm.Type = "article"
+	}
 	pm.Title = t.Title
 	pm.Description = t.Description
 	pm.Aliases = t.Aliases
