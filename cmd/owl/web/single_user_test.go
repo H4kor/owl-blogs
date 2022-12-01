@@ -99,3 +99,34 @@ func TestHasNoDraftsInList(t *testing.T) {
 	// Check if title is in the response body
 	assertions.AssertNotContains(t, rr.Body.String(), "Articles September 2019")
 }
+
+func TestSingleUserUserPostListHandler(t *testing.T) {
+	repo, user := getSingleUserTestRepo()
+	user.CreateNewPostFull(owl.PostMeta{
+		Title: "post-1",
+		Type:  "article",
+	}, "hi")
+	user.CreateNewPostFull(owl.PostMeta{
+		Title: "post-2",
+		Type:  "note",
+	}, "hi")
+	list := owl.PostList{
+		Title:   "list-1",
+		Id:      "list-1",
+		Include: []string{"article"},
+	}
+	user.AddPostList(list)
+
+	// Create Request and Response
+	req, err := http.NewRequest("GET", user.ListUrl(list), nil)
+	assertions.AssertNoError(t, err, "Error creating request")
+	rr := httptest.NewRecorder()
+	router := main.SingleUserRouter(&repo)
+	router.ServeHTTP(rr, req)
+
+	assertions.AssertStatus(t, rr, http.StatusOK)
+
+	// Check the response body contains names of users
+	assertions.AssertContains(t, rr.Body.String(), "post-1")
+	assertions.AssertNotContains(t, rr.Body.String(), "post-2")
+}

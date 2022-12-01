@@ -77,6 +77,53 @@ func TestRendererUsesBaseTemplate(t *testing.T) {
 	assertions.AssertContains(t, result, "<html")
 }
 
+func TestCanRenderPostList(t *testing.T) {
+	user := getTestUser()
+	user.CreateNewPost("testpost1", false)
+	user.CreateNewPost("testpost2", false)
+	result, _ := owl.RenderPostList(user, &owl.PostList{
+		Id:    "testlist",
+		Title: "Test List",
+		Include: []string{
+			"article",
+		},
+	})
+	assertions.AssertContains(t, result, "testpost1")
+	assertions.AssertContains(t, result, "testpost2")
+}
+
+func TestCanRenderPostListNotIncludeOther(t *testing.T) {
+	user := getTestUser()
+	user.CreateNewPostFull(owl.PostMeta{Title: "testpost1", Type: "article"}, "testpost1")
+	user.CreateNewPostFull(owl.PostMeta{Title: "testpost2", Type: "note"}, "testpost2")
+	result, _ := owl.RenderPostList(user, &owl.PostList{
+		Id:    "testlist",
+		Title: "Test List",
+		Include: []string{
+			"article",
+		},
+	})
+	assertions.AssertContains(t, result, "testpost1")
+	assertions.AssertNotContains(t, result, "testpost2")
+}
+
+func TestCanRenderPostListNotIncludeMultiple(t *testing.T) {
+	user := getTestUser()
+	user.CreateNewPostFull(owl.PostMeta{Title: "testpost1", Type: "article"}, "testpost1")
+	user.CreateNewPostFull(owl.PostMeta{Title: "testpost2", Type: "note"}, "testpost2")
+	user.CreateNewPostFull(owl.PostMeta{Title: "testpost3", Type: "recipe"}, "testpost3")
+	result, _ := owl.RenderPostList(user, &owl.PostList{
+		Id:    "testlist",
+		Title: "Test List",
+		Include: []string{
+			"article", "recipe",
+		},
+	})
+	assertions.AssertContains(t, result, "testpost1")
+	assertions.AssertNotContains(t, result, "testpost2")
+	assertions.AssertContains(t, result, "testpost3")
+}
+
 func TestCanRenderIndexPage(t *testing.T) {
 	user := getTestUser()
 	user.CreateNewPost("testpost1", false)

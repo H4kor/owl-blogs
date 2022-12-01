@@ -133,6 +133,19 @@ func RenderIndexPage(user User) (string, error) {
 	})
 }
 
+func RenderPostList(user User, list *PostList) (string, error) {
+	posts, _ := user.GetPostsOfList(*list)
+	postHtml, err := renderEmbedTemplate("embed/post-list.html", posts)
+	if err != nil {
+		return "", err
+	}
+
+	return renderIntoBaseTemplate(user, PageContent{
+		Title:   "Index",
+		Content: template.HTML(postHtml),
+	})
+}
+
 func RenderUserAuthPage(reqData AuthRequestData) (string, error) {
 	reqData.Scopes = strings.Split(reqData.Scope, " ")
 	authHtml, err := renderEmbedTemplate("embed/auth.html", reqData)

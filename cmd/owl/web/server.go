@@ -14,6 +14,7 @@ func Router(repo *owl.Repository) http.Handler {
 	router.ServeFiles("/static/*filepath", http.Dir(repo.StaticDir()))
 	router.GET("/", repoIndexHandler(repo))
 	router.GET("/user/:user/", userIndexHandler(repo))
+	router.GET("/user/:user/lists/:list/", postListHandler(repo))
 	// Editor
 	router.GET("/user/:user/editor/auth/", userLoginGetHandler(repo))
 	router.POST("/user/:user/editor/auth/", userLoginPostHandler(repo))
@@ -44,6 +45,7 @@ func SingleUserRouter(repo *owl.Repository) http.Handler {
 	router := httprouter.New()
 	router.ServeFiles("/static/*filepath", http.Dir(repo.StaticDir()))
 	router.GET("/", userIndexHandler(repo))
+	router.GET("/lists/:list/", postListHandler(repo))
 	// Editor
 	router.GET("/editor/auth/", userLoginGetHandler(repo))
 	router.POST("/editor/auth/", userLoginPostHandler(repo))

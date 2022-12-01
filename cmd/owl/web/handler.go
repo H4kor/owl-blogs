@@ -64,6 +64,40 @@ func userIndexHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Requ
 	}
 }
 
+func postListHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Request, httprouter.Params) {
+	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		listId := ps.ByName("list")
+		user, err := getUserFromRepo(repo, ps)
+		if err != nil {
+			println("Error getting user: ", err.Error())
+			notFoundHandler(repo)(w, r)
+			return
+		}
+
+		list, err := user.GetPostList(listId)
+
+		if err != nil {
+			println("Error getting post list: ", err.Error())
+			notFoundUserHandler(repo, user)(w, r)
+			return
+		}
+
+		html, err := owl.RenderPostList(user, list)
+		if err != nil {
+			println("Error rendering index page: ", err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+			html, _ := owl.RenderUserError(user, owl.ErrorMessage{
+				Error:   "Internal server error",
+				Message: "Internal server error",
+			})
+			w.Write([]byte(html))
+			return
+		}
+		println("Rendering index page for user", user.Name())
+		w.Write([]byte(html))
+	}
+}
+
 func userWebmentionHandler(repo *owl.Repository) func(http.ResponseWriter, *http.Request, httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		user, err := getUserFromRepo(repo, ps)

@@ -20,12 +20,28 @@ type User struct {
 }
 
 type UserConfig struct {
-	Title       string   `yaml:"title"`
-	SubTitle    string   `yaml:"subtitle"`
-	HeaderColor string   `yaml:"header_color"`
-	AuthorName  string   `yaml:"author_name"`
-	Me          []UserMe `yaml:"me"`
-	PassworHash string   `yaml:"password_hash"`
+	Title       string     `yaml:"title"`
+	SubTitle    string     `yaml:"subtitle"`
+	HeaderColor string     `yaml:"header_color"`
+	AuthorName  string     `yaml:"author_name"`
+	Me          []UserMe   `yaml:"me"`
+	PassworHash string     `yaml:"password_hash"`
+	Lists       []PostList `yaml:"lists"`
+}
+
+type PostList struct {
+	Id      string   `yaml:"id"`
+	Title   string   `yaml:"title"`
+	Include []string `yaml:"include"`
+}
+
+func (l *PostList) ContainsType(t string) bool {
+	for _, t2 := range l.Include {
+		if t2 == t {
+			return true
+		}
+	}
+	return false
 }
 
 type UserMe struct {
@@ -64,6 +80,11 @@ func (user User) Dir() string {
 
 func (user User) UrlPath() string {
 	return user.repo.UserUrlPath(user)
+}
+
+func (user User) ListUrl(list PostList) string {
+	url, _ := url.JoinPath(user.UrlPath(), "lists/"+list.Id+"/")
+	return url
 }
 
 func (user User) FullUrl() string {
@@ -234,6 +255,22 @@ func (user User) PrimaryFeedPosts() ([]*Post, error) {
 	return posts, nil
 }
 
+func (user User) GetPostsOfList(list PostList) ([]*Post, error) {
+	posts, _ := user.PublishedPosts()
+
+	// remove posts not included
+	n := 0
+	for _, post := range posts {
+		meta := post.Meta()
+		if list.ContainsType(meta.Type) {
+			posts[n] = post
+			n++
+		}
+	}
+	posts = posts[:n]
+	return posts, nil
+}
+
 func (user User) GetPost(id string) (*Post, error) {
 	// check if posts index.md exists
 	if !fileExists(path.Join(user.Dir(), "public", id, "index.md")) {
@@ -335,6 +372,24 @@ func (user User) PostAliases() (map[string]*Post, error) {
 		}
 	}
 	return post_aliases, nil
+}
+
+func (user User) GetPostList(id string) (*PostList, error) {
+	lists := user.Config().Lists
+
+	for _, list := range lists {
+		if list.Id == id {
+			return &list, nil
+		}
+	}
+
+	return &PostList{}, fmt.Errorf("list %s does not exist", id)
+}
+
+func (user User) AddPostList(list PostList) error {
+	config := user.Config()
+	config.Lists = append(config.Lists, list)
+	return user.SetConfig(config)
 }
 
 func (user User) ResetPassword(password string) error {
