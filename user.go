@@ -20,13 +20,14 @@ type User struct {
 }
 
 type UserConfig struct {
-	Title       string     `yaml:"title"`
-	SubTitle    string     `yaml:"subtitle"`
-	HeaderColor string     `yaml:"header_color"`
-	AuthorName  string     `yaml:"author_name"`
-	Me          []UserMe   `yaml:"me"`
-	PassworHash string     `yaml:"password_hash"`
-	Lists       []PostList `yaml:"lists"`
+	Title              string     `yaml:"title"`
+	SubTitle           string     `yaml:"subtitle"`
+	HeaderColor        string     `yaml:"header_color"`
+	AuthorName         string     `yaml:"author_name"`
+	Me                 []UserMe   `yaml:"me"`
+	PassworHash        string     `yaml:"password_hash"`
+	Lists              []PostList `yaml:"lists"`
+	PrimaryListInclude []string   `yaml:"primary_list_include"`
 }
 
 type PostList struct {
@@ -240,19 +241,16 @@ func (user User) PublishedPosts() ([]*Post, error) {
 }
 
 func (user User) PrimaryFeedPosts() ([]*Post, error) {
-	posts, _ := user.PublishedPosts()
-
-	// remove non-primary feed posts
-	n := 0
-	for _, post := range posts {
-		meta := post.Meta()
-		if meta.Type == "article" || meta.Type == "reply" {
-			posts[n] = post
-			n++
-		}
+	config := user.Config()
+	include := config.PrimaryListInclude
+	if len(include) == 0 {
+		include = []string{"article", "reply"} // default before addition of this option
 	}
-	posts = posts[:n]
-	return posts, nil
+	return user.GetPostsOfList(PostList{
+		Id:      "",
+		Title:   "",
+		Include: include,
+	})
 }
 
 func (user User) GetPostsOfList(list PostList) ([]*Post, error) {
