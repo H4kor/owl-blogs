@@ -13,11 +13,19 @@
         <input type="checkbox" name="draft" />
         <label for="draft">Draft</label>
         <br><br>
-        <input type="submit" value="Create" />
+        <input type="submit" value="Create Article" />
     </form>
 </details>
 
 <details>
     <summary>Write Note</summary>
-    TODO
+    <form action="" method="post">
+        <h2>Create New Note</h2>
+        <input type="hidden" name="csrf_token" value="{{.CsrfToken}}">
+        <input type="hidden" name="type" value="note">
+        <label for="content">Content</label>
+        <textarea name="content" placeholder="Content" rows="24"></textarea>
+        <br><br>
+        <input type="submit" value="Create Note" />
+    </form>
 </details>
