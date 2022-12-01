@@ -99,7 +99,7 @@ func renderPostContent(post *Post) (string, error) {
 	postHtml, err := renderEmbedTemplate("embed/post.html", PostRenderData{
 		Title:   post.Title(),
 		Post:    post,
-		Content: template.HTML(buf.String()),
+		Content: template.HTML(buf),
 	})
 	return postHtml, err
 }

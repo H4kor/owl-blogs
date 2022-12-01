@@ -168,7 +168,7 @@ func (post *Post) Content() []byte {
 	return data
 }
 
-func (post *Post) RenderedContent() bytes.Buffer {
+func (post *Post) RenderedContent() string {
 	data := post.Content()
 
 	// trim yaml block
@@ -204,7 +204,7 @@ func (post *Post) RenderedContent() bytes.Buffer {
 		panic(err)
 	}
 
-	return buf
+	return buf.String()
 
 }
 
@@ -366,7 +366,7 @@ func (post *Post) ScanForLinks() error {
 	// this could be done in markdown parsing, but I don't want to
 	// rely on goldmark for this (yet)
 	postHtml := post.RenderedContent()
-	links, _ := post.user.repo.Parser.ParseLinksFromString(postHtml.String())
+	links, _ := post.user.repo.Parser.ParseLinksFromString(postHtml)
 	// add reply url if set
 	if post.Meta().Reply.Url != "" {
 		links = append(links, post.Meta().Reply.Url)

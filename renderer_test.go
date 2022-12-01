@@ -143,9 +143,11 @@ func TestCanRenderIndexPageNoTitle(t *testing.T) {
 
 func TestRenderNoteAsFullContent(t *testing.T) {
 	user := getTestUser()
-	post, _ := user.CreateNewPostFull(owl.PostMeta{Type: "note"}, "hi")
-	result, _ := owl.RenderPost(post)
-	assertions.AssertContains(t, result, "hi")
+	user.CreateNewPostFull(owl.PostMeta{Type: "note"}, "This is a note")
+	result, _ := owl.RenderPostList(user, &owl.PostList{
+		Include: []string{"note"},
+	})
+	assertions.AssertContains(t, result, "This is a note")
 }
 
 func TestIndexPageContainsHFeedContainer(t *testing.T) {

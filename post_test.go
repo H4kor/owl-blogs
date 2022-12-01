@@ -80,8 +80,7 @@ func TestNoRawHTMLIfDisallowedByRepo(t *testing.T) {
 	content += "<script>alert('foo')</script>\n"
 	os.WriteFile(post.ContentFile(), []byte(content), 0644)
 	html := post.RenderedContent()
-	html_str := html.String()
-	assertions.AssertNotContains(t, html_str, "<script>")
+	assertions.AssertNotContains(t, html, "<script>")
 }
 
 func TestRawHTMLIfAllowedByRepo(t *testing.T) {
@@ -96,8 +95,7 @@ func TestRawHTMLIfAllowedByRepo(t *testing.T) {
 	content += "<script>alert('foo')</script>\n"
 	os.WriteFile(post.ContentFile(), []byte(content), 0644)
 	html := post.RenderedContent()
-	html_str := html.String()
-	assertions.AssertContains(t, html_str, "<script>")
+	assertions.AssertContains(t, html, "<script>")
 }
 
 func TestLoadMeta(t *testing.T) {
