@@ -3,7 +3,7 @@
     <div class="h-entry">
         <hgroup>
             {{ if eq .Meta.Type "note"}}
-            <p>{{.RenderedContent}}</p>
+            <p>{{.RenderedContent | noescape}}</p>
             {{ else }}
             <h3><a class="u-url" href="{{.UrlPath}}">
                     {{ if .Title }}{{.Title}}{{ else }}{{.Id}}{{ end }}

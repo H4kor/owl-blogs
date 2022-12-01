@@ -148,6 +148,7 @@ func TestRenderNoteAsFullContent(t *testing.T) {
 		Include: []string{"note"},
 	})
 	assertions.AssertContains(t, result, "This is a note")
+	assertions.AssertNotContains(t, result, "&lt;p&gt;This is a note")
 }
 
 func TestIndexPageContainsHFeedContainer(t *testing.T) {

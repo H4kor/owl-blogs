@@ -45,6 +45,10 @@ type ErrorMessage struct {
 	Message string
 }
 
+func noescape(str string) template.HTML {
+	return template.HTML(str)
+}
+
 func renderEmbedTemplate(templateFile string, data interface{}) (string, error) {
 	templateStr, err := embed_files.ReadFile(templateFile)
 	if err != nil {
@@ -54,7 +58,9 @@ func renderEmbedTemplate(templateFile string, data interface{}) (string, error) 
 }
 
 func renderTemplateStr(templateStr []byte, data interface{}) (string, error) {
-	t, err := template.New("_").Parse(string(templateStr))
+	t, err := template.New("_").Funcs(template.FuncMap{
+		"noescape": noescape,
+	}).Parse(string(templateStr))
 	if err != nil {
 		return "", err
 	}
