@@ -1,18 +1,22 @@
 <div class="h-feed">
-{{range .}}
-<div class="h-entry">
-    <hgroup>
-        <h3><a class="u-url" href="{{.UrlPath}}">
-            {{ if .Title }}{{.Title}}{{ else }}Note: {{.Id}}{{ end }}
-        </a></h3>
-        <small>
-            Published:
-            <time class="dt-published" datetime="{{.Meta.Date}}">
-                {{.Meta.FormattedDate}}
-            </time>
-        </small>
-    </hgroup>
-</div>
-<hr>
-{{end}}
+    {{range .}}
+    <div class="h-entry">
+        <hgroup>
+            {{ if eq .Meta.Type "note"}}
+            <p>{{.RenderedContent}}</p>
+            {{ else }}
+            <h3><a class="u-url" href="{{.UrlPath}}">
+                    {{ if .Title }}{{.Title}}{{ else }}{{.Id}}{{ end }}
+                </a></h3>
+            {{ end }}
+            <small>
+                Published:
+                <time class="dt-published" datetime="{{.Meta.Date}}">
+                    {{.Meta.FormattedDate}}
+                </time>
+            </small>
+        </hgroup>
+    </div>
+    <hr>
+    {{end}}
 </div>

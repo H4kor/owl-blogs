@@ -81,13 +81,14 @@ func TestCanRenderPostList(t *testing.T) {
 	user := getTestUser()
 	user.CreateNewPost("testpost1", false)
 	user.CreateNewPost("testpost2", false)
-	result, _ := owl.RenderPostList(user, &owl.PostList{
+	result, err := owl.RenderPostList(user, &owl.PostList{
 		Id:    "testlist",
 		Title: "Test List",
 		Include: []string{
 			"article",
 		},
 	})
+	assertions.AssertNoError(t, err, "Error rendering post list")
 	assertions.AssertContains(t, result, "testpost1")
 	assertions.AssertContains(t, result, "testpost2")
 }
@@ -138,7 +139,13 @@ func TestCanRenderIndexPageNoTitle(t *testing.T) {
 	post, _ := user.CreateNewPostFull(owl.PostMeta{}, "hi")
 	result, _ := owl.RenderIndexPage(user)
 	assertions.AssertContains(t, result, post.Id())
-	assertions.AssertContains(t, result, "Note: ")
+}
+
+func TestRenderNoteAsFullContent(t *testing.T) {
+	user := getTestUser()
+	post, _ := user.CreateNewPostFull(owl.PostMeta{Type: "note"}, "hi")
+	result, _ := owl.RenderPost(post)
+	assertions.AssertContains(t, result, "hi")
 }
 
 func TestIndexPageContainsHFeedContainer(t *testing.T) {
