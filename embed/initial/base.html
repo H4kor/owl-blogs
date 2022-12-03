@@ -36,6 +36,7 @@
     <style>
         header {
             background-color: {{.User.Config.HeaderColor}};
+            padding-bottom: 1rem !important;
         }
 
         footer {
@@ -87,7 +88,8 @@
                 {{ end }}
                 </div>
             </div>
-
+        </div>
+        <div class="container">
             <nav>
                 <ul>
                     {{ range $link := .User.Config.HeaderMenu }}
