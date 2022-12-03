@@ -406,3 +406,25 @@ func TestRenderUserAuthHiddenFields(t *testing.T) {
 	assertions.AssertContains(t, result, "name=\"response_type\" value=\"code\"")
 	assertions.AssertContains(t, result, "name=\"state\" value=\"teststate\"")
 }
+
+func TestRenderHeaderMenuListItem(t *testing.T) {
+	user := getTestUser()
+	user.AddHeaderMenuItem(owl.MenuItem{
+		Title: "Test Entry",
+		List:  "test",
+	})
+	result, _ := owl.RenderIndexPage(user)
+	assertions.AssertContains(t, result, "Test Entry")
+	assertions.AssertContains(t, result, "/lists/test")
+}
+
+func TestRenderHeaderMenuUrlItem(t *testing.T) {
+	user := getTestUser()
+	user.AddHeaderMenuItem(owl.MenuItem{
+		Title: "Test Entry",
+		Url:   "https://example.com",
+	})
+	result, _ := owl.RenderIndexPage(user)
+	assertions.AssertContains(t, result, "Test Entry")
+	assertions.AssertContains(t, result, "https://example.com")
+}

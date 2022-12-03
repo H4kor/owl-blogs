@@ -49,6 +49,12 @@ func noescape(str string) template.HTML {
 	return template.HTML(str)
 }
 
+func listUrl(user User, id string) string {
+	return user.ListUrl(PostList{
+		Id: id,
+	})
+}
+
 func renderEmbedTemplate(templateFile string, data interface{}) (string, error) {
 	templateStr, err := embed_files.ReadFile(templateFile)
 	if err != nil {
@@ -60,6 +66,7 @@ func renderEmbedTemplate(templateFile string, data interface{}) (string, error) 
 func renderTemplateStr(templateStr []byte, data interface{}) (string, error) {
 	t, err := template.New("_").Funcs(template.FuncMap{
 		"noescape": noescape,
+		"listUrl":  listUrl,
 	}).Parse(string(templateStr))
 	if err != nil {
 		return "", err
@@ -74,7 +81,10 @@ func renderTemplateStr(templateStr []byte, data interface{}) (string, error) {
 
 func renderIntoBaseTemplate(user User, data PageContent) (string, error) {
 	baseTemplate, _ := user.Template()
-	t, err := template.New("index").Parse(baseTemplate)
+	t, err := template.New("index").Funcs(template.FuncMap{
+		"noescape": noescape,
+		"listUrl":  listUrl,
+	}).Parse(baseTemplate)
 	if err != nil {
 		return "", err
 	}

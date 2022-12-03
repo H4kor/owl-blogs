@@ -88,6 +88,17 @@
                 </div>
             </div>
 
+            <nav>
+                <ul>
+                    {{ range $link := .User.Config.HeaderMenu }}
+                        {{ if $link.List }}
+                            <li><a href="{{ listUrl $.User $link.List }}">{{ $link.Title }}</a></li>
+                        {{ else }}
+                            <li><a href="{{ $link.Url }}">{{ $link.Title }}</a></li>
+                        {{ end }}
+                    {{ end }}
+                </ul>
+            </nav>
         </div>
     </header>
     <main class="container">

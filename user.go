@@ -28,12 +28,19 @@ type UserConfig struct {
 	PassworHash        string     `yaml:"password_hash"`
 	Lists              []PostList `yaml:"lists"`
 	PrimaryListInclude []string   `yaml:"primary_list_include"`
+	HeaderMenu         []MenuItem `yaml:"header_menu"`
 }
 
 type PostList struct {
 	Id      string   `yaml:"id"`
 	Title   string   `yaml:"title"`
 	Include []string `yaml:"include"`
+}
+
+type MenuItem struct {
+	Title string `yaml:"title"`
+	List  string `yaml:"list"`
+	Url   string `yaml:"url"`
 }
 
 func (l *PostList) ContainsType(t string) bool {
@@ -387,6 +394,12 @@ func (user User) GetPostList(id string) (*PostList, error) {
 func (user User) AddPostList(list PostList) error {
 	config := user.Config()
 	config.Lists = append(config.Lists, list)
+	return user.SetConfig(config)
+}
+
+func (user User) AddHeaderMenuItem(link MenuItem) error {
+	config := user.Config()
+	config.HeaderMenu = append(config.HeaderMenu, link)
 	return user.SetConfig(config)
 }
 
