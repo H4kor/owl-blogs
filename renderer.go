@@ -55,6 +55,11 @@ func listUrl(user User, id string) string {
 	})
 }
 
+func postUrl(user User, id string) string {
+	post, _ := user.GetPost(id)
+	return post.UrlPath()
+}
+
 func renderEmbedTemplate(templateFile string, data interface{}) (string, error) {
 	templateStr, err := embed_files.ReadFile(templateFile)
 	if err != nil {
@@ -67,6 +72,7 @@ func renderTemplateStr(templateStr []byte, data interface{}) (string, error) {
 	t, err := template.New("_").Funcs(template.FuncMap{
 		"noescape": noescape,
 		"listUrl":  listUrl,
+		"postUrl":  postUrl,
 	}).Parse(string(templateStr))
 	if err != nil {
 		return "", err
@@ -84,6 +90,7 @@ func renderIntoBaseTemplate(user User, data PageContent) (string, error) {
 	t, err := template.New("index").Funcs(template.FuncMap{
 		"noescape": noescape,
 		"listUrl":  listUrl,
+		"postUrl":  postUrl,
 	}).Parse(baseTemplate)
 	if err != nil {
 		return "", err

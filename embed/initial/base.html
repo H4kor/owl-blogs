@@ -95,6 +95,8 @@
                     {{ range $link := .User.Config.HeaderMenu }}
                         {{ if $link.List }}
                             <li><a href="{{ listUrl $.User $link.List }}">{{ $link.Title }}</a></li>
+                        {{ else if $link.Post }}
+                            <li><a href="{{ postUrl $.User $link.Post }}">{{ $link.Title }}</a></li>
                         {{ else }}
                             <li><a href="{{ $link.Url }}">{{ $link.Title }}</a></li>
                         {{ end }}
@@ -103,7 +105,6 @@
             </nav>
         </div>
     </header>
-    <main class="container">
         {{ .Content }}
     </main>
     <footer class="container">

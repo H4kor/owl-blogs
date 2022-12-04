@@ -41,6 +41,7 @@ type MenuItem struct {
 	Title string `yaml:"title"`
 	List  string `yaml:"list"`
 	Url   string `yaml:"url"`
+	Post  string `yaml:"post"`
 }
 
 func (l *PostList) ContainsType(t string) bool {

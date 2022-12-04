@@ -436,3 +436,15 @@ func TestRenderHeaderMenuUrlItem(t *testing.T) {
 	assertions.AssertContains(t, result, "Test Entry")
 	assertions.AssertContains(t, result, "https://example.com")
 }
+
+func TestRenderHeaderMenuPost(t *testing.T) {
+	user := getTestUser()
+	post, _ := user.CreateNewPost("testpost", false)
+	user.AddHeaderMenuItem(owl.MenuItem{
+		Title: "Test Entry",
+		Post:  post.Id(),
+	})
+	result, _ := owl.RenderIndexPage(user)
+	assertions.AssertContains(t, result, "Test Entry")
+	assertions.AssertContains(t, result, post.UrlPath())
+}

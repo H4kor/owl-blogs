@@ -209,11 +209,19 @@ func userEditorPostHandler(repo *owl.Repository) func(http.ResponseWriter, *http
 
 		// validate form values
 		if post_type == "" {
-			userEditorGetHandler(repo)(w, r, ps)
+			html, _ := owl.RenderUserError(user, owl.ErrorMessage{
+				Error:   "Missing post type",
+				Message: "Post type is required",
+			})
+			w.Write([]byte(html))
 			return
 		}
-		if post_type == "article" && title == "" {
-			userEditorGetHandler(repo)(w, r, ps)
+		if (post_type == "article" || post_type == "page") && title == "" {
+			html, _ := owl.RenderUserError(user, owl.ErrorMessage{
+				Error:   "Missing Title",
+				Message: "Articles and Pages must have a title",
+			})
+			w.Write([]byte(html))
 			return
 		}
 		if post_type == "reply" && reply_url == "" {
