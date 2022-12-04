@@ -1,8 +1,10 @@
 package web
 
 import (
+	"fmt"
 	"h4kor/owl-blogs"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/julienschmidt/httprouter"
@@ -262,6 +264,20 @@ func userEditorPostHandler(repo *owl.Repository) func(http.ResponseWriter, *http
 
 		// redirect to post
 		if !post.Meta().Draft {
+			// scan for webmentions
+			post.ScanForLinks()
+			webmentions := post.OutgoingWebmentions()
+			println("Found ", len(webmentions), " links")
+			wg := sync.WaitGroup{}
+			wg.Add(len(webmentions))
+			for _, mention := range post.OutgoingWebmentions() {
+				go func(mention owl.WebmentionOut) {
+					fmt.Printf("Sending webmention to %s", mention.Target)
+					defer wg.Done()
+					post.SendWebmention(mention)
+				}(mention)
+			}
+			wg.Wait()
 			http.Redirect(w, r, post.FullUrl(), http.StatusFound)
 		} else {
 			http.Redirect(w, r, user.EditorUrl(), http.StatusFound)
