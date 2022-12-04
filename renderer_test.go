@@ -448,3 +448,37 @@ func TestRenderHeaderMenuPost(t *testing.T) {
 	assertions.AssertContains(t, result, "Test Entry")
 	assertions.AssertContains(t, result, post.UrlPath())
 }
+
+func TestRenderFooterMenuListItem(t *testing.T) {
+	user := getTestUser()
+	user.AddFooterMenuItem(owl.MenuItem{
+		Title: "Test Entry",
+		List:  "test",
+	})
+	result, _ := owl.RenderIndexPage(user)
+	assertions.AssertContains(t, result, "Test Entry")
+	assertions.AssertContains(t, result, "/lists/test")
+}
+
+func TestRenderFooterMenuUrlItem(t *testing.T) {
+	user := getTestUser()
+	user.AddFooterMenuItem(owl.MenuItem{
+		Title: "Test Entry",
+		Url:   "https://example.com",
+	})
+	result, _ := owl.RenderIndexPage(user)
+	assertions.AssertContains(t, result, "Test Entry")
+	assertions.AssertContains(t, result, "https://example.com")
+}
+
+func TestRenderFooterMenuPost(t *testing.T) {
+	user := getTestUser()
+	post, _ := user.CreateNewPost("testpost", false)
+	user.AddFooterMenuItem(owl.MenuItem{
+		Title: "Test Entry",
+		Post:  post.Id(),
+	})
+	result, _ := owl.RenderIndexPage(user)
+	assertions.AssertContains(t, result, "Test Entry")
+	assertions.AssertContains(t, result, post.UrlPath())
+}

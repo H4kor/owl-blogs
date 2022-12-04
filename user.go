@@ -29,6 +29,7 @@ type UserConfig struct {
 	Lists              []PostList `yaml:"lists"`
 	PrimaryListInclude []string   `yaml:"primary_list_include"`
 	HeaderMenu         []MenuItem `yaml:"header_menu"`
+	FooterMenu         []MenuItem `yaml:"footer_menu"`
 }
 
 type PostList struct {
@@ -401,6 +402,12 @@ func (user User) AddPostList(list PostList) error {
 func (user User) AddHeaderMenuItem(link MenuItem) error {
 	config := user.Config()
 	config.HeaderMenu = append(config.HeaderMenu, link)
+	return user.SetConfig(config)
+}
+
+func (user User) AddFooterMenuItem(link MenuItem) error {
+	config := user.Config()
+	config.FooterMenu = append(config.FooterMenu, link)
 	return user.SetConfig(config)
 }
 
