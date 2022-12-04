@@ -60,7 +60,11 @@ func userLoginGetHandler(repo *owl.Repository) func(http.ResponseWriter, *http.R
 			return
 		}
 		csrfToken := setCSRFCookie(w)
-		html, err := owl.RenderLoginPage(user, csrfToken)
+
+		// get error from query
+		error_type := r.URL.Query().Get("error")
+
+		html, err := owl.RenderLoginPage(user, error_type, csrfToken)
 		if err != nil {
 			println("Error rendering login page: ", err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
@@ -107,12 +111,8 @@ func userLoginPostHandler(repo *owl.Repository) func(http.ResponseWriter, *http.
 		}
 
 		password := r.Form.Get("password")
-		if password == "" {
-			userLoginGetHandler(repo)(w, r, ps)
-			return
-		}
-		if !user.VerifyPassword(password) {
-			userLoginGetHandler(repo)(w, r, ps)
+		if password == "" || !user.VerifyPassword(password) {
+			http.Redirect(w, r, user.EditorLoginUrl()+"?error=wrong_password", http.StatusFound)
 			return
 		}
 

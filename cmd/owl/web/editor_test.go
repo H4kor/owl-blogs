@@ -56,7 +56,7 @@ func TestLoginWrongPassword(t *testing.T) {
 
 	// check redirect to login page
 
-	assertions.AssertNotEqual(t, rr.Header().Get("Location"), user.EditorUrl())
+	assertions.AssertEqual(t, rr.Header().Get("Location"), user.EditorLoginUrl()+"?error=wrong_password")
 }
 
 func TestLoginCorrectPassword(t *testing.T) {

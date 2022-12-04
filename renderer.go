@@ -37,6 +37,7 @@ type AuthRequestData struct {
 
 type EditorViewData struct {
 	User      User
+	Error     string
 	CsrfToken string
 }
 
@@ -210,9 +211,10 @@ func RenderUserList(repo Repository) (string, error) {
 	return renderTemplateStr([]byte(baseTemplate), data)
 }
 
-func RenderLoginPage(user User, csrfToken string) (string, error) {
+func RenderLoginPage(user User, error_type string, csrfToken string) (string, error) {
 	loginHtml, err := renderEmbedTemplate("embed/editor/login.html", EditorViewData{
 		User:      user,
+		Error:     error_type,
 		CsrfToken: csrfToken,
 	})
 	if err != nil {
