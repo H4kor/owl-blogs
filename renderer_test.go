@@ -338,6 +338,14 @@ func TestRenderReplyWithText(t *testing.T) {
 	assertions.AssertContains(t, result, "This is a reply")
 }
 
+func TestRengerPostContainsBookmark(t *testing.T) {
+	user := getTestUser()
+	post, _ := user.CreateNewPostFull(owl.PostMeta{Type: "bookmark", Bookmark: owl.Bookmark{Url: "https://example.com/post"}}, "hi")
+
+	result, _ := owl.RenderPost(post)
+	assertions.AssertContains(t, result, "https://example.com/post")
+}
+
 func TestOpenGraphTags(t *testing.T) {
 	user := getTestUser()
 	post, _ := user.CreateNewPost("testpost", false)

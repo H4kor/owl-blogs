@@ -33,6 +33,18 @@
         </p>
     {{ end }}
 
+    {{ if .Post.Meta.Bookmark.Url }}
+        <p style="font-style: italic;filter: opacity(80%);">
+            Bookmark: <a class="u-bookmark-of h-cite" href="{{.Post.Meta.Bookmark.Url}}">
+                {{ if .Post.Meta.Bookmark.Text }}
+                    {{.Post.Meta.Bookmark.Text}}
+                {{ else }}
+                    {{.Post.Meta.Bookmark.Url}}
+                {{ end }}
+            </a>
+        </p>
+    {{ end }}
+
     <div class="e-content">
         {{.Content}}
     </div>

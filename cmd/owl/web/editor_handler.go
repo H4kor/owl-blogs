@@ -201,15 +201,38 @@ func userEditorPostHandler(repo *owl.Repository) func(http.ResponseWriter, *http
 		content := r.Form.Get("content")
 		draft := r.Form.Get("draft")
 
+		// conditional values
+		reply_url := r.Form.Get("reply_url")
+		bookmark_url := r.Form.Get("bookmark_url")
+
 		// validate form values
-		if post_type == "article" && title == "" {
-			userEditorGetHandler(repo)(w, r, ps)
-			return
-		}
 		if post_type == "" {
 			userEditorGetHandler(repo)(w, r, ps)
 			return
 		}
+		if post_type == "article" && title == "" {
+			userEditorGetHandler(repo)(w, r, ps)
+			return
+		}
+		if post_type == "reply" && reply_url == "" {
+			html, _ := owl.RenderUserError(user, owl.ErrorMessage{
+				Error:   "Missing URL",
+				Message: "You must provide a URL to reply to",
+			})
+			w.Write([]byte(html))
+			return
+		}
+		if post_type == "bookmark" && bookmark_url == "" {
+			html, _ := owl.RenderUserError(user, owl.ErrorMessage{
+				Error:   "Missing URL",
+				Message: "You must provide a URL to bookmark",
+			})
+			w.Write([]byte(html))
+			return
+		}
+
+		// TODO: scrape	reply_url for title and description
+		// TODO: scrape bookmark_url for title and description
 
 		// create post
 		post, err := user.CreateNewPostFull(owl.PostMeta{
@@ -218,6 +241,12 @@ func userEditorPostHandler(repo *owl.Repository) func(http.ResponseWriter, *http
 			Description: description,
 			Draft:       draft == "on",
 			Date:        time.Now(),
+			Reply: owl.Reply{
+				Url: reply_url,
+			},
+			Bookmark: owl.Bookmark{
+				Url: bookmark_url,
+			},
 		}, content)
 
 		if err != nil {

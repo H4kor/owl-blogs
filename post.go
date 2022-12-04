@@ -30,6 +30,10 @@ type Reply struct {
 	Url  string `yaml:"url"`
 	Text string `yaml:"text"`
 }
+type Bookmark struct {
+	Url  string `yaml:"url"`
+	Text string `yaml:"text"`
+}
 
 type PostMeta struct {
 	Type        string    `yaml:"type"`
@@ -39,6 +43,7 @@ type PostMeta struct {
 	Date        time.Time `yaml:"date"`
 	Draft       bool      `yaml:"draft"`
 	Reply       Reply     `yaml:"reply"`
+	Bookmark    Bookmark  `yaml:"bookmark"`
 }
 
 func (pm PostMeta) FormattedDate() string {
@@ -53,6 +58,7 @@ func (pm *PostMeta) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		Aliases     []string `yaml:"aliases"`
 		Draft       bool     `yaml:"draft"`
 		Reply       Reply    `yaml:"reply"`
+		Bookmark    Bookmark `yaml:"bookmark"`
 	}
 	type S struct {
 		Date string `yaml:"date"`
@@ -76,6 +82,7 @@ func (pm *PostMeta) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	pm.Aliases = t.Aliases
 	pm.Draft = t.Draft
 	pm.Reply = t.Reply
+	pm.Bookmark = t.Bookmark
 
 	possibleFormats := []string{
 		"2006-01-02",

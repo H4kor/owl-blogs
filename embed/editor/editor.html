@@ -29,3 +29,45 @@
         <input type="submit" value="Create Note" />
     </form>
 </details>
+
+<details>
+    <summary>Write Reply</summary>
+    <form action="" method="post">
+        <h2>Create New Reply</h2>
+        <input type="hidden" name="csrf_token" value="{{.CsrfToken}}">
+        <input type="hidden" name="type" value="reply">
+
+        <label for="reply_url">Reply To</label>
+        <input type="text" name="reply_url" placeholder="URL" />
+
+        <label for="title">Title</label>
+        <input type="text" name="title" placeholder="Title" />
+
+        <label for="content">Content</label>
+        <textarea name="content" placeholder="Content" rows="8"></textarea>
+
+        <br><br>
+        <input type="submit" value="Create Reply" />
+    </form>
+</details>
+
+<details>
+    <summary>Bookmark</summary>
+    <form action="" method="post">
+        <h2>Create Bookmark</h2>
+        <input type="hidden" name="csrf_token" value="{{.CsrfToken}}">
+        <input type="hidden" name="type" value="bookmark">
+
+        <label for="bookmark_url">Bookmark</label>
+        <input type="text" name="bookmark_url" placeholder="URL" />
+
+        <label for="title">Title</label>
+        <input type="text" name="title" placeholder="Title" />
+
+        <label for="content">Content</label>
+        <textarea name="content" placeholder="Content" rows="8"></textarea>
+
+        <br><br>
+        <input type="submit" value="Create Bookmark" />
+    </form>
+</details>
