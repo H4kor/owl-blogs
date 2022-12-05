@@ -225,7 +225,7 @@ func TestPostsSortedByPublishingDateLatestFirst(t *testing.T) {
 func TestPostsSortedByPublishingDateLatestFirst2(t *testing.T) {
 	user := getTestUser()
 	// Create a new post
-	posts := []*owl.Post{}
+	posts := []owl.IPost{}
 	for i := 59; i >= 0; i-- {
 		post, _ := user.CreateNewPost("testpost", false)
 		content := "---\n"

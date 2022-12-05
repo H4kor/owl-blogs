@@ -25,6 +25,40 @@ type Post struct {
 	wmLock     sync.Mutex
 }
 
+func (post *Post) TemplateDir() string {
+	return "article"
+}
+
+type IPost interface {
+	TemplateDir() string
+
+	Id() string
+	User() *User
+	Dir() string
+	IncomingWebmentionsFile() string
+	OutgoingWebmentionsFile() string
+	MediaDir() string
+	UrlPath() string
+	FullUrl() string
+	UrlMediaPath(filename string) string
+	Title() string
+	ContentFile() string
+	Meta() PostMeta
+	Content() []byte
+	RenderedContent() string
+	Aliases() []string
+	LoadMeta() error
+	IncomingWebmentions() []WebmentionIn
+	OutgoingWebmentions() []WebmentionOut
+	PersistIncomingWebmention(webmention WebmentionIn) error
+	PersistOutgoingWebmention(webmention *WebmentionOut) error
+	AddIncomingWebmention(source string) error
+	EnrichWebmention(webmention WebmentionIn) error
+	ApprovedIncomingWebmentions() []WebmentionIn
+	ScanForLinks() error
+	SendWebmention(webmention WebmentionOut) error
+}
+
 type Reply struct {
 	Url  string `yaml:"url"`
 	Text string `yaml:"text"`

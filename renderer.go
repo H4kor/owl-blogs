@@ -3,6 +3,7 @@ package owl
 import (
 	"bytes"
 	_ "embed"
+	"fmt"
 	"html/template"
 	"strings"
 )
@@ -17,7 +18,7 @@ type PageContent struct {
 
 type PostRenderData struct {
 	Title   string
-	Post    *Post
+	Post    IPost
 	Content template.HTML
 }
 
@@ -118,23 +119,26 @@ func renderIntoBaseTemplate(user User, data PageContent) (string, error) {
 	return html.String(), err
 }
 
-func renderPostContent(post *Post) (string, error) {
+func renderPostContent(post IPost) (string, error) {
 	buf := post.RenderedContent()
-	postHtml, err := renderEmbedTemplate("embed/post.html", PostRenderData{
-		Title:   post.Title(),
-		Post:    post,
-		Content: template.HTML(buf),
-	})
+	postHtml, err := renderEmbedTemplate(
+		fmt.Sprintf("embed/%s/detail.html", post.TemplateDir()),
+		PostRenderData{
+			Title:   post.Title(),
+			Post:    post,
+			Content: template.HTML(buf),
+		},
+	)
 	return postHtml, err
 }
 
-func RenderPost(post *Post) (string, error) {
+func RenderPost(post IPost) (string, error) {
 	postHtml, err := renderPostContent(post)
 	if err != nil {
 		return "", err
 	}
 
-	return renderIntoBaseTemplate(*post.user, PageContent{
+	return renderIntoBaseTemplate(*post.User(), PageContent{
 		Title:       post.Title(),
 		Description: post.Meta().Description,
 		Content:     template.HTML(postHtml),

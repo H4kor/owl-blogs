@@ -197,9 +197,9 @@ func (user User) FaviconUrl() string {
 	return ""
 }
 
-func (user User) AllPosts() ([]*Post, error) {
+func (user User) AllPosts() ([]IPost, error) {
 	postFiles := listDir(path.Join(user.Dir(), "public"))
-	posts := make([]*Post, 0)
+	posts := make([]IPost, 0)
 	for _, id := range postFiles {
 		// if is a directory and has index.md, add to posts
 		if dirExists(path.Join(user.Dir(), "public", id)) {
@@ -211,7 +211,7 @@ func (user User) AllPosts() ([]*Post, error) {
 	}
 
 	type PostWithDate struct {
-		post *Post
+		post IPost
 		date time.Time
 	}
 
@@ -233,7 +233,7 @@ func (user User) AllPosts() ([]*Post, error) {
 	return posts, nil
 }
 
-func (user User) PublishedPosts() ([]*Post, error) {
+func (user User) PublishedPosts() ([]IPost, error) {
 	posts, _ := user.AllPosts()
 
 	// remove drafts
@@ -249,7 +249,7 @@ func (user User) PublishedPosts() ([]*Post, error) {
 	return posts, nil
 }
 
-func (user User) PrimaryFeedPosts() ([]*Post, error) {
+func (user User) PrimaryFeedPosts() ([]IPost, error) {
 	config := user.Config()
 	include := config.PrimaryListInclude
 	if len(include) == 0 {
@@ -262,7 +262,7 @@ func (user User) PrimaryFeedPosts() ([]*Post, error) {
 	})
 }
 
-func (user User) GetPostsOfList(list PostList) ([]*Post, error) {
+func (user User) GetPostsOfList(list PostList) ([]IPost, error) {
 	posts, _ := user.PublishedPosts()
 
 	// remove posts not included
@@ -278,17 +278,26 @@ func (user User) GetPostsOfList(list PostList) ([]*Post, error) {
 	return posts, nil
 }
 
-func (user User) GetPost(id string) (*Post, error) {
+func (user User) GetPost(id string) (IPost, error) {
 	// check if posts index.md exists
 	if !fileExists(path.Join(user.Dir(), "public", id, "index.md")) {
 		return &Post{}, fmt.Errorf("post %s does not exist", id)
 	}
 
 	post := Post{user: &user, id: id}
+	if post.Meta().Type == "" {
+		return &Article{Post: post}, nil
+	}
+	switch post.Meta().Type {
+	case "article":
+		return &Article{Post: post}, nil
+	case "note":
+		return &Note{Post: post}, nil
+	}
 	return &post, nil
 }
 
-func (user User) CreateNewPostFull(meta PostMeta, content string) (*Post, error) {
+func (user User) CreateNewPostFull(meta PostMeta, content string) (IPost, error) {
 	slugHint := meta.Title
 	if slugHint == "" {
 		slugHint = "note"
@@ -326,10 +335,10 @@ func (user User) CreateNewPostFull(meta PostMeta, content string) (*Post, error)
 	os.WriteFile(post.ContentFile(), []byte(initial_content), 0644)
 	// create media dir
 	os.Mkdir(post.MediaDir(), 0755)
-	return &post, nil
+	return user.GetPost(post.Id())
 }
 
-func (user User) CreateNewPost(title string, draft bool) (*Post, error) {
+func (user User) CreateNewPost(title string, draft bool) (IPost, error) {
 	meta := PostMeta{
 		Title:   title,
 		Date:    time.Now(),
@@ -359,8 +368,8 @@ func (user User) SetConfig(new_config UserConfig) error {
 	return saveToYaml(user.ConfigFile(), new_config)
 }
 
-func (user User) PostAliases() (map[string]*Post, error) {
-	post_aliases := make(map[string]*Post)
+func (user User) PostAliases() (map[string]IPost, error) {
+	post_aliases := make(map[string]IPost)
 	posts, err := user.PublishedPosts()
 	if err != nil {
 		return post_aliases, err
