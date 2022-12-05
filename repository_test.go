@@ -213,7 +213,7 @@ func TestCanGetMapWithAllPostAliases(t *testing.T) {
 	posts, _ := user.PublishedPosts()
 	assertions.AssertLen(t, posts, 1)
 
-	var aliases map[string]owl.IPost
+	var aliases map[string]owl.Post
 	aliases, err := repo.PostAliases()
 	assertions.AssertNoError(t, err, "Error getting post aliases: ")
 	assertions.AssertMapLen(t, aliases, 2)
@@ -247,7 +247,7 @@ func TestAliasesHaveCorrectPost(t *testing.T) {
 	posts, _ := user.PublishedPosts()
 	assertions.AssertLen(t, posts, 2)
 
-	var aliases map[string]owl.IPost
+	var aliases map[string]owl.Post
 	aliases, err := repo.PostAliases()
 	assertions.AssertNoError(t, err, "Error getting post aliases: ")
 	assertions.AssertMapLen(t, aliases, 2)

@@ -17,7 +17,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type Post struct {
+type GenericPost struct {
 	user       *User
 	id         string
 	metaLoaded bool
@@ -25,29 +25,33 @@ type Post struct {
 	wmLock     sync.Mutex
 }
 
-func (post *Post) TemplateDir() string {
+func (post *GenericPost) TemplateDir() string {
 	return "article"
 }
 
-type IPost interface {
+type Post interface {
 	TemplateDir() string
 
-	Id() string
+	// Actual Data
 	User() *User
-	Dir() string
-	IncomingWebmentionsFile() string
-	OutgoingWebmentionsFile() string
-	MediaDir() string
-	UrlPath() string
-	FullUrl() string
-	UrlMediaPath(filename string) string
+	Id() string
 	Title() string
-	ContentFile() string
 	Meta() PostMeta
 	Content() []byte
 	RenderedContent() string
 	Aliases() []string
-	LoadMeta() error
+
+	// Filesystem
+	Dir() string
+	MediaDir() string
+	ContentFile() string
+
+	// Urls
+	UrlPath() string
+	FullUrl() string
+	UrlMediaPath(filename string) string
+
+	// Webmentions Support
 	IncomingWebmentions() []WebmentionIn
 	OutgoingWebmentions() []WebmentionOut
 	PersistIncomingWebmention(webmention WebmentionIn) error
@@ -151,64 +155,64 @@ type PostWebmetions struct {
 	Outgoing []WebmentionOut `ymal:"outgoing"`
 }
 
-func (post *Post) Id() string {
+func (post *GenericPost) Id() string {
 	return post.id
 }
 
-func (post *Post) User() *User {
+func (post *GenericPost) User() *User {
 	return post.user
 }
 
-func (post *Post) Dir() string {
+func (post *GenericPost) Dir() string {
 	return path.Join(post.user.Dir(), "public", post.id)
 }
 
-func (post *Post) IncomingWebmentionsFile() string {
+func (post *GenericPost) IncomingWebmentionsFile() string {
 	return path.Join(post.Dir(), "incoming_webmentions.yml")
 }
 
-func (post *Post) OutgoingWebmentionsFile() string {
+func (post *GenericPost) OutgoingWebmentionsFile() string {
 	return path.Join(post.Dir(), "outgoing_webmentions.yml")
 }
 
-func (post *Post) MediaDir() string {
+func (post *GenericPost) MediaDir() string {
 	return path.Join(post.Dir(), "media")
 }
 
-func (post *Post) UrlPath() string {
+func (post *GenericPost) UrlPath() string {
 	return post.user.UrlPath() + "posts/" + post.id + "/"
 }
 
-func (post *Post) FullUrl() string {
+func (post *GenericPost) FullUrl() string {
 	return post.user.FullUrl() + "posts/" + post.id + "/"
 }
 
-func (post *Post) UrlMediaPath(filename string) string {
+func (post *GenericPost) UrlMediaPath(filename string) string {
 	return post.UrlPath() + "media/" + filename
 }
 
-func (post *Post) Title() string {
+func (post *GenericPost) Title() string {
 	return post.Meta().Title
 }
 
-func (post *Post) ContentFile() string {
+func (post *GenericPost) ContentFile() string {
 	return path.Join(post.Dir(), "index.md")
 }
 
-func (post *Post) Meta() PostMeta {
+func (post *GenericPost) Meta() PostMeta {
 	if !post.metaLoaded {
 		post.LoadMeta()
 	}
 	return post.meta
 }
 
-func (post *Post) Content() []byte {
+func (post *GenericPost) Content() []byte {
 	// read file
 	data, _ := os.ReadFile(post.ContentFile())
 	return data
 }
 
-func (post *Post) RenderedContent() string {
+func (post *GenericPost) RenderedContent() string {
 	data := post.Content()
 
 	// trim yaml block
@@ -250,11 +254,11 @@ func (post *Post) RenderedContent() string {
 
 }
 
-func (post *Post) Aliases() []string {
+func (post *GenericPost) Aliases() []string {
 	return post.Meta().Aliases
 }
 
-func (post *Post) LoadMeta() error {
+func (post *GenericPost) LoadMeta() error {
 	data := post.Content()
 
 	// get yaml metadata block
@@ -280,7 +284,7 @@ func (post *Post) LoadMeta() error {
 	return nil
 }
 
-func (post *Post) IncomingWebmentions() []WebmentionIn {
+func (post *GenericPost) IncomingWebmentions() []WebmentionIn {
 	// return parsed webmentions
 	fileName := post.IncomingWebmentionsFile()
 	if !fileExists(fileName) {
@@ -293,7 +297,7 @@ func (post *Post) IncomingWebmentions() []WebmentionIn {
 	return webmentions
 }
 
-func (post *Post) OutgoingWebmentions() []WebmentionOut {
+func (post *GenericPost) OutgoingWebmentions() []WebmentionOut {
 	// return parsed webmentions
 	fileName := post.OutgoingWebmentionsFile()
 	if !fileExists(fileName) {
@@ -307,7 +311,7 @@ func (post *Post) OutgoingWebmentions() []WebmentionOut {
 }
 
 // PersistWebmentionOutgoing persists incoming webmention
-func (post *Post) PersistIncomingWebmention(webmention WebmentionIn) error {
+func (post *GenericPost) PersistIncomingWebmention(webmention WebmentionIn) error {
 	post.wmLock.Lock()
 	defer post.wmLock.Unlock()
 
@@ -336,7 +340,7 @@ func (post *Post) PersistIncomingWebmention(webmention WebmentionIn) error {
 }
 
 // PersistOutgoingWebmention persists a webmention to the webmention file.
-func (post *Post) PersistOutgoingWebmention(webmention *WebmentionOut) error {
+func (post *GenericPost) PersistOutgoingWebmention(webmention *WebmentionOut) error {
 	post.wmLock.Lock()
 	defer post.wmLock.Unlock()
 
@@ -364,7 +368,7 @@ func (post *Post) PersistOutgoingWebmention(webmention *WebmentionOut) error {
 	return nil
 }
 
-func (post *Post) AddIncomingWebmention(source string) error {
+func (post *GenericPost) AddIncomingWebmention(source string) error {
 	// Check if file already exists
 	wm := WebmentionIn{
 		Source: source,
@@ -376,7 +380,7 @@ func (post *Post) AddIncomingWebmention(source string) error {
 	return post.PersistIncomingWebmention(wm)
 }
 
-func (post *Post) EnrichWebmention(webmention WebmentionIn) error {
+func (post *GenericPost) EnrichWebmention(webmention WebmentionIn) error {
 	resp, err := post.user.repo.HttpClient.Get(webmention.Source)
 	if err == nil {
 		entry, err := post.user.repo.Parser.ParseHEntry(resp)
@@ -388,7 +392,7 @@ func (post *Post) EnrichWebmention(webmention WebmentionIn) error {
 	return err
 }
 
-func (post *Post) ApprovedIncomingWebmentions() []WebmentionIn {
+func (post *GenericPost) ApprovedIncomingWebmentions() []WebmentionIn {
 	webmentions := post.IncomingWebmentions()
 	approved := []WebmentionIn{}
 	for _, webmention := range webmentions {
@@ -406,7 +410,7 @@ func (post *Post) ApprovedIncomingWebmentions() []WebmentionIn {
 
 // ScanForLinks scans the post content for links and adds them to the
 // `status.yml` file for the post. The links are not scanned by this function.
-func (post *Post) ScanForLinks() error {
+func (post *GenericPost) ScanForLinks() error {
 	// this could be done in markdown parsing, but I don't want to
 	// rely on goldmark for this (yet)
 	postHtml := post.RenderedContent()
@@ -423,7 +427,7 @@ func (post *Post) ScanForLinks() error {
 	return nil
 }
 
-func (post *Post) SendWebmention(webmention WebmentionOut) error {
+func (post *GenericPost) SendWebmention(webmention WebmentionOut) error {
 	defer post.PersistOutgoingWebmention(&webmention)
 
 	// if last scan is less than 7 days ago, don't send webmention

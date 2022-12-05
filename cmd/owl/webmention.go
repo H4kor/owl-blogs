@@ -46,7 +46,7 @@ var webmentionCmd = &cobra.Command{
 			}
 		}
 
-		processPost := func(user owl.User, post owl.IPost) error {
+		processPost := func(user owl.User, post owl.Post) error {
 			println("Webmentions for post: ", post.Title())
 
 			err := post.ScanForLinks()

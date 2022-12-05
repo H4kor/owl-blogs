@@ -1,7 +1,7 @@
 package owl
 
 type Note struct {
-	Post
+	GenericPost
 }
 
 func (n *Note) TemplateDir() string {
@@ -9,7 +9,7 @@ func (n *Note) TemplateDir() string {
 }
 
 type Article struct {
-	Post
+	GenericPost
 }
 
 func (a *Article) TemplateDir() string {
@@ -17,7 +17,7 @@ func (a *Article) TemplateDir() string {
 }
 
 type Page struct {
-	Post
+	GenericPost
 }
 
 func (p *Page) TemplateDir() string {
@@ -25,7 +25,7 @@ func (p *Page) TemplateDir() string {
 }
 
 type Bookmark struct {
-	Post
+	GenericPost
 }
 
 func (b *Bookmark) TemplateDir() string {
@@ -33,7 +33,7 @@ func (b *Bookmark) TemplateDir() string {
 }
 
 type Reply struct {
-	Post
+	GenericPost
 }
 
 func (r *Reply) TemplateDir() string {

@@ -98,7 +98,7 @@ func TestRawHTMLIfAllowedByRepo(t *testing.T) {
 	assertions.AssertContains(t, html, "<script>")
 }
 
-func TestLoadMeta(t *testing.T) {
+func TestMeta(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{AllowRawHtml: true})
 	user, _ := repo.CreateUser("testuser")
 	post, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
@@ -113,10 +113,6 @@ func TestLoadMeta(t *testing.T) {
 	content += "\n"
 	content += "<script>alert('foo')</script>\n"
 	os.WriteFile(post.ContentFile(), []byte(content), 0644)
-
-	err := post.LoadMeta()
-
-	assertions.AssertNoError(t, err, "Error loading meta")
 
 	assertions.AssertEqual(t, post.Meta().Title, "test")
 	assertions.AssertLen(t, post.Meta().Aliases, 1)

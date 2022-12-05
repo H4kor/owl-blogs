@@ -18,7 +18,7 @@ type PageContent struct {
 
 type PostRenderData struct {
 	Title   string
-	Post    IPost
+	Post    Post
 	Content template.HTML
 }
 
@@ -119,7 +119,7 @@ func renderIntoBaseTemplate(user User, data PageContent) (string, error) {
 	return html.String(), err
 }
 
-func renderPostContent(post IPost) (string, error) {
+func renderPostContent(post Post) (string, error) {
 	buf := post.RenderedContent()
 	postHtml, err := renderEmbedTemplate(
 		fmt.Sprintf("embed/%s/detail.html", post.TemplateDir()),
@@ -132,7 +132,7 @@ func renderPostContent(post IPost) (string, error) {
 	return postHtml, err
 }
 
-func RenderPost(post IPost) (string, error) {
+func RenderPost(post Post) (string, error) {
 	postHtml, err := renderPostContent(post)
 	if err != nil {
 		return "", err

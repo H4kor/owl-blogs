@@ -197,9 +197,9 @@ func (user User) FaviconUrl() string {
 	return ""
 }
 
-func (user User) AllPosts() ([]IPost, error) {
+func (user User) AllPosts() ([]Post, error) {
 	postFiles := listDir(path.Join(user.Dir(), "public"))
-	posts := make([]IPost, 0)
+	posts := make([]Post, 0)
 	for _, id := range postFiles {
 		// if is a directory and has index.md, add to posts
 		if dirExists(path.Join(user.Dir(), "public", id)) {
@@ -211,7 +211,7 @@ func (user User) AllPosts() ([]IPost, error) {
 	}
 
 	type PostWithDate struct {
-		post IPost
+		post Post
 		date time.Time
 	}
 
@@ -233,7 +233,7 @@ func (user User) AllPosts() ([]IPost, error) {
 	return posts, nil
 }
 
-func (user User) PublishedPosts() ([]IPost, error) {
+func (user User) PublishedPosts() ([]Post, error) {
 	posts, _ := user.AllPosts()
 
 	// remove drafts
@@ -249,7 +249,7 @@ func (user User) PublishedPosts() ([]IPost, error) {
 	return posts, nil
 }
 
-func (user User) PrimaryFeedPosts() ([]IPost, error) {
+func (user User) PrimaryFeedPosts() ([]Post, error) {
 	config := user.Config()
 	include := config.PrimaryListInclude
 	if len(include) == 0 {
@@ -262,7 +262,7 @@ func (user User) PrimaryFeedPosts() ([]IPost, error) {
 	})
 }
 
-func (user User) GetPostsOfList(list PostList) ([]IPost, error) {
+func (user User) GetPostsOfList(list PostList) ([]Post, error) {
 	posts, _ := user.PublishedPosts()
 
 	// remove posts not included
@@ -278,29 +278,29 @@ func (user User) GetPostsOfList(list PostList) ([]IPost, error) {
 	return posts, nil
 }
 
-func (user User) GetPost(id string) (IPost, error) {
+func (user User) GetPost(id string) (Post, error) {
 	// check if posts index.md exists
 	if !fileExists(path.Join(user.Dir(), "public", id, "index.md")) {
-		return &Post{}, fmt.Errorf("post %s does not exist", id)
+		return &GenericPost{}, fmt.Errorf("post %s does not exist", id)
 	}
 
-	post := Post{user: &user, id: id}
+	post := GenericPost{user: &user, id: id}
 	switch post.Meta().Type {
 	case "article":
-		return &Article{Post: post}, nil
+		return &Article{GenericPost: post}, nil
 	case "note":
-		return &Note{Post: post}, nil
+		return &Note{GenericPost: post}, nil
 	case "reply":
-		return &Reply{Post: post}, nil
+		return &Reply{GenericPost: post}, nil
 	case "bookmark":
-		return &Bookmark{Post: post}, nil
+		return &Bookmark{GenericPost: post}, nil
 	case "page":
-		return &Page{Post: post}, nil
+		return &Page{GenericPost: post}, nil
 	}
 	return &post, nil
 }
 
-func (user User) CreateNewPost(meta PostMeta, content string) (IPost, error) {
+func (user User) CreateNewPost(meta PostMeta, content string) (Post, error) {
 	slugHint := meta.Title
 	if slugHint == "" {
 		slugHint = "note"
@@ -319,7 +319,7 @@ func (user User) CreateNewPost(meta PostMeta, content string) (IPost, error) {
 			break
 		}
 	}
-	post := Post{user: &user, id: folder_name}
+	post := GenericPost{user: &user, id: folder_name}
 
 	// if date is not set, set it to now
 	if meta.Date.IsZero() {
@@ -331,7 +331,7 @@ func (user User) CreateNewPost(meta PostMeta, content string) (IPost, error) {
 	// write meta
 	meta_bytes, err := yaml.Marshal(meta)
 	if err != nil {
-		return &Post{}, err
+		return &GenericPost{}, err
 	}
 	initial_content += string(meta_bytes)
 	initial_content += "---\n"
@@ -366,8 +366,8 @@ func (user User) SetConfig(new_config UserConfig) error {
 	return saveToYaml(user.ConfigFile(), new_config)
 }
 
-func (user User) PostAliases() (map[string]IPost, error) {
-	post_aliases := make(map[string]IPost)
+func (user User) PostAliases() (map[string]Post, error) {
+	post_aliases := make(map[string]Post)
 	posts, err := user.PublishedPosts()
 	if err != nil {
 		return post_aliases, err
