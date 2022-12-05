@@ -180,7 +180,7 @@ func TestIndexPageDoesNotContainsArticle(t *testing.T) {
 
 func TestIndexPageDoesNotContainsReply(t *testing.T) {
 	user := getTestUser()
-	user.CreateNewPostFull(owl.PostMeta{Type: "reply", Reply: owl.Reply{Url: "https://example.com/post"}}, "hi")
+	user.CreateNewPostFull(owl.PostMeta{Type: "reply", Reply: owl.ReplyData{Url: "https://example.com/post"}}, "hi")
 
 	result, _ := owl.RenderIndexPage(user)
 	assertions.AssertContains(t, result, "class=\"h-entry\"")
@@ -301,17 +301,12 @@ func TestAuthorNameInPost(t *testing.T) {
 func TestRenderReplyWithoutText(t *testing.T) {
 
 	user := getTestUser()
-	post, _ := user.CreateNewPost("testpost", false)
-
-	content := "---\n"
-	content += "title: test\n"
-	content += "date: Wed, 17 Aug 2022 10:50:02 +0000\n"
-	content += "reply: \n"
-	content += "  url: https://example.com/post\n"
-	content += "---\n"
-	content += "\n"
-	content += "Hi \n"
-	os.WriteFile(post.ContentFile(), []byte(content), 0644)
+	post, _ := user.CreateNewPostFull(owl.PostMeta{
+		Type: "reply",
+		Reply: owl.ReplyData{
+			Url: "https://example.com/post",
+		},
+	}, "Hi ")
 
 	result, _ := owl.RenderPost(post)
 	assertions.AssertContains(t, result, "https://example.com/post")
@@ -320,17 +315,13 @@ func TestRenderReplyWithoutText(t *testing.T) {
 func TestRenderReplyWithText(t *testing.T) {
 
 	user := getTestUser()
-	post, _ := user.CreateNewPost("testpost", false)
-
-	content := "---\n"
-	content += "title: test\n"
-	content += "date: Wed, 17 Aug 2022 10:50:02 +0000\n"
-	content += "reply: \n"
-	content += "  url: https://example.com/post\n"
-	content += "  text: \"This is a reply\"\n"
-	content += "---\n"
-	content += "Hi \n"
-	os.WriteFile(post.ContentFile(), []byte(content), 0644)
+	post, _ := user.CreateNewPostFull(owl.PostMeta{
+		Type: "reply",
+		Reply: owl.ReplyData{
+			Url:  "https://example.com/post",
+			Text: "This is a reply",
+		},
+	}, "Hi ")
 
 	result, _ := owl.RenderPost(post)
 	assertions.AssertContains(t, result, "https://example.com/post")
@@ -340,7 +331,7 @@ func TestRenderReplyWithText(t *testing.T) {
 
 func TestRengerPostContainsBookmark(t *testing.T) {
 	user := getTestUser()
-	post, _ := user.CreateNewPostFull(owl.PostMeta{Type: "bookmark", Bookmark: owl.Bookmark{Url: "https://example.com/post"}}, "hi")
+	post, _ := user.CreateNewPostFull(owl.PostMeta{Type: "bookmark", Bookmark: owl.BookmarkData{Url: "https://example.com/post"}}, "hi")
 
 	result, _ := owl.RenderPost(post)
 	assertions.AssertContains(t, result, "https://example.com/post")

@@ -23,3 +23,19 @@ type Page struct {
 func (p *Page) TemplateDir() string {
 	return "page"
 }
+
+type Bookmark struct {
+	Post
+}
+
+func (b *Bookmark) TemplateDir() string {
+	return "bookmark"
+}
+
+type Reply struct {
+	Post
+}
+
+func (r *Reply) TemplateDir() string {
+	return "reply"
+}

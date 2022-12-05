@@ -285,14 +285,17 @@ func (user User) GetPost(id string) (IPost, error) {
 	}
 
 	post := Post{user: &user, id: id}
-	if post.Meta().Type == "" {
-		return &Article{Post: post}, nil
-	}
 	switch post.Meta().Type {
 	case "article":
 		return &Article{Post: post}, nil
 	case "note":
 		return &Note{Post: post}, nil
+	case "reply":
+		return &Reply{Post: post}, nil
+	case "bookmark":
+		return &Bookmark{Post: post}, nil
+	case "page":
+		return &Page{Post: post}, nil
 	}
 	return &post, nil
 }

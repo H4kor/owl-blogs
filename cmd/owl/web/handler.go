@@ -336,7 +336,7 @@ func userMicropubHandler(repo *owl.Repository) func(http.ResponseWriter, *http.R
 		post, err := user.CreateNewPostFull(
 			owl.PostMeta{
 				Title: name,
-				Reply: owl.Reply{
+				Reply: owl.ReplyData{
 					Url: inReplyTo,
 				},
 				Date: time.Now(),

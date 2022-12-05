@@ -59,24 +59,24 @@ type IPost interface {
 	SendWebmention(webmention WebmentionOut) error
 }
 
-type Reply struct {
+type ReplyData struct {
 	Url  string `yaml:"url"`
 	Text string `yaml:"text"`
 }
-type Bookmark struct {
+type BookmarkData struct {
 	Url  string `yaml:"url"`
 	Text string `yaml:"text"`
 }
 
 type PostMeta struct {
-	Type        string    `yaml:"type"`
-	Title       string    `yaml:"title"`
-	Description string    `yaml:"description"`
-	Aliases     []string  `yaml:"aliases"`
-	Date        time.Time `yaml:"date"`
-	Draft       bool      `yaml:"draft"`
-	Reply       Reply     `yaml:"reply"`
-	Bookmark    Bookmark  `yaml:"bookmark"`
+	Type        string       `yaml:"type"`
+	Title       string       `yaml:"title"`
+	Description string       `yaml:"description"`
+	Aliases     []string     `yaml:"aliases"`
+	Date        time.Time    `yaml:"date"`
+	Draft       bool         `yaml:"draft"`
+	Reply       ReplyData    `yaml:"reply"`
+	Bookmark    BookmarkData `yaml:"bookmark"`
 }
 
 func (pm PostMeta) FormattedDate() string {
@@ -85,13 +85,13 @@ func (pm PostMeta) FormattedDate() string {
 
 func (pm *PostMeta) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	type T struct {
-		Type        string   `yaml:"type"`
-		Title       string   `yaml:"title"`
-		Description string   `yaml:"description"`
-		Aliases     []string `yaml:"aliases"`
-		Draft       bool     `yaml:"draft"`
-		Reply       Reply    `yaml:"reply"`
-		Bookmark    Bookmark `yaml:"bookmark"`
+		Type        string       `yaml:"type"`
+		Title       string       `yaml:"title"`
+		Description string       `yaml:"description"`
+		Aliases     []string     `yaml:"aliases"`
+		Draft       bool         `yaml:"draft"`
+		Reply       ReplyData    `yaml:"reply"`
+		Bookmark    BookmarkData `yaml:"bookmark"`
 	}
 	type S struct {
 		Date string `yaml:"date"`

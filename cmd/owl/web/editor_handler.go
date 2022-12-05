@@ -251,10 +251,10 @@ func userEditorPostHandler(repo *owl.Repository) func(http.ResponseWriter, *http
 			Description: description,
 			Draft:       draft == "on",
 			Date:        time.Now(),
-			Reply: owl.Reply{
+			Reply: owl.ReplyData{
 				Url: reply_url,
 			},
-			Bookmark: owl.Bookmark{
+			Bookmark: owl.BookmarkData{
 				Url: bookmark_url,
 			},
 		}, content)
