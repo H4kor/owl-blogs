@@ -181,6 +181,8 @@ func (post *Post) RenderedContent() string {
 	// trim yaml block
 	// TODO this can be done nicer
 	trimmedData := bytes.TrimSpace(data)
+	// ensure that data ends with a newline
+	trimmedData = append(trimmedData, []byte("\n")...)
 	// check first line is ---
 	if string(trimmedData[0:4]) == "---\n" {
 		trimmedData = trimmedData[4:]

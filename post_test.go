@@ -465,6 +465,15 @@ func TestComplexParallelWebmentions(t *testing.T) {
 	assertions.AssertLen(t, outs, 20)
 }
 
+func TestPostWithoutContent(t *testing.T) {
+	repo := getTestRepo(owl.RepoConfig{})
+	user, _ := repo.CreateUser("testuser")
+	post, _ := user.CreateNewPostFull(owl.PostMeta{}, "")
+
+	result := post.RenderedContent()
+	assertions.AssertEqual(t, result, "")
+}
+
 // func TestComplexParallelSimulatedProcessesWebmentions(t *testing.T) {
 // 	repoName := testRepoName()
 // 	repo, _ := owl.CreateRepository(repoName, owl.RepoConfig{})
