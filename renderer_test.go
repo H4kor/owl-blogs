@@ -473,12 +473,17 @@ func TestRenderFooterMenuUrlItem(t *testing.T) {
 
 func TestRenderFooterMenuPost(t *testing.T) {
 	user := getTestUser()
-	post, _ := user.CreateNewPost("testpost", false)
+	post, _ := user.CreateNewPostFull(owl.PostMeta{
+		Type: "private",
+	}, "")
+	result, _ := owl.RenderIndexPage(user)
+	assertions.AssertNotContains(t, result, "Test Entry")
+	assertions.AssertNotContains(t, result, post.UrlPath())
 	user.AddFooterMenuItem(owl.MenuItem{
 		Title: "Test Entry",
 		Post:  post.Id(),
 	})
-	result, _ := owl.RenderIndexPage(user)
+	result, _ = owl.RenderIndexPage(user)
 	assertions.AssertContains(t, result, "Test Entry")
 	assertions.AssertContains(t, result, post.UrlPath())
 }
