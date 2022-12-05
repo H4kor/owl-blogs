@@ -20,7 +20,6 @@ import (
 type Post struct {
 	user       *User
 	id         string
-	title      string
 	metaLoaded bool
 	meta       PostMeta
 	wmLock     sync.Mutex
@@ -155,7 +154,7 @@ func (post *Post) UrlMediaPath(filename string) string {
 }
 
 func (post *Post) Title() string {
-	return post.title
+	return post.Meta().Title
 }
 
 func (post *Post) ContentFile() string {

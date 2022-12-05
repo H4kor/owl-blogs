@@ -285,11 +285,6 @@ func (user User) GetPost(id string) (*Post, error) {
 	}
 
 	post := Post{user: &user, id: id}
-	// post.loadMeta()
-	meta := post.Meta()
-	title := meta.Title
-	post.title = fmt.Sprint(title)
-
 	return &post, nil
 }
 
@@ -312,7 +307,7 @@ func (user User) CreateNewPostFull(meta PostMeta, content string) (*Post, error)
 			break
 		}
 	}
-	post := Post{user: &user, id: folder_name, title: slugHint}
+	post := Post{user: &user, id: folder_name}
 
 	initial_content := ""
 	initial_content += "---\n"
