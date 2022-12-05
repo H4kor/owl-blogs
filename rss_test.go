@@ -35,7 +35,7 @@ func TestRenderRSSFeedUserData(t *testing.T) {
 
 func TestRenderRSSFeedPostData(t *testing.T) {
 	user := getTestUser()
-	post, _ := user.CreateNewPost("testpost", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Title: "testpost"}, "")
 
 	content := "---\n"
 	content += "title: Test Post\n"
@@ -53,7 +53,7 @@ func TestRenderRSSFeedPostData(t *testing.T) {
 
 func TestRenderRSSFeedPostDataWithoutDate(t *testing.T) {
 	user := getTestUser()
-	post, _ := user.CreateNewPost("testpost", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Title: "testpost"}, "")
 
 	content := "---\n"
 	content += "title: Test Post\n"

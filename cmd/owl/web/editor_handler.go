@@ -245,7 +245,7 @@ func userEditorPostHandler(repo *owl.Repository) func(http.ResponseWriter, *http
 		// TODO: scrape bookmark_url for title and description
 
 		// create post
-		post, err := user.CreateNewPostFull(owl.PostMeta{
+		post, err := user.CreateNewPost(owl.PostMeta{
 			Type:        post_type,
 			Title:       title,
 			Description: description,

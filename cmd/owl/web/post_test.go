@@ -13,7 +13,7 @@ import (
 func TestPostHandlerReturns404OnDrafts(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("test-1")
-	post, _ := user.CreateNewPost("post-1", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Title: "post-1"}, "")
 
 	content := "---\n"
 	content += "title: test\n"

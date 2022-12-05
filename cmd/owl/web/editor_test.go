@@ -1,6 +1,7 @@
 package web_test
 
 import (
+	"h4kor/owl-blogs"
 	main "h4kor/owl-blogs/cmd/owl/web"
 	"h4kor/owl-blogs/test/assertions"
 	"h4kor/owl-blogs/test/mocks"
@@ -212,7 +213,7 @@ func TestEditorSendsWebmentions(t *testing.T) {
 	repo.Parser = &mocks.MockHtmlParser{}
 	user.ResetPassword("testpassword")
 
-	mentioned_post, _ := user.CreateNewPost("test", false)
+	mentioned_post, _ := user.CreateNewPost(owl.PostMeta{Title: "test"}, "")
 
 	sessionId := user.CreateNewSession()
 

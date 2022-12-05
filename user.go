@@ -300,7 +300,7 @@ func (user User) GetPost(id string) (IPost, error) {
 	return &post, nil
 }
 
-func (user User) CreateNewPostFull(meta PostMeta, content string) (IPost, error) {
+func (user User) CreateNewPost(meta PostMeta, content string) (IPost, error) {
 	slugHint := meta.Title
 	if slugHint == "" {
 		slugHint = "note"
@@ -321,6 +321,11 @@ func (user User) CreateNewPostFull(meta PostMeta, content string) (IPost, error)
 	}
 	post := Post{user: &user, id: folder_name}
 
+	// if date is not set, set it to now
+	if meta.Date.IsZero() {
+		meta.Date = time.Now()
+	}
+
 	initial_content := ""
 	initial_content += "---\n"
 	// write meta
@@ -339,16 +344,6 @@ func (user User) CreateNewPostFull(meta PostMeta, content string) (IPost, error)
 	// create media dir
 	os.Mkdir(post.MediaDir(), 0755)
 	return user.GetPost(post.Id())
-}
-
-func (user User) CreateNewPost(title string, draft bool) (IPost, error) {
-	meta := PostMeta{
-		Title:   title,
-		Date:    time.Now(),
-		Aliases: []string{},
-		Draft:   draft,
-	}
-	return user.CreateNewPostFull(meta, title)
 }
 
 func (user User) Template() (string, error) {

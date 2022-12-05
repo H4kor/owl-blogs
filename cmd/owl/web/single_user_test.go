@@ -19,7 +19,7 @@ func getSingleUserTestRepo() (owl.Repository, owl.User) {
 
 func TestSingleUserUserIndexHandler(t *testing.T) {
 	repo, user := getSingleUserTestRepo()
-	user.CreateNewPost("post-1", false)
+	user.CreateNewPost(owl.PostMeta{Type: "article", Title: "post-1"}, "")
 
 	// Create Request and Response
 	req, err := http.NewRequest("GET", user.UrlPath(), nil)
@@ -36,7 +36,7 @@ func TestSingleUserUserIndexHandler(t *testing.T) {
 
 func TestSingleUserPostHandler(t *testing.T) {
 	repo, user := getSingleUserTestRepo()
-	post, _ := user.CreateNewPost("post-1", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "post-1"}, "")
 
 	// Create Request and Response
 	req, err := http.NewRequest("GET", post.UrlPath(), nil)
@@ -50,7 +50,7 @@ func TestSingleUserPostHandler(t *testing.T) {
 
 func TestSingleUserPostMediaHandler(t *testing.T) {
 	repo, user := getSingleUserTestRepo()
-	post, _ := user.CreateNewPost("post-1", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "post-1"}, "")
 
 	// Create test media file
 	path := path.Join(post.MediaDir(), "data.txt")
@@ -72,7 +72,7 @@ func TestSingleUserPostMediaHandler(t *testing.T) {
 
 func TestHasNoDraftsInList(t *testing.T) {
 	repo, user := getSingleUserTestRepo()
-	post, _ := user.CreateNewPost("post-1", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "post-1"}, "")
 	content := ""
 	content += "---\n"
 	content += "title: Articles September 2019\n"
@@ -102,11 +102,11 @@ func TestHasNoDraftsInList(t *testing.T) {
 
 func TestSingleUserUserPostListHandler(t *testing.T) {
 	repo, user := getSingleUserTestRepo()
-	user.CreateNewPostFull(owl.PostMeta{
+	user.CreateNewPost(owl.PostMeta{
 		Title: "post-1",
 		Type:  "article",
 	}, "hi")
-	user.CreateNewPostFull(owl.PostMeta{
+	user.CreateNewPost(owl.PostMeta{
 		Title: "post-2",
 		Type:  "note",
 	}, "hi")

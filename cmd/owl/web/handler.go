@@ -144,7 +144,7 @@ func userWebmentionHandler(repo *owl.Repository) func(http.ResponseWriter, *http
 			return
 		}
 
-		tryAlias := func(target string) *owl.Post {
+		tryAlias := func(target string) owl.IPost {
 			parsedTarget, _ := url.Parse(target)
 			aliases, _ := repo.PostAliases()
 			fmt.Printf("aliases %v", aliases)
@@ -155,7 +155,7 @@ func userWebmentionHandler(repo *owl.Repository) func(http.ResponseWriter, *http
 			return nil
 		}
 
-		var aliasPost *owl.Post
+		var aliasPost owl.IPost
 		parts := strings.Split(target[0], "/")
 		if len(parts) < 2 {
 			aliasPost = tryAlias(target[0])
@@ -333,7 +333,7 @@ func userMicropubHandler(repo *owl.Repository) func(http.ResponseWriter, *http.R
 		}
 
 		// create post
-		post, err := user.CreateNewPostFull(
+		post, err := user.CreateNewPost(
 			owl.PostMeta{
 				Title: name,
 				Reply: owl.ReplyData{

@@ -14,7 +14,7 @@ func TestCreateNewPostCreatesEntryInPublic(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser(randomUserName())
 	// Create a new post
-	user.CreateNewPost("testpost", false)
+	user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 	files, err := os.ReadDir(path.Join(user.Dir(), "public"))
 	assertions.AssertNoError(t, err, "Error reading directory")
 	assertions.AssertLen(t, files, 1)
@@ -25,7 +25,7 @@ func TestCreateNewPostCreatesMediaDir(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser(randomUserName())
 	// Create a new post
-	post, _ := user.CreateNewPost("testpost", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 	_, err := os.Stat(post.MediaDir())
 	assertions.AssertNot(t, os.IsNotExist(err), "Media directory not created")
 }
@@ -33,7 +33,7 @@ func TestCreateNewPostCreatesMediaDir(t *testing.T) {
 func TestCreateNewPostAddsDateToMetaBlock(t *testing.T) {
 	user := getTestUser()
 	// Create a new post
-	user.CreateNewPost("testpost", false)
+	user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 	posts, _ := user.PublishedPosts()
 	post, _ := user.GetPost(posts[0].Id())
 	meta := post.Meta()
@@ -45,9 +45,9 @@ func TestCreateNewPostMultipleCalls(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser(randomUserName())
 	// Create a new post
-	user.CreateNewPost("testpost", false)
-	user.CreateNewPost("testpost", false)
-	user.CreateNewPost("testpost", false)
+	user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
+	user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
+	user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 	files, err := os.ReadDir(path.Join(user.Dir(), "public"))
 	assertions.AssertNoError(t, err, "Error reading directory")
 	assertions.AssertEqual(t, len(files), 3)
@@ -58,9 +58,9 @@ func TestCanListUserPosts(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser(randomUserName())
 	// Create a new post
-	user.CreateNewPost("testpost", false)
-	user.CreateNewPost("testpost", false)
-	user.CreateNewPost("testpost", false)
+	user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
+	user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
+	user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 	posts, err := user.PublishedPosts()
 	assertions.AssertNoError(t, err, "Error reading posts")
 	assertions.AssertLen(t, posts, 3)
@@ -71,7 +71,7 @@ func TestCannotListUserPostsInSubdirectories(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser(randomUserName())
 	// Create a new post
-	user.CreateNewPost("testpost", false)
+	user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 	os.Mkdir(path.Join(user.PostDir(), "foo"), 0755)
 	os.Mkdir(path.Join(user.PostDir(), "foo/bar"), 0755)
 	content := ""
@@ -108,7 +108,7 @@ func TestCannotListUserPostsWithoutIndexMd(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser(randomUserName())
 	// Create a new post
-	user.CreateNewPost("testpost", false)
+	user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 	os.Mkdir(path.Join(user.PostDir(), "foo"), 0755)
 	os.Mkdir(path.Join(user.PostDir(), "foo/bar"), 0755)
 	content := ""
@@ -137,7 +137,7 @@ func TestListUserPostsDoesNotIncludeDrafts(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser(randomUserName())
 	// Create a new post
-	post, _ := user.CreateNewPost("testpost", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 	content := ""
 	content += "---\n"
 	content += "title: test\n"
@@ -156,7 +156,7 @@ func TestListUsersDraftsExcludedRealWorld(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser(randomUserName())
 	// Create a new post
-	post, _ := user.CreateNewPost("testpost", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 	content := ""
 	content += "---\n"
 	content += "title: Articles September 2019\n"
@@ -180,7 +180,7 @@ func TestListUsersDraftsExcludedRealWorld(t *testing.T) {
 func TestCanLoadPost(t *testing.T) {
 	user := getTestUser()
 	// Create a new post
-	user.CreateNewPost("testpost", false)
+	user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 
 	posts, _ := user.PublishedPosts()
 	post, _ := user.GetPost(posts[0].Id())
@@ -200,8 +200,8 @@ func TestUserFullUrl(t *testing.T) {
 func TestPostsSortedByPublishingDateLatestFirst(t *testing.T) {
 	user := getTestUser()
 	// Create a new post
-	post1, _ := user.CreateNewPost("testpost", false)
-	post2, _ := user.CreateNewPost("testpost2", false)
+	post1, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
+	post2, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost2"}, "")
 
 	content := "---\n"
 	content += "title: Test Post\n"
@@ -227,7 +227,7 @@ func TestPostsSortedByPublishingDateLatestFirst2(t *testing.T) {
 	// Create a new post
 	posts := []owl.IPost{}
 	for i := 59; i >= 0; i-- {
-		post, _ := user.CreateNewPost("testpost", false)
+		post, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 		content := "---\n"
 		content += "title: Test Post\n"
 		content += fmt.Sprintf("date: Wed, 17 Aug 2022 10:%02d:02 +0000\n", i)
@@ -246,8 +246,8 @@ func TestPostsSortedByPublishingDateLatestFirst2(t *testing.T) {
 func TestPostsSortedByPublishingDateBrokenAtBottom(t *testing.T) {
 	user := getTestUser()
 	// Create a new post
-	post1, _ := user.CreateNewPost("testpost", false)
-	post2, _ := user.CreateNewPost("testpost2", false)
+	post1, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
+	post2, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost2"}, "")
 
 	content := "---\n"
 	content += "title: Test Post\n"
@@ -281,7 +281,7 @@ func TestAvatarSetIfFileExist(t *testing.T) {
 
 func TestPostNameIllegalFileName(t *testing.T) {
 	user := getTestUser()
-	_, err := user.CreateNewPost("testpost?///", false)
+	_, err := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost?///"}, "")
 	assertions.AssertNoError(t, err, "Should not have failed")
 }
 

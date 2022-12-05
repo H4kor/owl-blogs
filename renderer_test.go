@@ -11,7 +11,7 @@ import (
 
 func TestCanRenderPost(t *testing.T) {
 	user := getTestUser()
-	post, _ := user.CreateNewPost("testpost", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 	result, err := owl.RenderPost(post)
 
 	assertions.AssertNoError(t, err, "Error rendering post")
@@ -28,7 +28,7 @@ func TestRenderOneMe(t *testing.T) {
 	})
 
 	user.SetConfig(config)
-	post, _ := user.CreateNewPost("testpost", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 	result, err := owl.RenderPost(post)
 
 	assertions.AssertNoError(t, err, "Error rendering post")
@@ -49,7 +49,7 @@ func TestRenderTwoMe(t *testing.T) {
 	})
 
 	user.SetConfig(config)
-	post, _ := user.CreateNewPost("testpost", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 	result, err := owl.RenderPost(post)
 
 	assertions.AssertNoError(t, err, "Error rendering post")
@@ -60,7 +60,7 @@ func TestRenderTwoMe(t *testing.T) {
 
 func TestRenderPostHEntry(t *testing.T) {
 	user := getTestUser()
-	post, _ := user.CreateNewPost("testpost", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 	result, _ := owl.RenderPost(post)
 	assertions.AssertContains(t, result, "class=\"h-entry\"")
 	assertions.AssertContains(t, result, "class=\"p-name\"")
@@ -70,7 +70,7 @@ func TestRenderPostHEntry(t *testing.T) {
 
 func TestRendererUsesBaseTemplate(t *testing.T) {
 	user := getTestUser()
-	post, _ := user.CreateNewPost("testpost", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 	result, err := owl.RenderPost(post)
 
 	assertions.AssertNoError(t, err, "Error rendering post")
@@ -79,8 +79,8 @@ func TestRendererUsesBaseTemplate(t *testing.T) {
 
 func TestCanRenderPostList(t *testing.T) {
 	user := getTestUser()
-	user.CreateNewPost("testpost1", false)
-	user.CreateNewPost("testpost2", false)
+	user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost1"}, "")
+	user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost2"}, "")
 	result, err := owl.RenderPostList(user, &owl.PostList{
 		Id:    "testlist",
 		Title: "Test List",
@@ -95,8 +95,8 @@ func TestCanRenderPostList(t *testing.T) {
 
 func TestCanRenderPostListNotIncludeOther(t *testing.T) {
 	user := getTestUser()
-	user.CreateNewPostFull(owl.PostMeta{Title: "testpost1", Type: "article"}, "testpost1")
-	user.CreateNewPostFull(owl.PostMeta{Title: "testpost2", Type: "note"}, "testpost2")
+	user.CreateNewPost(owl.PostMeta{Title: "testpost1", Type: "article"}, "testpost1")
+	user.CreateNewPost(owl.PostMeta{Title: "testpost2", Type: "note"}, "testpost2")
 	result, _ := owl.RenderPostList(user, &owl.PostList{
 		Id:    "testlist",
 		Title: "Test List",
@@ -110,9 +110,9 @@ func TestCanRenderPostListNotIncludeOther(t *testing.T) {
 
 func TestCanRenderPostListNotIncludeMultiple(t *testing.T) {
 	user := getTestUser()
-	user.CreateNewPostFull(owl.PostMeta{Title: "testpost1", Type: "article"}, "testpost1")
-	user.CreateNewPostFull(owl.PostMeta{Title: "testpost2", Type: "note"}, "testpost2")
-	user.CreateNewPostFull(owl.PostMeta{Title: "testpost3", Type: "recipe"}, "testpost3")
+	user.CreateNewPost(owl.PostMeta{Title: "testpost1", Type: "article"}, "testpost1")
+	user.CreateNewPost(owl.PostMeta{Title: "testpost2", Type: "note"}, "testpost2")
+	user.CreateNewPost(owl.PostMeta{Title: "testpost3", Type: "recipe"}, "testpost3")
 	result, _ := owl.RenderPostList(user, &owl.PostList{
 		Id:    "testlist",
 		Title: "Test List",
@@ -127,8 +127,8 @@ func TestCanRenderPostListNotIncludeMultiple(t *testing.T) {
 
 func TestCanRenderIndexPage(t *testing.T) {
 	user := getTestUser()
-	user.CreateNewPost("testpost1", false)
-	user.CreateNewPost("testpost2", false)
+	user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost1"}, "")
+	user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost2"}, "")
 	result, _ := owl.RenderIndexPage(user)
 	assertions.AssertContains(t, result, "testpost1")
 	assertions.AssertContains(t, result, "testpost2")
@@ -136,14 +136,14 @@ func TestCanRenderIndexPage(t *testing.T) {
 
 func TestCanRenderIndexPageNoTitle(t *testing.T) {
 	user := getTestUser()
-	post, _ := user.CreateNewPostFull(owl.PostMeta{}, "hi")
+	post, _ := user.CreateNewPost(owl.PostMeta{}, "hi")
 	result, _ := owl.RenderIndexPage(user)
 	assertions.AssertContains(t, result, post.Id())
 }
 
 func TestRenderNoteAsFullContent(t *testing.T) {
 	user := getTestUser()
-	user.CreateNewPostFull(owl.PostMeta{Type: "note"}, "This is a note")
+	user.CreateNewPost(owl.PostMeta{Type: "note"}, "This is a note")
 	result, _ := owl.RenderPostList(user, &owl.PostList{
 		Include: []string{"note"},
 	})
@@ -153,7 +153,7 @@ func TestRenderNoteAsFullContent(t *testing.T) {
 
 func TestIndexPageContainsHFeedContainer(t *testing.T) {
 	user := getTestUser()
-	user.CreateNewPost("testpost1", false)
+	user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost1"}, "")
 
 	result, _ := owl.RenderIndexPage(user)
 	assertions.AssertContains(t, result, "<div class=\"h-feed\">")
@@ -161,7 +161,7 @@ func TestIndexPageContainsHFeedContainer(t *testing.T) {
 
 func TestIndexPageContainsHEntryAndUUrl(t *testing.T) {
 	user := getTestUser()
-	user.CreateNewPost("testpost1", false)
+	user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost1"}, "")
 
 	result, _ := owl.RenderIndexPage(user)
 	assertions.AssertContains(t, result, "class=\"h-entry\"")
@@ -171,7 +171,7 @@ func TestIndexPageContainsHEntryAndUUrl(t *testing.T) {
 
 func TestIndexPageDoesNotContainsArticle(t *testing.T) {
 	user := getTestUser()
-	user.CreateNewPostFull(owl.PostMeta{Type: "article"}, "hi")
+	user.CreateNewPost(owl.PostMeta{Type: "article"}, "hi")
 
 	result, _ := owl.RenderIndexPage(user)
 	assertions.AssertContains(t, result, "class=\"h-entry\"")
@@ -180,7 +180,7 @@ func TestIndexPageDoesNotContainsArticle(t *testing.T) {
 
 func TestIndexPageDoesNotContainsReply(t *testing.T) {
 	user := getTestUser()
-	user.CreateNewPostFull(owl.PostMeta{Type: "reply", Reply: owl.ReplyData{Url: "https://example.com/post"}}, "hi")
+	user.CreateNewPost(owl.PostMeta{Type: "reply", Reply: owl.ReplyData{Url: "https://example.com/post"}}, "hi")
 
 	result, _ := owl.RenderIndexPage(user)
 	assertions.AssertContains(t, result, "class=\"h-entry\"")
@@ -189,8 +189,8 @@ func TestIndexPageDoesNotContainsReply(t *testing.T) {
 
 func TestRenderIndexPageWithBrokenBaseTemplate(t *testing.T) {
 	user := getTestUser()
-	user.CreateNewPost("testpost1", false)
-	user.CreateNewPost("testpost2", false)
+	user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost1"}, "")
+	user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost2"}, "")
 
 	os.WriteFile(path.Join(user.Dir(), "meta/base.html"), []byte("{{content}}"), 0644)
 
@@ -216,7 +216,7 @@ func TestRendersHeaderTitle(t *testing.T) {
 		SubTitle:    "Test SubTitle",
 		HeaderColor: "#ff1337",
 	})
-	post, _ := user.CreateNewPost("testpost", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 
 	result, _ := owl.RenderPost(post)
 	assertions.AssertContains(t, result, "Test Title")
@@ -226,7 +226,7 @@ func TestRendersHeaderTitle(t *testing.T) {
 
 func TestRenderPostIncludesRelToWebMention(t *testing.T) {
 	user := getTestUser()
-	post, _ := user.CreateNewPost("testpost", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 
 	result, _ := owl.RenderPost(post)
 	assertions.AssertContains(t, result, "rel=\"webmention\"")
@@ -236,7 +236,7 @@ func TestRenderPostIncludesRelToWebMention(t *testing.T) {
 
 func TestRenderPostAddsLinksToApprovedWebmention(t *testing.T) {
 	user := getTestUser()
-	post, _ := user.CreateNewPost("testpost", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 	webmention := owl.WebmentionIn{
 		Source:         "http://example.com/source3",
 		Title:          "Test Title",
@@ -260,7 +260,7 @@ func TestRenderPostAddsLinksToApprovedWebmention(t *testing.T) {
 
 func TestRenderPostNotMentioningWebmentionsIfNoAvail(t *testing.T) {
 	user := getTestUser()
-	post, _ := user.CreateNewPost("testpost", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 	result, _ := owl.RenderPost(post)
 
 	assertions.AssertNotContains(t, result, "Webmention")
@@ -269,7 +269,7 @@ func TestRenderPostNotMentioningWebmentionsIfNoAvail(t *testing.T) {
 
 func TestRenderIncludesFullUrl(t *testing.T) {
 	user := getTestUser()
-	post, _ := user.CreateNewPost("testpost", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 	result, _ := owl.RenderPost(post)
 
 	assertions.AssertContains(t, result, "class=\"u-url\"")
@@ -292,7 +292,7 @@ func TestAuthorNameInPost(t *testing.T) {
 		HeaderColor: "#ff1337",
 		AuthorName:  "Test Author",
 	})
-	post, _ := user.CreateNewPost("testpost", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 
 	result, _ := owl.RenderPost(post)
 	assertions.AssertContains(t, result, "Test Author")
@@ -301,7 +301,7 @@ func TestAuthorNameInPost(t *testing.T) {
 func TestRenderReplyWithoutText(t *testing.T) {
 
 	user := getTestUser()
-	post, _ := user.CreateNewPostFull(owl.PostMeta{
+	post, _ := user.CreateNewPost(owl.PostMeta{
 		Type: "reply",
 		Reply: owl.ReplyData{
 			Url: "https://example.com/post",
@@ -315,7 +315,7 @@ func TestRenderReplyWithoutText(t *testing.T) {
 func TestRenderReplyWithText(t *testing.T) {
 
 	user := getTestUser()
-	post, _ := user.CreateNewPostFull(owl.PostMeta{
+	post, _ := user.CreateNewPost(owl.PostMeta{
 		Type: "reply",
 		Reply: owl.ReplyData{
 			Url:  "https://example.com/post",
@@ -331,7 +331,7 @@ func TestRenderReplyWithText(t *testing.T) {
 
 func TestRengerPostContainsBookmark(t *testing.T) {
 	user := getTestUser()
-	post, _ := user.CreateNewPostFull(owl.PostMeta{Type: "bookmark", Bookmark: owl.BookmarkData{Url: "https://example.com/post"}}, "hi")
+	post, _ := user.CreateNewPost(owl.PostMeta{Type: "bookmark", Bookmark: owl.BookmarkData{Url: "https://example.com/post"}}, "hi")
 
 	result, _ := owl.RenderPost(post)
 	assertions.AssertContains(t, result, "https://example.com/post")
@@ -339,7 +339,7 @@ func TestRengerPostContainsBookmark(t *testing.T) {
 
 func TestOpenGraphTags(t *testing.T) {
 	user := getTestUser()
-	post, _ := user.CreateNewPost("testpost", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 
 	content := "---\n"
 	content += "title: The Rock\n"
@@ -430,7 +430,7 @@ func TestRenderHeaderMenuUrlItem(t *testing.T) {
 
 func TestRenderHeaderMenuPost(t *testing.T) {
 	user := getTestUser()
-	post, _ := user.CreateNewPost("testpost", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 	user.AddHeaderMenuItem(owl.MenuItem{
 		Title: "Test Entry",
 		Post:  post.Id(),
@@ -464,7 +464,7 @@ func TestRenderFooterMenuUrlItem(t *testing.T) {
 
 func TestRenderFooterMenuPost(t *testing.T) {
 	user := getTestUser()
-	post, _ := user.CreateNewPostFull(owl.PostMeta{
+	post, _ := user.CreateNewPost(owl.PostMeta{
 		Type: "private",
 	}, "")
 	result, _ := owl.RenderIndexPage(user)

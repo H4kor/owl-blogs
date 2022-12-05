@@ -13,7 +13,7 @@ import (
 func TestRedirectOnAliases(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("test-1")
-	post, _ := user.CreateNewPost("post-1", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Title: "post-1"}, "")
 
 	content := "---\n"
 	content += "title: Test\n"
@@ -39,7 +39,7 @@ func TestRedirectOnAliases(t *testing.T) {
 func TestNoRedirectOnNonExistingAliases(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("test-1")
-	post, _ := user.CreateNewPost("post-1", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Title: "post-1"}, "")
 
 	content := "---\n"
 	content += "title: Test\n"
@@ -64,8 +64,8 @@ func TestNoRedirectOnNonExistingAliases(t *testing.T) {
 func TestNoRedirectIfValidPostUrl(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("test-1")
-	post, _ := user.CreateNewPost("post-1", false)
-	post2, _ := user.CreateNewPost("post-2", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Title: "post-1"}, "")
+	post2, _ := user.CreateNewPost(owl.PostMeta{Title: "post-2"}, "")
 
 	content := "---\n"
 	content += "title: Test\n"
@@ -89,7 +89,7 @@ func TestNoRedirectIfValidPostUrl(t *testing.T) {
 func TestRedirectIfInvalidPostUrl(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("test-1")
-	post, _ := user.CreateNewPost("post-1", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Title: "post-1"}, "")
 
 	content := "---\n"
 	content += "title: Test\n"
@@ -113,7 +113,7 @@ func TestRedirectIfInvalidPostUrl(t *testing.T) {
 func TestRedirectIfInvalidUserUrl(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("test-1")
-	post, _ := user.CreateNewPost("post-1", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Title: "post-1"}, "")
 
 	content := "---\n"
 	content += "title: Test\n"
@@ -137,7 +137,7 @@ func TestRedirectIfInvalidUserUrl(t *testing.T) {
 func TestRedirectIfInvalidMediaUrl(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("test-1")
-	post, _ := user.CreateNewPost("post-1", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Title: "post-1"}, "")
 
 	content := "---\n"
 	content += "title: Test\n"
@@ -161,7 +161,7 @@ func TestRedirectIfInvalidMediaUrl(t *testing.T) {
 func TestDeepAliasInSingleUserMode(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{SingleUser: "test-1"})
 	user, _ := repo.CreateUser("test-1")
-	post, _ := user.CreateNewPost("post-1", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Title: "post-1"}, "")
 
 	content := "---\n"
 	content += "title: Create tileable textures with GIMP\n"

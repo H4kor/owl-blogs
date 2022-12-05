@@ -199,7 +199,7 @@ func TestSingleUserRepoUserUrlPathIsSimple(t *testing.T) {
 func TestCanGetMapWithAllPostAliases(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser(randomUserName())
-	post, _ := user.CreateNewPost("test-1", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Title: "test-1"}, "")
 
 	content := "---\n"
 	content += "title: Test\n"
@@ -225,8 +225,8 @@ func TestCanGetMapWithAllPostAliases(t *testing.T) {
 func TestAliasesHaveCorrectPost(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser(randomUserName())
-	post1, _ := user.CreateNewPost("test-1", false)
-	post2, _ := user.CreateNewPost("test-2", false)
+	post1, _ := user.CreateNewPost(owl.PostMeta{Title: "test-1"}, "")
+	post2, _ := user.CreateNewPost(owl.PostMeta{Title: "test-2"}, "")
 
 	content := "---\n"
 	content += "title: Test\n"

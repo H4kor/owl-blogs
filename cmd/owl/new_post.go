@@ -40,7 +40,7 @@ var newPostCmd = &cobra.Command{
 			return
 		}
 
-		post, err := user.CreateNewPost(postTitle, true)
+		post, err := user.CreateNewPost(owl.PostMeta{Type: "article", Title: postTitle, Draft: true}, "")
 		if err != nil {
 			println("Error creating post: ", err.Error())
 		} else {

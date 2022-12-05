@@ -14,49 +14,49 @@ import (
 
 func TestCanGetPostTitle(t *testing.T) {
 	user := getTestUser()
-	post, _ := user.CreateNewPost("testpost", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 	result := post.Title()
 	assertions.AssertEqual(t, result, "testpost")
 }
 
 func TestMediaDir(t *testing.T) {
 	user := getTestUser()
-	post, _ := user.CreateNewPost("testpost", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 	result := post.MediaDir()
 	assertions.AssertEqual(t, result, path.Join(post.Dir(), "media"))
 }
 
 func TestPostUrlPath(t *testing.T) {
 	user := getTestUser()
-	post, _ := user.CreateNewPost("testpost", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 	expected := "/user/" + user.Name() + "/posts/" + post.Id() + "/"
 	assertions.AssertEqual(t, post.UrlPath(), expected)
 }
 
 func TestPostFullUrl(t *testing.T) {
 	user := getTestUser()
-	post, _ := user.CreateNewPost("testpost", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 	expected := "http://localhost:8080/user/" + user.Name() + "/posts/" + post.Id() + "/"
 	assertions.AssertEqual(t, post.FullUrl(), expected)
 }
 
 func TestPostUrlMediaPath(t *testing.T) {
 	user := getTestUser()
-	post, _ := user.CreateNewPost("testpost", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 	expected := "/user/" + user.Name() + "/posts/" + post.Id() + "/media/data.png"
 	assertions.AssertEqual(t, post.UrlMediaPath("data.png"), expected)
 }
 
 func TestPostUrlMediaPathWithSubDir(t *testing.T) {
 	user := getTestUser()
-	post, _ := user.CreateNewPost("testpost", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 	expected := "/user/" + user.Name() + "/posts/" + post.Id() + "/media/foo/data.png"
 	assertions.AssertEqual(t, post.UrlMediaPath("foo/data.png"), expected)
 }
 
 func TestDraftInMetaData(t *testing.T) {
 	user := getTestUser()
-	post, _ := user.CreateNewPost("testpost", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 	content := "---\n"
 	content += "title: test\n"
 	content += "draft: true\n"
@@ -71,7 +71,7 @@ func TestDraftInMetaData(t *testing.T) {
 func TestNoRawHTMLIfDisallowedByRepo(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("testuser")
-	post, _ := user.CreateNewPost("testpost", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 	content := "---\n"
 	content += "title: test\n"
 	content += "draft: true\n"
@@ -86,7 +86,7 @@ func TestNoRawHTMLIfDisallowedByRepo(t *testing.T) {
 func TestRawHTMLIfAllowedByRepo(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{AllowRawHtml: true})
 	user, _ := repo.CreateUser("testuser")
-	post, _ := user.CreateNewPost("testpost", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 	content := "---\n"
 	content += "title: test\n"
 	content += "draft: true\n"
@@ -101,7 +101,7 @@ func TestRawHTMLIfAllowedByRepo(t *testing.T) {
 func TestLoadMeta(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{AllowRawHtml: true})
 	user, _ := repo.CreateUser("testuser")
-	post, _ := user.CreateNewPost("testpost", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 
 	content := "---\n"
 	content += "title: test\n"
@@ -132,7 +132,7 @@ func TestLoadMeta(t *testing.T) {
 func TestPersistIncomingWebmention(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("testuser")
-	post, _ := user.CreateNewPost("testpost", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 	webmention := owl.WebmentionIn{
 		Source: "http://example.com/source",
 	}
@@ -148,7 +148,7 @@ func TestAddIncomingWebmentionCreatesFile(t *testing.T) {
 	repo.HttpClient = &mocks.MockHttpClient{}
 	repo.Parser = &mocks.MockHtmlParser{}
 	user, _ := repo.CreateUser("testuser")
-	post, _ := user.CreateNewPost("testpost", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 
 	err := post.AddIncomingWebmention("https://example.com")
 	assertions.AssertNoError(t, err, "Error adding webmention")
@@ -162,7 +162,7 @@ func TestAddIncomingWebmentionNotOverwritingWebmention(t *testing.T) {
 	repo.HttpClient = &mocks.MockHttpClient{}
 	repo.Parser = &mocks.MockHtmlParser{}
 	user, _ := repo.CreateUser("testuser")
-	post, _ := user.CreateNewPost("testpost", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 
 	post.PersistIncomingWebmention(owl.WebmentionIn{
 		Source:         "https://example.com",
@@ -182,7 +182,7 @@ func TestEnrichAddsTitle(t *testing.T) {
 	repo.HttpClient = &mocks.MockHttpClient{}
 	repo.Parser = &mocks.MockHtmlParser{}
 	user, _ := repo.CreateUser("testuser")
-	post, _ := user.CreateNewPost("testpost", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 
 	post.AddIncomingWebmention("https://example.com")
 	post.EnrichWebmention(owl.WebmentionIn{Source: "https://example.com"})
@@ -195,7 +195,7 @@ func TestEnrichAddsTitle(t *testing.T) {
 func TestApprovedIncomingWebmentions(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("testuser")
-	post, _ := user.CreateNewPost("testpost", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 	webmention := owl.WebmentionIn{
 		Source:         "http://example.com/source",
 		ApprovalStatus: "approved",
@@ -232,7 +232,7 @@ func TestApprovedIncomingWebmentions(t *testing.T) {
 func TestScanningForLinks(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("testuser")
-	post, _ := user.CreateNewPost("testpost", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 
 	content := "---\n"
 	content += "title: test\n"
@@ -251,7 +251,7 @@ func TestScanningForLinks(t *testing.T) {
 func TestScanningForLinksDoesNotAddDuplicates(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("testuser")
-	post, _ := user.CreateNewPost("testpost", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 
 	content := "---\n"
 	content += "title: test\n"
@@ -273,7 +273,7 @@ func TestScanningForLinksDoesNotAddDuplicates(t *testing.T) {
 func TestScanningForLinksDoesAddReplyUrl(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("testuser")
-	post, _ := user.CreateNewPost("testpost", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 
 	content := "---\n"
 	content += "title: test\n"
@@ -296,7 +296,7 @@ func TestCanSendWebmention(t *testing.T) {
 	repo.HttpClient = &mocks.MockHttpClient{}
 	repo.Parser = &mocks.MockHtmlParser{}
 	user, _ := repo.CreateUser("testuser")
-	post, _ := user.CreateNewPost("testpost", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 
 	webmention := owl.WebmentionOut{
 		Target: "http://example.com",
@@ -317,7 +317,7 @@ func TestSendWebmentionOnlyScansOncePerWeek(t *testing.T) {
 	repo.HttpClient = &mocks.MockHttpClient{}
 	repo.Parser = &mocks.MockHtmlParser{}
 	user, _ := repo.CreateUser("testuser")
-	post, _ := user.CreateNewPost("testpost", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 
 	webmention := owl.WebmentionOut{
 		Target:    "http://example.com",
@@ -342,7 +342,7 @@ func TestSendingMultipleWebmentions(t *testing.T) {
 	repo.HttpClient = &mocks.MockHttpClient{}
 	repo.Parser = &mocks.MockHtmlParser{}
 	user, _ := repo.CreateUser("testuser")
-	post, _ := user.CreateNewPost("testpost", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 
 	wg := sync.WaitGroup{}
 	wg.Add(20)
@@ -369,7 +369,7 @@ func TestReceivingMultipleWebmentions(t *testing.T) {
 	repo.HttpClient = &mocks.MockHttpClient{}
 	repo.Parser = &mocks.MockHtmlParser{}
 	user, _ := repo.CreateUser("testuser")
-	post, _ := user.CreateNewPost("testpost", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 
 	wg := sync.WaitGroup{}
 	wg.Add(20)
@@ -394,7 +394,7 @@ func TestSendingAndReceivingMultipleWebmentions(t *testing.T) {
 	repo.HttpClient = &mocks.MockHttpClient{}
 	repo.Parser = &mocks.MockHtmlParser{}
 	user, _ := repo.CreateUser("testuser")
-	post, _ := user.CreateNewPost("testpost", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 
 	wg := sync.WaitGroup{}
 	wg.Add(40)
@@ -433,7 +433,7 @@ func TestComplexParallelWebmentions(t *testing.T) {
 		},
 	}
 	user, _ := repo.CreateUser("testuser")
-	post, _ := user.CreateNewPost("testpost", false)
+	post, _ := user.CreateNewPost(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 
 	wg := sync.WaitGroup{}
 	wg.Add(60)
@@ -468,7 +468,7 @@ func TestComplexParallelWebmentions(t *testing.T) {
 func TestPostWithoutContent(t *testing.T) {
 	repo := getTestRepo(owl.RepoConfig{})
 	user, _ := repo.CreateUser("testuser")
-	post, _ := user.CreateNewPostFull(owl.PostMeta{}, "")
+	post, _ := user.CreateNewPost(owl.PostMeta{}, "")
 
 	result := post.RenderedContent()
 	assertions.AssertEqual(t, result, "")
@@ -486,7 +486,7 @@ func TestPostWithoutContent(t *testing.T) {
 // 		},
 // 	}
 // 	user, _ := repo.CreateUser("testuser")
-// 	post, _ := user.CreateNewPost("testpost", false)
+// 	post, _ := user.CreateNewPostFull(owl.PostMeta{Type: "article", Title: "testpost"}, "")
 
 // 	wg := sync.WaitGroup{}
 // 	wg.Add(40)
