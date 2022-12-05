@@ -329,7 +329,7 @@ func (user User) CreateNewPost(meta PostMeta, content string) (Post, error) {
 	initial_content := ""
 	initial_content += "---\n"
 	// write meta
-	meta_bytes, err := yaml.Marshal(meta)
+	meta_bytes, err := yaml.Marshal(meta) // TODO: this should be down by the Post
 	if err != nil {
 		return &GenericPost{}, err
 	}
