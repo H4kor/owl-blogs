@@ -285,18 +285,6 @@ func (user User) GetPost(id string) (Post, error) {
 	}
 
 	post := GenericPost{user: &user, id: id}
-	switch post.Meta().Type {
-	case "article":
-		return &Article{GenericPost: post}, nil
-	case "note":
-		return &Note{GenericPost: post}, nil
-	case "reply":
-		return &Reply{GenericPost: post}, nil
-	case "bookmark":
-		return &Bookmark{GenericPost: post}, nil
-	case "page":
-		return &Page{GenericPost: post}, nil
-	}
 	return &post, nil
 }
 

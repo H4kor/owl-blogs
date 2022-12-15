@@ -26,7 +26,7 @@ type GenericPost struct {
 }
 
 func (post *GenericPost) TemplateDir() string {
-	return "article"
+	return post.Meta().Type
 }
 
 type Post interface {
