@@ -478,3 +478,28 @@ func TestRenderFooterMenuPost(t *testing.T) {
 	assertions.AssertContains(t, result, "Test Entry")
 	assertions.AssertContains(t, result, post.UrlPath())
 }
+
+func TestRecipePost(t *testing.T) {
+	repo := getTestRepo(owl.RepoConfig{})
+	user, _ := repo.CreateUser("testuser")
+	post, err := user.CreateNewPost(owl.PostMeta{
+		Type:  "recipe",
+		Title: "test recipe",
+		Recipe: owl.RecipeData{
+			Yield: "1 loaf",
+			Ingredients: []string{
+				"1 cup flour",
+				"1 cup water",
+			},
+			Duration: "1 hour",
+		},
+	}, "")
+	assertions.AssertNoError(t, err, "Error creating post")
+
+	result, err := owl.RenderPost(post)
+	assertions.AssertNoError(t, err, "Error rendering post")
+	assertions.AssertContains(t, result, "1 loaf")
+	assertions.AssertContains(t, result, "1 cup flour")
+	assertions.AssertContains(t, result, "1 cup water")
+	assertions.AssertContains(t, result, "1 hour")
+}

@@ -1,0 +1,59 @@
+<div class="h-entry h-Recipe">
+    <hgroup>
+        <h1 class="p-name">{{.Title}}</h1>
+        <small>
+            <a class="u-url" href="{{.Post.FullUrl}}">#</a>
+            Published:
+            <time class="dt-published" datetime="{{.Post.Meta.Date}}">
+                {{.Post.Meta.FormattedDate}}
+            </time>
+            {{ if .Post.User.Config.AuthorName }}
+            by
+            <a class="p-author h-card" href="{{.Post.User.FullUrl}}">
+                {{ if .Post.User.AvatarUrl }}
+                <img class="u-photo u-logo" style="height: 1em;" src="{{ .Post.User.AvatarUrl }}"
+                    alt="{{ .Post.User.Config.Title }}" />
+                {{ end }}
+                {{.Post.User.Config.AuthorName}}
+            </a>
+            {{ end }}
+        </small>
+    </hgroup>
+    <hr>
+    <br>
+
+
+    <div class="e-content">
+        <small>
+
+            {{ if .Post.Meta.Recipe.Yield }}
+            Servings: <span class="p-yield">{{ .Post.Meta.Recipe.Yield }}</span>
+            {{ if .Post.Meta.Recipe.Duration }}, {{end}}
+
+            {{ end }}
+
+            {{ if .Post.Meta.Recipe.Duration }}
+            Prep Time: <time class="dt-duration" value="{{ .Post.Meta.Recipe.Duration }}">
+                {{ .Post.Meta.Recipe.Duration }}
+            </time>
+            {{ end }}
+        </small>
+
+        <h2>Ingredients</h2>
+
+        <ul>
+            {{ range $ingredient := .Post.Meta.Recipe.Ingredients }}
+            <li class="p-ingredient">
+                {{ $ingredient }}
+            </li>
+            {{ end }}
+        </ul>
+
+        <h2>Instructions</h2>
+
+        <div class="e-instructions">
+            {{.Content}}
+        </div>
+    </div>
+
+</div>

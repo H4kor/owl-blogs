@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"h4kor/owl-blogs"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -203,6 +204,11 @@ func userEditorPostHandler(repo *owl.Repository) func(http.ResponseWriter, *http
 		content := r.Form.Get("content")
 		draft := r.Form.Get("draft")
 
+		// recipe values
+		recipe_yield := r.Form.Get("yield")
+		recipe_ingredients := r.Form.Get("ingredients")
+		recipe_duration := r.Form.Get("duration")
+
 		// conditional values
 		reply_url := r.Form.Get("reply_url")
 		bookmark_url := r.Form.Get("bookmark_url")
@@ -216,7 +222,7 @@ func userEditorPostHandler(repo *owl.Repository) func(http.ResponseWriter, *http
 			w.Write([]byte(html))
 			return
 		}
-		if (post_type == "article" || post_type == "page") && title == "" {
+		if (post_type == "article" || post_type == "page" || post_type == "recipe") && title == "" {
 			html, _ := owl.RenderUserError(user, owl.ErrorMessage{
 				Error:   "Missing Title",
 				Message: "Articles and Pages must have a title",
@@ -256,6 +262,11 @@ func userEditorPostHandler(repo *owl.Repository) func(http.ResponseWriter, *http
 			},
 			Bookmark: owl.BookmarkData{
 				Url: bookmark_url,
+			},
+			Recipe: owl.RecipeData{
+				Yield:       recipe_yield,
+				Ingredients: strings.Split(recipe_ingredients, "\n"),
+				Duration:    recipe_duration,
 			},
 		}, content)
 

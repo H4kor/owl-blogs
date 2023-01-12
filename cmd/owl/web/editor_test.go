@@ -243,3 +243,40 @@ func TestEditorSendsWebmentions(t *testing.T) {
 	assertions.AssertEqual(t, repo.HttpClient.(*CountMockHttpClient).InvokedPostForm, 1)
 
 }
+
+func TestEditorPostWithSessionRecipe(t *testing.T) {
+	repo, user := getSingleUserTestRepo()
+	user.ResetPassword("testpassword")
+	sessionId := user.CreateNewSession()
+
+	csrfToken := "test_csrf_token"
+
+	// Create Request and Response
+	form := url.Values{}
+	form.Add("type", "recipe")
+	form.Add("title", "testtitle")
+	form.Add("yield", "2")
+	form.Add("duration", "1 hour")
+	form.Add("ingredients", "water\nwheat")
+	form.Add("content", "testcontent")
+	form.Add("csrf_token", csrfToken)
+
+	req, err := http.NewRequest("POST", user.EditorUrl(), strings.NewReader(form.Encode()))
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Add("Content-Length", strconv.Itoa(len(form.Encode())))
+	req.AddCookie(&http.Cookie{Name: "csrf_token", Value: csrfToken})
+	req.AddCookie(&http.Cookie{Name: "session", Value: sessionId})
+	assertions.AssertNoError(t, err, "Error creating request")
+	rr := httptest.NewRecorder()
+	router := main.SingleUserRouter(&repo)
+	router.ServeHTTP(rr, req)
+
+	posts, _ := user.AllPosts()
+	assertions.AssertEqual(t, len(posts), 1)
+	post := posts[0]
+
+	assertions.AssertLen(t, post.Meta().Recipe.Ingredients, 2)
+
+	assertions.AssertStatus(t, rr, http.StatusFound)
+	assertions.AssertEqual(t, rr.Header().Get("Location"), post.FullUrl())
+}

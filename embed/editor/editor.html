@@ -55,6 +55,35 @@
 </details>
 
 <details>
+    <summary>Write Recipe</summary>
+    <form action="" method="post">
+        <h2>Create new Recipe</h2>
+        <input type="hidden" name="csrf_token" value="{{.CsrfToken}}">
+        <input type="hidden" name="type" value="recipe">
+
+        <label for="title">Title</label>
+        <input type="text" name="title" placeholder="Title" />
+
+        <label for="yield">Yield</label>
+        <input type="text" name="yield" placeholder="Yield" />
+
+        <label for="duration">Duration</label>
+        <input type="text" name="duration" placeholder="Duration" />
+
+        <label for="description">Description</label>
+        <input type="text" name="description" placeholder="Description" />
+        <label for="ingredients">Ingredients (1 per line)</label>
+        <textarea name="ingredients" placeholder="Ingredients" rows="8"></textarea>
+
+        <label for="content">Instructions</label>
+        <textarea name="content" placeholder="Ingredients" rows="24"></textarea>
+
+        <br><br>
+        <input type="submit" value="Create Reply" />
+    </form>
+</details>
+
+<details>
     <summary>Bookmark</summary>
     <form action="" method="post">
         <h2>Create Bookmark</h2>

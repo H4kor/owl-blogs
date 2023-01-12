@@ -72,6 +72,12 @@ type BookmarkData struct {
 	Text string `yaml:"text"`
 }
 
+type RecipeData struct {
+	Yield       string   `yaml:"yield"`
+	Duration    string   `yaml:"duration"`
+	Ingredients []string `yaml:"ingredients"`
+}
+
 type PostMeta struct {
 	Type        string       `yaml:"type"`
 	Title       string       `yaml:"title"`
@@ -81,6 +87,7 @@ type PostMeta struct {
 	Draft       bool         `yaml:"draft"`
 	Reply       ReplyData    `yaml:"reply"`
 	Bookmark    BookmarkData `yaml:"bookmark"`
+	Recipe      RecipeData   `yaml:"recipe"`
 }
 
 func (pm PostMeta) FormattedDate() string {
@@ -96,6 +103,7 @@ func (pm *PostMeta) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		Draft       bool         `yaml:"draft"`
 		Reply       ReplyData    `yaml:"reply"`
 		Bookmark    BookmarkData `yaml:"bookmark"`
+		Recipe      RecipeData   `yaml:"recipe"`
 	}
 	type S struct {
 		Date string `yaml:"date"`
@@ -120,6 +128,7 @@ func (pm *PostMeta) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	pm.Draft = t.Draft
 	pm.Reply = t.Reply
 	pm.Bookmark = t.Bookmark
+	pm.Recipe = t.Recipe
 
 	possibleFormats := []string{
 		"2006-01-02",
