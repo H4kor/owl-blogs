@@ -201,12 +201,12 @@ func userEditorPostHandler(repo *owl.Repository) func(http.ResponseWriter, *http
 		post_type := r.Form.Get("type")
 		title := r.Form.Get("title")
 		description := r.Form.Get("description")
-		content := r.Form.Get("content")
+		content := strings.ReplaceAll(r.Form.Get("content"), "\r", "")
 		draft := r.Form.Get("draft")
 
 		// recipe values
 		recipe_yield := r.Form.Get("yield")
-		recipe_ingredients := r.Form.Get("ingredients")
+		recipe_ingredients := strings.ReplaceAll(r.Form.Get("ingredients"), "\r", "")
 		recipe_duration := r.Form.Get("duration")
 
 		// conditional values
