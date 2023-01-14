@@ -3,7 +3,11 @@ package web
 import (
 	"fmt"
 	"h4kor/owl-blogs"
+	"io"
+	"mime/multipart"
 	"net/http"
+	"os"
+	"path"
 	"strings"
 	"sync"
 	"time"
@@ -174,7 +178,12 @@ func userEditorPostHandler(repo *owl.Repository) func(http.ResponseWriter, *http
 			return
 		}
 
-		err = r.ParseForm()
+		if strings.Split(r.Header.Get("Content-Type"), ";")[0] == "multipart/form-data" {
+			err = r.ParseMultipartForm(32 << 20)
+		} else {
+			err = r.ParseForm()
+		}
+
 		if err != nil {
 			println("Error parsing form: ", err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
@@ -213,6 +222,23 @@ func userEditorPostHandler(repo *owl.Repository) func(http.ResponseWriter, *http
 		reply_url := r.Form.Get("reply_url")
 		bookmark_url := r.Form.Get("bookmark_url")
 
+		// photo values
+		var photo_file multipart.File
+		var photo_header *multipart.FileHeader
+		if strings.Split(r.Header.Get("Content-Type"), ";")[0] == "multipart/form-data" {
+			photo_file, photo_header, err = r.FormFile("photo")
+			if err != nil && err != http.ErrMissingFile {
+				println("Error getting photo file: ", err.Error())
+				w.WriteHeader(http.StatusInternalServerError)
+				html, _ := owl.RenderUserError(user, owl.ErrorMessage{
+					Error:   "Internal server error",
+					Message: "Internal server error",
+				})
+				w.Write([]byte(html))
+				return
+			}
+		}
+
 		// validate form values
 		if post_type == "" {
 			html, _ := owl.RenderUserError(user, owl.ErrorMessage{
@@ -246,12 +272,20 @@ func userEditorPostHandler(repo *owl.Repository) func(http.ResponseWriter, *http
 			w.Write([]byte(html))
 			return
 		}
+		if post_type == "photo" && photo_file == nil {
+			html, _ := owl.RenderUserError(user, owl.ErrorMessage{
+				Error:   "Missing Photo",
+				Message: "You must provide a photo to upload",
+			})
+			w.Write([]byte(html))
+			return
+		}
 
 		// TODO: scrape	reply_url for title and description
 		// TODO: scrape bookmark_url for title and description
 
 		// create post
-		post, err := user.CreateNewPost(owl.PostMeta{
+		meta := owl.PostMeta{
 			Type:        post_type,
 			Title:       title,
 			Description: description,
@@ -268,7 +302,32 @@ func userEditorPostHandler(repo *owl.Repository) func(http.ResponseWriter, *http
 				Ingredients: strings.Split(recipe_ingredients, "\n"),
 				Duration:    recipe_duration,
 			},
-		}, content)
+		}
+
+		if photo_file != nil {
+			meta.PhotoPath = photo_header.Filename
+		}
+
+		post, err := user.CreateNewPost(meta, content)
+
+		// save photo
+		if photo_file != nil {
+			println("Saving photo: ", photo_header.Filename)
+			photo_path := path.Join(post.MediaDir(), photo_header.Filename)
+			media_file, err := os.Create(photo_path)
+			if err != nil {
+				println("Error creating photo file: ", err.Error())
+				w.WriteHeader(http.StatusInternalServerError)
+				html, _ := owl.RenderUserError(user, owl.ErrorMessage{
+					Error:   "Internal server error",
+					Message: "Internal server error",
+				})
+				w.Write([]byte(html))
+				return
+			}
+			defer media_file.Close()
+			io.Copy(media_file, photo_file)
+		}
 
 		if err != nil {
 			println("Error creating post: ", err.Error())

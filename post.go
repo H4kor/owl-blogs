@@ -88,6 +88,7 @@ type PostMeta struct {
 	Reply       ReplyData    `yaml:"reply"`
 	Bookmark    BookmarkData `yaml:"bookmark"`
 	Recipe      RecipeData   `yaml:"recipe"`
+	PhotoPath   string       `yaml:"photo"`
 }
 
 func (pm PostMeta) FormattedDate() string {
@@ -104,6 +105,7 @@ func (pm *PostMeta) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		Reply       ReplyData    `yaml:"reply"`
 		Bookmark    BookmarkData `yaml:"bookmark"`
 		Recipe      RecipeData   `yaml:"recipe"`
+		PhotoPath   string       `yaml:"photo"`
 	}
 	type S struct {
 		Date string `yaml:"date"`
@@ -129,6 +131,7 @@ func (pm *PostMeta) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	pm.Reply = t.Reply
 	pm.Bookmark = t.Bookmark
 	pm.Recipe = t.Recipe
+	pm.PhotoPath = t.PhotoPath
 
 	possibleFormats := []string{
 		"2006-01-02",

@@ -1,4 +1,4 @@
-<div class="h-entry h-recipe">
+<div class="h-entry">
     <hgroup>
         <h1 class="p-name">{{.Title}}</h1>
         <small>
@@ -22,38 +22,12 @@
     <hr>
     <br>
 
+    {{ if .Post.Meta.PhotoPath }}
+    <img class="u-photo" src="media/{{.Post.Meta.PhotoPath}}" alt="{{.Post.Meta.Description}}" />
+    {{ end }}
 
     <div class="e-content">
-        <small>
-
-            {{ if .Post.Meta.Recipe.Yield }}
-            Servings: <span class="p-yield">{{ .Post.Meta.Recipe.Yield }}</span>
-            {{ if .Post.Meta.Recipe.Duration }}, {{end}}
-
-            {{ end }}
-
-            {{ if .Post.Meta.Recipe.Duration }}
-            Prep Time: <time class="dt-duration" value="{{ .Post.Meta.Recipe.Duration }}">
-                {{ .Post.Meta.Recipe.Duration }}
-            </time>
-            {{ end }}
-        </small>
-
-        <h2>Ingredients</h2>
-
-        <ul>
-            {{ range $ingredient := .Post.Meta.Recipe.Ingredients }}
-            <li class="p-ingredient">
-                {{ $ingredient }}
-            </li>
-            {{ end }}
-        </ul>
-
-        <h2>Instructions</h2>
-
-        <div class="e-instructions">
-            {{.Content}}
-        </div>
+        {{.Content}}
     </div>
 
     <hr>

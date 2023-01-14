@@ -1,14 +1,18 @@
 package web_test
 
 import (
+	"bytes"
 	"h4kor/owl-blogs"
 	main "h4kor/owl-blogs/cmd/owl/web"
 	"h4kor/owl-blogs/test/assertions"
 	"h4kor/owl-blogs/test/mocks"
 	"io"
+	"io/ioutil"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"path"
 	"strconv"
 	"strings"
 	"testing"
@@ -279,4 +283,64 @@ func TestEditorPostWithSessionRecipe(t *testing.T) {
 
 	assertions.AssertStatus(t, rr, http.StatusFound)
 	assertions.AssertEqual(t, rr.Header().Get("Location"), post.FullUrl())
+}
+
+func TestEditorPostWithSessionPhoto(t *testing.T) {
+	repo, user := getSingleUserTestRepo()
+	user.ResetPassword("testpassword")
+	sessionId := user.CreateNewSession()
+
+	csrfToken := "test_csrf_token"
+
+	// read photo from file
+	photo_data, err := ioutil.ReadFile("../../../fixtures/image.png")
+	assertions.AssertNoError(t, err, "Error reading photo")
+
+	// Create Request and Response
+	bodyBuf := &bytes.Buffer{}
+	bodyWriter := multipart.NewWriter(bodyBuf)
+
+	// write photo
+	fileWriter, err := bodyWriter.CreateFormFile("photo", "../../../fixtures/image.png")
+	assertions.AssertNoError(t, err, "Error creating form file")
+	_, err = fileWriter.Write(photo_data)
+	assertions.AssertNoError(t, err, "Error writing photo")
+
+	// write other fields
+	bodyWriter.WriteField("type", "photo")
+	bodyWriter.WriteField("title", "testtitle")
+	bodyWriter.WriteField("content", "testcontent")
+	bodyWriter.WriteField("csrf_token", csrfToken)
+
+	// close body writer
+	err = bodyWriter.Close()
+	assertions.AssertNoError(t, err, "Error closing body writer")
+
+	req, err := http.NewRequest("POST", user.EditorUrl(), bodyBuf)
+	req.Header.Add("Content-Type", "multipart/form-data; boundary="+bodyWriter.Boundary())
+	req.Header.Add("Content-Length", strconv.Itoa(len(bodyBuf.Bytes())))
+	req.AddCookie(&http.Cookie{Name: "csrf_token", Value: csrfToken})
+	req.AddCookie(&http.Cookie{Name: "session", Value: sessionId})
+	assertions.AssertNoError(t, err, "Error creating request")
+	rr := httptest.NewRecorder()
+	router := main.SingleUserRouter(&repo)
+	router.ServeHTTP(rr, req)
+
+	assertions.AssertStatus(t, rr, http.StatusFound)
+
+	posts, _ := user.AllPosts()
+	assertions.AssertEqual(t, len(posts), 1)
+	post := posts[0]
+	assertions.AssertEqual(t, rr.Header().Get("Location"), post.FullUrl())
+
+	assertions.AssertNotEqual(t, post.Meta().PhotoPath, "")
+	ret_photo_data, err := ioutil.ReadFile(path.Join(post.MediaDir(), post.Meta().PhotoPath))
+	assertions.AssertNoError(t, err, "Error reading photo")
+	assertions.AssertEqual(t, len(photo_data), len(ret_photo_data))
+	if len(photo_data) == len(ret_photo_data) {
+		for i := range photo_data {
+			assertions.AssertEqual(t, photo_data[i], ret_photo_data[i])
+		}
+	}
+
 }
