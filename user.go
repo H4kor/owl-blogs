@@ -33,9 +33,10 @@ type UserConfig struct {
 }
 
 type PostList struct {
-	Id      string   `yaml:"id"`
-	Title   string   `yaml:"title"`
-	Include []string `yaml:"include"`
+	Id       string   `yaml:"id"`
+	Title    string   `yaml:"title"`
+	Include  []string `yaml:"include"`
+	ListType string   `yaml:"list_type"`
 }
 
 type MenuItem struct {

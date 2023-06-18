@@ -163,7 +163,14 @@ func RenderIndexPage(user User) (string, error) {
 
 func RenderPostList(user User, list *PostList) (string, error) {
 	posts, _ := user.GetPostsOfList(*list)
-	postHtml, err := renderEmbedTemplate("embed/post-list.html", posts)
+	var postHtml string
+	var err error
+	if list.ListType == "photo" {
+		postHtml, err = renderEmbedTemplate("embed/post-list-photo.html", posts)
+	} else {
+		postHtml, err = renderEmbedTemplate("embed/post-list.html", posts)
+	}
+
 	if err != nil {
 		return "", err
 	}

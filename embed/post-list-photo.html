@@ -1,0 +1,9 @@
+<div class="h-feed photo-grid">
+    {{range .}}
+    <div class="h-entry photo-grid-item">
+        <a class="u-url" href="{{.UrlPath}}">
+            <img class="u-photo" src="{{.UrlPath}}media/{{.Meta.PhotoPath}}" alt="{{.Meta.Description}}" />
+        </a>
+    </div>
+    {{end}}
+</div>
