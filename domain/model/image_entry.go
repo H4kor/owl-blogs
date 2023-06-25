@@ -10,7 +10,7 @@ type ImageEntry struct {
 }
 
 type ImageEntryMetaData struct {
-	ImagePath string
+	ImagePath string `owl:"type=upload"`
 }
 
 func (e *ImageEntry) ID() string {
