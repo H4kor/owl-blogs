@@ -8,7 +8,8 @@ import (
 
 func main() {
 	db := infra.NewSqliteDB("owlblogs.db")
-	repo := infra.NewEntryRepository(db)
+	registry := app.NewEntryTypeRegistry()
+	repo := infra.NewEntryRepository(db, registry)
 	entryService := app.NewEntryService(repo)
 	webApp := web.NewWebApp(entryService)
 	webApp.Run()

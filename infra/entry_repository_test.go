@@ -1,6 +1,7 @@
 package infra_test
 
 import (
+	"owl-blogs/app"
 	"owl-blogs/app/repository"
 	"owl-blogs/infra"
 	"owl-blogs/test"
@@ -12,19 +13,10 @@ import (
 
 func setupRepo() repository.EntryRepository {
 	db := test.NewMockDb()
-	repo := infra.NewEntryRepository(db)
-	repo.RegisterEntryType(&test.MockEntry{})
+	register := app.NewEntryTypeRegistry()
+	register.Register(&test.MockEntry{})
+	repo := infra.NewEntryRepository(db, register)
 	return repo
-}
-
-func TestRepoRegister(t *testing.T) {
-	db := test.NewMockDb()
-	repo := infra.NewEntryRepository(db)
-	err := repo.RegisterEntryType(&test.MockEntry{})
-	require.NoError(t, err)
-
-	err = repo.RegisterEntryType(&test.MockEntry{})
-	require.Error(t, err)
 }
 
 func TestRepoCreate(t *testing.T) {

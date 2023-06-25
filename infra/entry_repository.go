@@ -3,6 +3,7 @@ package infra
 import (
 	"encoding/json"
 	"errors"
+	"owl-blogs/app"
 	"owl-blogs/app/repository"
 	"owl-blogs/domain/model"
 	"reflect"
@@ -22,8 +23,8 @@ type sqlEntry struct {
 }
 
 type DefaultEntryRepo struct {
-	types map[string]model.Entry
-	db    *sqlx.DB
+	typeRegistry *app.EntryTypeRegistry
+	db           *sqlx.DB
 }
 
 // Create implements repository.EntryRepository.
@@ -33,8 +34,8 @@ func (r *DefaultEntryRepo) Create(entry model.Entry) error {
 		return errors.New("entry already exists")
 	}
 
-	t := r.entryType(entry)
-	if _, ok := r.types[t]; !ok {
+	t, err := r.typeRegistry.TypeName(entry)
+	if err != nil {
 		return errors.New("entry type not registered")
 	}
 
@@ -43,7 +44,7 @@ func (r *DefaultEntryRepo) Create(entry model.Entry) error {
 		metaDataJson, _ = json.Marshal(entry.MetaData())
 	}
 
-	_, err := r.db.Exec("INSERT INTO entries (id, type, content, published_at, meta_data) VALUES (?, ?, ?, ?, ?)", entry.ID(), t, entry.Content(), entry.PublishedAt(), metaDataJson)
+	_, err = r.db.Exec("INSERT INTO entries (id, type, content, published_at, meta_data) VALUES (?, ?, ?, ?, ?)", entry.ID(), t, entry.Content(), entry.PublishedAt(), metaDataJson)
 	return err
 }
 
@@ -101,16 +102,6 @@ func (r *DefaultEntryRepo) FindById(id string) (model.Entry, error) {
 	return r.sqlEntryToEntry(data)
 }
 
-// RegisterEntryType implements repository.EntryRepository.
-func (r *DefaultEntryRepo) RegisterEntryType(entry model.Entry) error {
-	t := r.entryType(entry)
-	if _, ok := r.types[t]; ok {
-		return errors.New("entry type already registered")
-	}
-	r.types[t] = entry
-	return nil
-}
-
 // Update implements repository.EntryRepository.
 func (r *DefaultEntryRepo) Update(entry model.Entry) error {
 	exEntry, _ := r.FindById(entry.ID())
@@ -118,8 +109,8 @@ func (r *DefaultEntryRepo) Update(entry model.Entry) error {
 		return errors.New("entry not found")
 	}
 
-	t := r.entryType(entry)
-	if _, ok := r.types[t]; !ok {
+	_, err := r.typeRegistry.TypeName(entry)
+	if err != nil {
 		return errors.New("entry type not registered")
 	}
 
@@ -128,11 +119,11 @@ func (r *DefaultEntryRepo) Update(entry model.Entry) error {
 		metaDataJson, _ = json.Marshal(entry.MetaData())
 	}
 
-	_, err := r.db.Exec("UPDATE entries SET content = ?, published_at = ?, meta_data = ? WHERE id = ?", entry.Content(), entry.PublishedAt(), metaDataJson, entry.ID())
+	_, err = r.db.Exec("UPDATE entries SET content = ?, published_at = ?, meta_data = ? WHERE id = ?", entry.Content(), entry.PublishedAt(), metaDataJson, entry.ID())
 	return err
 }
 
-func NewEntryRepository(db Database) repository.EntryRepository {
+func NewEntryRepository(db Database, register *app.EntryTypeRegistry) repository.EntryRepository {
 	sqlxdb := db.Get()
 
 	// Create tables if not exists
@@ -147,18 +138,14 @@ func NewEntryRepository(db Database) repository.EntryRepository {
 	`)
 
 	return &DefaultEntryRepo{
-		types: map[string]model.Entry{},
-		db:    sqlxdb,
+		db:           sqlxdb,
+		typeRegistry: register,
 	}
 }
 
-func (r *DefaultEntryRepo) entryType(entry model.Entry) string {
-	return reflect.TypeOf(entry).Elem().Name()
-}
-
 func (r *DefaultEntryRepo) sqlEntryToEntry(entry sqlEntry) (model.Entry, error) {
-	e, ok := r.types[entry.Type]
-	if !ok {
+	e, err := r.typeRegistry.Type(entry.Type)
+	if err != nil {
 		return nil, errors.New("entry type not registered")
 	}
 	metaData := reflect.New(reflect.TypeOf(e.MetaData()).Elem()).Interface()
