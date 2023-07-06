@@ -39,7 +39,8 @@ func (h *EditorHandler) HandlePost(c *fiber.Ctx) error {
 
 	// create entry
 	now := time.Now()
-	err = h.entrySvc.Create(&model.ImageEntry{}, &now, metaData)
+	entry := &model.ImageEntry{}
+	err = h.entrySvc.Create(entry, &now, metaData.MetaData())
 	if err != nil {
 		return err
 	}

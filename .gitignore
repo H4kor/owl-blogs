@@ -24,3 +24,6 @@ users/
 
 .vscode/
 *.swp
+
+
+*.db
