@@ -24,15 +24,14 @@ func TestRepoCreate(t *testing.T) {
 
 	entry := &test.MockEntry{}
 	now := time.Now()
-	entry.Create("id", &now, &test.MockEntryMetaData{
+	err := repo.Create(entry, &now, &test.MockEntryMetaData{
 		Str:    "str",
 		Number: 1,
 		Date:   now,
 	})
-	err := repo.Create(entry)
 	require.NoError(t, err)
 
-	entry2, err := repo.FindById("id")
+	entry2, err := repo.FindById(entry.ID())
 	require.NoError(t, err)
 	require.Equal(t, entry.ID(), entry2.ID())
 	require.Equal(t, entry.Content(), entry2.Content())
@@ -49,12 +48,11 @@ func TestRepoDelete(t *testing.T) {
 
 	entry := &test.MockEntry{}
 	now := time.Now()
-	entry.Create("id", &now, &test.MockEntryMetaData{
+	err := repo.Create(entry, &now, &test.MockEntryMetaData{
 		Str:    "str",
 		Number: 1,
 		Date:   now,
 	})
-	err := repo.Create(entry)
 	require.NoError(t, err)
 
 	err = repo.Delete(entry)
@@ -69,22 +67,21 @@ func TestRepoFindAll(t *testing.T) {
 
 	entry := &test.MockEntry{}
 	now := time.Now()
-	entry.Create("id", &now, &test.MockEntryMetaData{
+	err := repo.Create(entry, &now, &test.MockEntryMetaData{
 		Str:    "str",
 		Number: 1,
 		Date:   now,
 	})
-	err := repo.Create(entry)
+
 	require.NoError(t, err)
 
 	entry2 := &test.MockEntry{}
 	now2 := time.Now()
-	entry2.Create("id2", &now2, &test.MockEntryMetaData{
-		Str:    "str2",
-		Number: 2,
-		Date:   now2,
+	err = repo.Create(entry2, &now2, &test.MockEntryMetaData{
+		Str:    "str",
+		Number: 1,
+		Date:   now,
 	})
-	err = repo.Create(entry2)
 	require.NoError(t, err)
 
 	entries, err := repo.FindAll(nil)
@@ -106,25 +103,25 @@ func TestRepoUpdate(t *testing.T) {
 
 	entry := &test.MockEntry{}
 	now := time.Now()
-	entry.Create("id", &now, &test.MockEntryMetaData{
+	err := repo.Create(entry, &now, &test.MockEntryMetaData{
 		Str:    "str",
 		Number: 1,
 		Date:   now,
 	})
-	err := repo.Create(entry)
 	require.NoError(t, err)
 
 	entry2 := &test.MockEntry{}
 	now2 := time.Now()
-	entry2.Create("id", &now2, &test.MockEntryMetaData{
+	err = repo.Create(entry2, &now2, &test.MockEntryMetaData{
 		Str:    "str2",
 		Number: 2,
 		Date:   now2,
 	})
+	require.NoError(t, err)
 	err = repo.Update(entry2)
 	require.NoError(t, err)
 
-	entry3, err := repo.FindById("id")
+	entry3, err := repo.FindById(entry2.ID())
 	require.NoError(t, err)
 	require.Equal(t, entry3.Content(), entry2.Content())
 	require.Equal(t, entry3.PublishedAt().Unix(), entry2.PublishedAt().Unix())

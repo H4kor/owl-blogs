@@ -2,10 +2,23 @@ package editor
 
 import (
 	"fmt"
+	"mime/multipart"
 	"owl-blogs/domain/model"
 	"reflect"
 	"strings"
 )
+
+type HttpFormData interface {
+	// FormFile returns the first file by key from a MultipartForm.
+	FormFile(key string) (*multipart.FileHeader, error)
+	// FormValue returns the first value by key from a MultipartForm.
+	// Search is performed in QueryArgs, PostArgs, MultipartForm and FormFile in this particular order.
+	// Defaults to the empty string "" if the form value doesn't exist.
+	// If a default value is given, it will return that value if the form value does not exist.
+	// Returned value is only valid within the handler. Do not store any references.
+	// Make copies or use the Immutable setting instead.
+	FormValue(key string, defaultValue ...string) string
+}
 
 type EditorEntryForm struct {
 	entry model.Entry
@@ -13,6 +26,7 @@ type EditorEntryForm struct {
 
 type EntryFormFieldParams struct {
 	InputType string
+	Widget    string
 }
 
 type EntryFormField struct {
@@ -20,7 +34,7 @@ type EntryFormField struct {
 	Params EntryFormFieldParams
 }
 
-func NewEditorFormService(entry model.Entry) *EditorEntryForm {
+func NewEntryForm(entry model.Entry) *EditorEntryForm {
 	return &EditorEntryForm{
 		entry: entry,
 	}
@@ -30,6 +44,8 @@ func (s *EntryFormFieldParams) ApplyTag(tagKey string, tagValue string) error {
 	switch tagKey {
 	case "inputType":
 		s.InputType = tagValue
+	case "widget":
+		s.Widget = tagValue
 	default:
 		return fmt.Errorf("unknown tag key: %v", tagKey)
 	}
@@ -37,7 +53,14 @@ func (s *EntryFormFieldParams) ApplyTag(tagKey string, tagValue string) error {
 }
 
 func (s *EntryFormField) Html() string {
-	return fmt.Sprintf("<input type=\"%v\" name=\"%v\" />\n", s.Params.InputType, s.Name)
+	html := ""
+	html += fmt.Sprintf("<label for=\"%v\">%v</label>\n", s.Name, s.Name)
+	if s.Params.InputType == "text" && s.Params.Widget == "textarea" {
+		html += fmt.Sprintf("<textarea name=\"%v\" id=\"%v\" rows=\"20\"></textarea>\n", s.Name, s.Name)
+	} else {
+		html += fmt.Sprintf("<input type=\"%v\" name=\"%v\" id=\"%v\" />\n", s.Params.InputType, s.Name, s.Name)
+	}
+	return html
 }
 
 func FieldToFormField(field reflect.StructField) (EntryFormField, error) {
@@ -88,4 +111,29 @@ func (s *EditorEntryForm) HtmlForm() (string, error) {
 	html += "</form>\n"
 
 	return html, nil
+}
+
+func (s *EditorEntryForm) Parse(ctx HttpFormData) (model.Entry, error) {
+	if ctx == nil {
+		return nil, fmt.Errorf("nil context")
+	}
+	meta := s.entry.MetaData()
+	metaVal := reflect.ValueOf(meta)
+	if metaVal.Kind() != reflect.Ptr {
+		return nil, fmt.Errorf("meta data is not a pointer")
+	}
+	fields, err := StructToFormFields(meta)
+	if err != nil {
+		return nil, err
+	}
+	for field := range fields {
+		fieldName := fields[field].Name
+		fieldValue := ctx.FormValue(fieldName)
+		metaField := metaVal.Elem().FieldByName(fieldName)
+		if metaField.IsValid() {
+			metaField.SetString(fieldValue)
+		}
+	}
+
+	return s.entry, nil
 }

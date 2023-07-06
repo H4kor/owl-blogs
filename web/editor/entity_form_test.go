@@ -1,6 +1,7 @@
 package editor_test
 
 import (
+	"mime/multipart"
 	"owl-blogs/domain/model"
 	"owl-blogs/web/editor"
 	"reflect"
@@ -15,10 +16,21 @@ type MockEntryMetaData struct {
 	Content string `owl:"inputType=text"`
 }
 
+type MockFormData struct {
+}
+
+func (f *MockFormData) FormFile(key string) (*multipart.FileHeader, error) {
+	return nil, nil
+}
+
+func (f *MockFormData) FormValue(key string, defaultValue ...string) string {
+	return key
+}
+
 type MockEntry struct {
 	id          string
 	publishedAt *time.Time
-	metaData    *MockEntryMetaData
+	metaData    MockEntryMetaData
 }
 
 func (e *MockEntry) ID() string {
@@ -34,13 +46,13 @@ func (e *MockEntry) PublishedAt() *time.Time {
 }
 
 func (e *MockEntry) MetaData() interface{} {
-	return e.metaData
+	return &e.metaData
 }
 
 func (e *MockEntry) Create(id string, publishedAt *time.Time, metaData model.EntryMetaData) error {
 	e.id = id
 	e.publishedAt = publishedAt
-	e.metaData = metaData.(*MockEntryMetaData)
+	e.metaData = *metaData.(*MockEntryMetaData)
 	return nil
 }
 
@@ -63,13 +75,27 @@ func TestStructToFields(t *testing.T) {
 }
 
 func TestEditorEntryForm_HtmlForm(t *testing.T) {
-	formService := editor.NewEditorFormService(&MockEntry{})
-	form, err := formService.HtmlForm()
+	form := editor.NewEntryForm(&MockEntry{})
+	html, err := form.HtmlForm()
 	require.NoError(t, err)
-	require.Contains(t, form, "<form")
-	require.Contains(t, form, "method=\"POST\"")
-	require.Contains(t, form, "<input type=\"file\" name=\"Image\" />")
-	require.Contains(t, form, "<input type=\"text\" name=\"Content\" />")
-	require.Contains(t, form, "<input type=\"submit\" value=\"Submit\" />")
+	require.Contains(t, html, "<form")
+	require.Contains(t, html, "method=\"POST\"")
+	require.Contains(t, html, "<input type=\"file\" name=\"Image\"")
+	require.Contains(t, html, "<input type=\"text\" name=\"Content\"")
+	require.Contains(t, html, "<input type=\"submit\" value=\"Submit\"")
 
+}
+
+func TestFormParseNil(t *testing.T) {
+	form := editor.NewEntryForm(&MockEntry{})
+	_, err := form.Parse(nil)
+	require.Error(t, err)
+}
+
+func TestFormParse(t *testing.T) {
+	form := editor.NewEntryForm(&MockEntry{})
+	entry, err := form.Parse(&MockFormData{})
+	require.NoError(t, err)
+	require.Equal(t, "Image", entry.MetaData().(*MockEntryMetaData).Image)
+	require.Equal(t, "Content", entry.MetaData().(*MockEntryMetaData).Content)
 }

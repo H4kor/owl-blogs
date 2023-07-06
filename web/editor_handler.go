@@ -4,6 +4,7 @@ import (
 	"owl-blogs/app"
 	"owl-blogs/domain/model"
 	"owl-blogs/web/editor"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -18,15 +19,30 @@ func NewEditorHandler(entryService *app.EntryService) *EditorHandler {
 
 func (h *EditorHandler) HandleGet(c *fiber.Ctx) error {
 	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
-	formService := editor.NewEditorFormService(&model.ImageEntry{})
-	form, err := formService.HtmlForm()
+	form := editor.NewEntryForm(&model.ImageEntry{})
+	htmlForm, err := form.HtmlForm()
 	if err != nil {
 		return err
 	}
-	return c.SendString(form)
+	return c.SendString(htmlForm)
 }
 
 func (h *EditorHandler) HandlePost(c *fiber.Ctx) error {
 	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
+
+	form := editor.NewEntryForm(&model.ImageEntry{})
+	// get form data
+	metaData, err := form.Parse(c)
+	if err != nil {
+		return err
+	}
+
+	// create entry
+	now := time.Now()
+	err = h.entrySvc.Create(&model.ImageEntry{}, &now, metaData)
+	if err != nil {
+		return err
+	}
+
 	return c.SendString("Hello, Editor!")
 }
