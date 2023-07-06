@@ -1,0 +1,18 @@
+{{define "base"}}
+<!doctype html>
+<html lang='en'>
+    <head>
+        <meta charset='utf-8'>
+        <title>{{template "title" .}} - Owl Blog</title>
+    </head>
+    <body>
+        <header>
+            Owl Blog
+        </header>
+        <main>
+            {{template "main" .}}
+        </main>
+        <footer>Powered by <a href='https://golang.org/'>Go</a></footer>
+    </body>
+</html>
+{{end}}

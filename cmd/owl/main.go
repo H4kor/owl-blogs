@@ -7,7 +7,7 @@ import (
 	"owl-blogs/web"
 )
 
-func main() {
+func App() *web.WebApp {
 	db := infra.NewSqliteDB("owlblogs.db")
 	registry := app.NewEntryTypeRegistry()
 
@@ -15,6 +15,10 @@ func main() {
 
 	repo := infra.NewEntryRepository(db, registry)
 	entryService := app.NewEntryService(repo)
-	webApp := web.NewWebApp(entryService)
-	webApp.Run()
+	return web.NewWebApp(entryService, registry)
+
+}
+
+func main() {
+	App().Run()
 }

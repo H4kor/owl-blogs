@@ -11,15 +11,31 @@ import (
 
 type EditorHandler struct {
 	entrySvc *app.EntryService
+	registry *app.EntryTypeRegistry
 }
 
-func NewEditorHandler(entryService *app.EntryService) *EditorHandler {
-	return &EditorHandler{entrySvc: entryService}
+func NewEditorHandler(entryService *app.EntryService, registry *app.EntryTypeRegistry) *EditorHandler {
+	return &EditorHandler{entrySvc: entryService, registry: registry}
+}
+
+func (h *EditorHandler) paramToEntry(c *fiber.Ctx) (model.Entry, error) {
+	typeName := c.Params("editor")
+	entryType, err := h.registry.Type(typeName)
+	if err != nil {
+		return nil, err
+	}
+	return entryType, nil
 }
 
 func (h *EditorHandler) HandleGet(c *fiber.Ctx) error {
 	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
-	form := editor.NewEntryForm(&model.ImageEntry{})
+
+	entryType, err := h.paramToEntry(c)
+	if err != nil {
+		return err
+	}
+
+	form := editor.NewEntryForm(entryType)
 	htmlForm, err := form.HtmlForm()
 	if err != nil {
 		return err
@@ -30,7 +46,12 @@ func (h *EditorHandler) HandleGet(c *fiber.Ctx) error {
 func (h *EditorHandler) HandlePost(c *fiber.Ctx) error {
 	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
 
-	form := editor.NewEntryForm(&model.ImageEntry{})
+	entryType, err := h.paramToEntry(c)
+	if err != nil {
+		return err
+	}
+
+	form := editor.NewEntryForm(entryType)
 	// get form data
 	metaData, err := form.Parse(c)
 	if err != nil {
@@ -39,7 +60,7 @@ func (h *EditorHandler) HandlePost(c *fiber.Ctx) error {
 
 	// create entry
 	now := time.Now()
-	entry := &model.ImageEntry{}
+	entry := entryType
 	err = h.entrySvc.Create(entry, &now, metaData.MetaData())
 	if err != nil {
 		return err

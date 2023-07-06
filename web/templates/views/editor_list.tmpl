@@ -1,0 +1,12 @@
+{{define "title"}}Editor List{{end}}
+
+{{define "main"}}
+
+<h1>Editor List</h1>
+
+<ul>
+{{range .Types}}
+<li><a href="/editor/{{.}}">{{.}}</a></li>
+{{end}}
+
+{{end}}

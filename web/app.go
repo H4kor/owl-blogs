@@ -7,11 +7,11 @@ import (
 )
 
 type WebApp struct {
-	app          *fiber.App
+	FiberApp     *fiber.App
 	entryService *app.EntryService
 }
 
-func NewWebApp(entryService *app.EntryService) *WebApp {
+func NewWebApp(entryService *app.EntryService, typeRegistry *app.EntryTypeRegistry) *WebApp {
 	app := fiber.New()
 
 	indexHandler := NewIndexHandler(entryService)
@@ -20,7 +20,8 @@ func NewWebApp(entryService *app.EntryService) *WebApp {
 	mediaHandler := NewMediaHandler(entryService)
 	rssHandler := NewRSSHandler(entryService)
 	loginHandler := NewLoginHandler(entryService)
-	editorHandler := NewEditorHandler(entryService)
+	editorListHandler := NewEditorListHandler(typeRegistry)
+	editorHandler := NewEditorHandler(entryService, typeRegistry)
 
 	// app.ServeFiles("/static/*filepath", http.Dir(repo.StaticDir()))
 	app.Get("/", indexHandler.Handle)
@@ -28,8 +29,9 @@ func NewWebApp(entryService *app.EntryService) *WebApp {
 	// Editor
 	app.Get("/editor/auth/", loginHandler.HandleGet)
 	app.Post("/editor/auth/", loginHandler.HandlePost)
-	app.Get("/editor/", editorHandler.HandleGet)
-	app.Post("/editor/", editorHandler.HandlePost)
+	app.Get("/editor/", editorListHandler.Handle)
+	app.Get("/editor/:editor/", editorHandler.HandleGet)
+	app.Post("/editor/:editor/", editorHandler.HandlePost)
 	// Media
 	app.Get("/media/*filepath", mediaHandler.Handle)
 	// RSS
@@ -48,9 +50,9 @@ func NewWebApp(entryService *app.EntryService) *WebApp {
 	// app.Post("/auth/token/", userAuthTokenHandler(repo))
 	// app.Get("/.well-known/oauth-authorization-server", userAuthMetadataHandler(repo))
 	// app.NotFound = http.HandlerFunc(notFoundHandler(repo))
-	return &WebApp{app: app, entryService: entryService}
+	return &WebApp{FiberApp: app, entryService: entryService}
 }
 
 func (w *WebApp) Run() {
-	w.app.Listen(":3000")
+	w.FiberApp.Listen(":3000")
 }
