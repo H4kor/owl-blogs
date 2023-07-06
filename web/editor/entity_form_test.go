@@ -17,7 +17,6 @@ type MockEntryMetaData struct {
 
 type MockEntry struct {
 	id          string
-	content     model.EntryContent
 	publishedAt *time.Time
 	metaData    *MockEntryMetaData
 }
@@ -27,7 +26,7 @@ func (e *MockEntry) ID() string {
 }
 
 func (e *MockEntry) Content() model.EntryContent {
-	return e.content
+	return model.EntryContent(e.metaData.Content)
 }
 
 func (e *MockEntry) PublishedAt() *time.Time {
@@ -38,9 +37,8 @@ func (e *MockEntry) MetaData() interface{} {
 	return e.metaData
 }
 
-func (e *MockEntry) Create(id string, content string, publishedAt *time.Time, metaData model.EntryMetaData) error {
+func (e *MockEntry) Create(id string, publishedAt *time.Time, metaData model.EntryMetaData) error {
 	e.id = id
-	e.content = model.EntryContent(content)
 	e.publishedAt = publishedAt
 	e.metaData = metaData.(*MockEntryMetaData)
 	return nil

@@ -17,7 +17,6 @@ import (
 type sqlEntry struct {
 	Id          string     `db:"id"`
 	Type        string     `db:"type"`
-	Content     string     `db:"content"`
 	PublishedAt *time.Time `db:"published_at"`
 	MetaData    *string    `db:"meta_data"`
 }
@@ -44,7 +43,7 @@ func (r *DefaultEntryRepo) Create(entry model.Entry) error {
 		metaDataJson, _ = json.Marshal(entry.MetaData())
 	}
 
-	_, err = r.db.Exec("INSERT INTO entries (id, type, content, published_at, meta_data) VALUES (?, ?, ?, ?, ?)", entry.ID(), t, entry.Content(), entry.PublishedAt(), metaDataJson)
+	_, err = r.db.Exec("INSERT INTO entries (id, type, published_at, meta_data) VALUES (?, ?, ?, ?)", entry.ID(), t, entry.PublishedAt(), metaDataJson)
 	return err
 }
 
@@ -119,7 +118,7 @@ func (r *DefaultEntryRepo) Update(entry model.Entry) error {
 		metaDataJson, _ = json.Marshal(entry.MetaData())
 	}
 
-	_, err = r.db.Exec("UPDATE entries SET content = ?, published_at = ?, meta_data = ? WHERE id = ?", entry.Content(), entry.PublishedAt(), metaDataJson, entry.ID())
+	_, err = r.db.Exec("UPDATE entries SET published_at = ?, meta_data = ? WHERE id = ?", entry.PublishedAt(), metaDataJson, entry.ID())
 	return err
 }
 
@@ -131,7 +130,6 @@ func NewEntryRepository(db Database, register *app.EntryTypeRegistry) repository
 		CREATE TABLE IF NOT EXISTS entries (
 			id TEXT PRIMARY KEY,
 			type TEXT NOT NULL,
-			content TEXT NOT NULL,
 			published_at DATETIME,
 			meta_data TEXT NOT NULL
 		);
@@ -150,6 +148,6 @@ func (r *DefaultEntryRepo) sqlEntryToEntry(entry sqlEntry) (model.Entry, error) 
 	}
 	metaData := reflect.New(reflect.TypeOf(e.MetaData()).Elem()).Interface()
 	json.Unmarshal([]byte(*entry.MetaData), metaData)
-	e.Create(entry.Id, entry.Content, entry.PublishedAt, metaData)
+	e.Create(entry.Id, entry.PublishedAt, metaData)
 	return e, nil
 }

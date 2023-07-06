@@ -9,7 +9,7 @@ type Entry interface {
 	Content() EntryContent
 	PublishedAt() *time.Time
 	MetaData() interface{}
-	Create(id string, content string, publishedAt *time.Time, metaData EntryMetaData) error
+	Create(id string, publishedAt *time.Time, metaData EntryMetaData) error
 }
 
 type EntryMetaData interface {

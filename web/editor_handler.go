@@ -19,7 +19,10 @@ func NewEditorHandler(entryService *app.EntryService) *EditorHandler {
 func (h *EditorHandler) HandleGet(c *fiber.Ctx) error {
 	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
 	formService := editor.NewEditorFormService(&model.ImageEntry{})
-	form, _ := formService.HtmlForm()
+	form, err := formService.HtmlForm()
+	if err != nil {
+		return err
+	}
 	return c.SendString(form)
 }
 

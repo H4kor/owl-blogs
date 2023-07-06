@@ -24,7 +24,7 @@ func TestRepoCreate(t *testing.T) {
 
 	entry := &test.MockEntry{}
 	now := time.Now()
-	entry.Create("id", "content", &now, &test.MockEntryMetaData{
+	entry.Create("id", &now, &test.MockEntryMetaData{
 		Str:    "str",
 		Number: 1,
 		Date:   now,
@@ -49,7 +49,7 @@ func TestRepoDelete(t *testing.T) {
 
 	entry := &test.MockEntry{}
 	now := time.Now()
-	entry.Create("id", "content", &now, &test.MockEntryMetaData{
+	entry.Create("id", &now, &test.MockEntryMetaData{
 		Str:    "str",
 		Number: 1,
 		Date:   now,
@@ -69,7 +69,7 @@ func TestRepoFindAll(t *testing.T) {
 
 	entry := &test.MockEntry{}
 	now := time.Now()
-	entry.Create("id", "content", &now, &test.MockEntryMetaData{
+	entry.Create("id", &now, &test.MockEntryMetaData{
 		Str:    "str",
 		Number: 1,
 		Date:   now,
@@ -79,7 +79,7 @@ func TestRepoFindAll(t *testing.T) {
 
 	entry2 := &test.MockEntry{}
 	now2 := time.Now()
-	entry2.Create("id2", "content2", &now2, &test.MockEntryMetaData{
+	entry2.Create("id2", &now2, &test.MockEntryMetaData{
 		Str:    "str2",
 		Number: 2,
 		Date:   now2,
@@ -106,7 +106,7 @@ func TestRepoUpdate(t *testing.T) {
 
 	entry := &test.MockEntry{}
 	now := time.Now()
-	entry.Create("id", "content", &now, &test.MockEntryMetaData{
+	entry.Create("id", &now, &test.MockEntryMetaData{
 		Str:    "str",
 		Number: 1,
 		Date:   now,
@@ -116,7 +116,7 @@ func TestRepoUpdate(t *testing.T) {
 
 	entry2 := &test.MockEntry{}
 	now2 := time.Now()
-	entry2.Create("id", "content2", &now2, &test.MockEntryMetaData{
+	entry2.Create("id", &now2, &test.MockEntryMetaData{
 		Str:    "str2",
 		Number: 2,
 		Date:   now2,
