@@ -9,8 +9,8 @@ type ImageEntry struct {
 }
 
 type ImageEntryMetaData struct {
-	ImagePath string       `owl:"inputType=file"`
-	Content   EntryContent `owl:"inputType=text widget=textarea"`
+	ImagePath string `owl:"inputType=file"`
+	Content   string `owl:"inputType=text widget=textarea"`
 }
 
 func (e *ImageEntry) ID() string {
@@ -18,7 +18,7 @@ func (e *ImageEntry) ID() string {
 }
 
 func (e *ImageEntry) Content() EntryContent {
-	return e.meta.Content
+	return EntryContent(e.meta.Content)
 }
 
 func (e *ImageEntry) PublishedAt() *time.Time {
@@ -26,10 +26,7 @@ func (e *ImageEntry) PublishedAt() *time.Time {
 }
 
 func (e *ImageEntry) MetaData() interface{} {
-	return &ImageEntryMetaData{
-		ImagePath: e.meta.ImagePath,
-		Content:   e.meta.Content,
-	}
+	return &e.meta
 }
 
 func (e *ImageEntry) Create(id string, publishedAt *time.Time, metaData EntryMetaData) error {

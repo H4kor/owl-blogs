@@ -8,7 +8,8 @@ import (
 
 type WebApp struct {
 	FiberApp     *fiber.App
-	entryService *app.EntryService
+	EntryService *app.EntryService
+	Registry     *app.EntryTypeRegistry
 }
 
 func NewWebApp(entryService *app.EntryService, typeRegistry *app.EntryTypeRegistry) *WebApp {
@@ -16,7 +17,7 @@ func NewWebApp(entryService *app.EntryService, typeRegistry *app.EntryTypeRegist
 
 	indexHandler := NewIndexHandler(entryService)
 	listHandler := NewListHandler(entryService)
-	entryHandler := NewEntryHandler(entryService)
+	entryHandler := NewEntryHandler(entryService, typeRegistry)
 	mediaHandler := NewMediaHandler(entryService)
 	rssHandler := NewRSSHandler(entryService)
 	loginHandler := NewLoginHandler(entryService)
@@ -50,7 +51,7 @@ func NewWebApp(entryService *app.EntryService, typeRegistry *app.EntryTypeRegist
 	// app.Post("/auth/token/", userAuthTokenHandler(repo))
 	// app.Get("/.well-known/oauth-authorization-server", userAuthMetadataHandler(repo))
 	// app.NotFound = http.HandlerFunc(notFoundHandler(repo))
-	return &WebApp{FiberApp: app, entryService: entryService}
+	return &WebApp{FiberApp: app, EntryService: entryService, Registry: typeRegistry}
 }
 
 func (w *WebApp) Run() {

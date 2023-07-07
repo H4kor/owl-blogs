@@ -7,8 +7,9 @@ import (
 	"owl-blogs/web"
 )
 
-func App() *web.WebApp {
-	db := infra.NewSqliteDB("owlblogs.db")
+const DbPath = "owlblogs.db"
+
+func App(db infra.Database) *web.WebApp {
 	registry := app.NewEntryTypeRegistry()
 
 	registry.Register(&model.ImageEntry{})
@@ -20,5 +21,6 @@ func App() *web.WebApp {
 }
 
 func main() {
-	App().Run()
+	db := infra.NewSqliteDB(DbPath)
+	App(db).Run()
 }

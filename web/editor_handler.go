@@ -53,18 +53,17 @@ func (h *EditorHandler) HandlePost(c *fiber.Ctx) error {
 
 	form := editor.NewEntryForm(entryType)
 	// get form data
-	metaData, err := form.Parse(c)
+	entry, err := form.Parse(c)
 	if err != nil {
 		return err
 	}
 
 	// create entry
 	now := time.Now()
-	entry := entryType
-	err = h.entrySvc.Create(entry, &now, metaData.MetaData())
+	err = h.entrySvc.Create(entry, &now, entry.MetaData())
 	if err != nil {
 		return err
 	}
+	return c.Redirect("/posts/" + entry.ID() + "/")
 
-	return c.SendString("Hello, Editor!")
 }
