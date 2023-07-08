@@ -1,0 +1,17 @@
+{{define "title"}}{{.MetaData.Title}}{{end}}
+
+{{define "main"}}
+
+<h1>{{.MetaData.Title}}</h1>
+
+<p>
+{{.Content}}
+</p>
+
+<p>
+    Published: {{.PublishedAt}}
+</p>
+
+    
+{{end}}
+
