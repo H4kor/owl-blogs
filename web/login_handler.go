@@ -2,22 +2,47 @@ package web
 
 import (
 	"owl-blogs/app"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
 
 type LoginHandler struct {
-	entrySvc *app.EntryService
+	authorService *app.AuthorService
 }
 
-func NewLoginHandler(entryService *app.EntryService) *LoginHandler {
-	return &LoginHandler{entrySvc: entryService}
+func NewLoginHandler(authorService *app.AuthorService) *LoginHandler {
+	return &LoginHandler{authorService: authorService}
 }
 
 func (h *LoginHandler) HandleGet(c *fiber.Ctx) error {
-	return c.SendString("Hello, Login!")
+	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
+	return RenderTemplate(c, "views/login", nil)
 }
 
 func (h *LoginHandler) HandlePost(c *fiber.Ctx) error {
-	return c.SendString("Hello, Login!")
+	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
+	name := c.FormValue("name")
+	password := c.FormValue("password")
+
+	valid := h.authorService.Authenticate(name, password)
+	if !valid {
+		return c.Redirect("/auth/login")
+	}
+
+	token, err := h.authorService.CreateToken(name)
+	if err != nil {
+		return err
+	}
+
+	cookie := fiber.Cookie{
+		Name:     "token",
+		Value:    token,
+		Expires:  time.Now().Add(30 * 24 * time.Hour),
+		HTTPOnly: true,
+	}
+	c.Cookie(&cookie)
+
+	return c.Redirect("/editor/")
+
 }

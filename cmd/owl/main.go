@@ -1,14 +1,30 @@
 package main
 
 import (
+	"fmt"
+	"os"
 	"owl-blogs/app"
 	"owl-blogs/config"
 	"owl-blogs/domain/model"
 	"owl-blogs/infra"
 	"owl-blogs/web"
+
+	"github.com/spf13/cobra"
 )
 
 const DbPath = "owlblogs.db"
+
+var rootCmd = &cobra.Command{
+	Use:   "owl",
+	Short: "Owl Blogs is a not so static blog generator",
+}
+
+func Execute() {
+	if err := rootCmd.Execute(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+}
 
 func App(db infra.Database) *web.WebApp {
 	config := config.NewConfig()
@@ -29,6 +45,5 @@ func App(db infra.Database) *web.WebApp {
 }
 
 func main() {
-	db := infra.NewSqliteDB(DbPath)
-	App(db).Run()
+	Execute()
 }

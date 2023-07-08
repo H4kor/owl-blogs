@@ -1,19 +1,13 @@
 package web
 
 import (
-	"embed"
 	"owl-blogs/app"
-	"text/template"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-//go:embed templates
-var templates embed.FS
-
 type EditorListHandler struct {
 	registry *app.EntryTypeRegistry
-	ts       *template.Template
 }
 
 type EditorListContext struct {
@@ -21,19 +15,8 @@ type EditorListContext struct {
 }
 
 func NewEditorListHandler(registry *app.EntryTypeRegistry) *EditorListHandler {
-	ts, err := template.ParseFS(
-		templates,
-		"templates/base.tmpl",
-		"templates/views/editor_list.tmpl",
-	)
-
-	if err != nil {
-		panic(err)
-	}
-
 	return &EditorListHandler{
 		registry: registry,
-		ts:       ts,
 	}
 
 }
@@ -49,5 +32,5 @@ func (h *EditorListHandler) Handle(c *fiber.Ctx) error {
 		typeNames = append(typeNames, name)
 	}
 
-	return h.ts.ExecuteTemplate(c, "base", &EditorListContext{Types: typeNames})
+	return RenderTemplate(c, "views/editor_list", &EditorListContext{Types: typeNames})
 }
