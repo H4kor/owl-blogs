@@ -1,9 +1,17 @@
 package editor_test
 
 import (
+	"bytes"
+	"io"
 	"mime/multipart"
+	"os"
+	"owl-blogs/app"
 	"owl-blogs/domain/model"
+	"owl-blogs/infra"
+	"owl-blogs/test"
 	"owl-blogs/web/editor"
+	"path"
+	"path/filepath"
 	"reflect"
 	"testing"
 	"time"
@@ -17,10 +25,41 @@ type MockEntryMetaData struct {
 }
 
 type MockFormData struct {
+	fileHeader *multipart.FileHeader
+}
+
+func NewMockFormData() *MockFormData {
+	fileDir, _ := os.Getwd()
+	fileName := "../../test/fixtures/test.png"
+	filePath := path.Join(fileDir, fileName)
+
+	file, err := os.Open(filePath)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	part, err := writer.CreateFormFile("ImagePath", filepath.Base(file.Name()))
+	if err != nil {
+		panic(err)
+	}
+	io.Copy(part, file)
+	writer.Close()
+
+	multipartForm := multipart.NewReader(body, writer.Boundary())
+	formData, err := multipartForm.ReadForm(0)
+	if err != nil {
+		panic(err)
+	}
+	fileHeader := formData.File["ImagePath"][0]
+
+	return &MockFormData{fileHeader: fileHeader}
 }
 
 func (f *MockFormData) FormFile(key string) (*multipart.FileHeader, error) {
-	return nil, nil
+	return f.fileHeader, nil
 }
 
 func (f *MockFormData) FormValue(key string, defaultValue ...string) string {
@@ -75,7 +114,7 @@ func TestStructToFields(t *testing.T) {
 }
 
 func TestEditorEntryForm_HtmlForm(t *testing.T) {
-	form := editor.NewEntryForm(&MockEntry{})
+	form := editor.NewEntryForm(&MockEntry{}, nil)
 	html, err := form.HtmlForm()
 	require.NoError(t, err)
 	require.Contains(t, html, "<form")
@@ -87,15 +126,17 @@ func TestEditorEntryForm_HtmlForm(t *testing.T) {
 }
 
 func TestFormParseNil(t *testing.T) {
-	form := editor.NewEntryForm(&MockEntry{})
+	form := editor.NewEntryForm(&MockEntry{}, nil)
 	_, err := form.Parse(nil)
 	require.Error(t, err)
 }
 
 func TestFormParse(t *testing.T) {
-	form := editor.NewEntryForm(&MockEntry{})
-	entry, err := form.Parse(&MockFormData{})
+	binRepo := infra.NewBinaryFileRepo(test.NewMockDb())
+	binService := app.NewBinaryFileService(binRepo)
+	form := editor.NewEntryForm(&MockEntry{}, binService)
+	entry, err := form.Parse(NewMockFormData())
 	require.NoError(t, err)
-	require.Equal(t, "Image", entry.MetaData().(*MockEntryMetaData).Image)
+	require.NotZero(t, entry.MetaData().(*MockEntryMetaData).Image)
 	require.Equal(t, "Content", entry.MetaData().(*MockEntryMetaData).Content)
 }

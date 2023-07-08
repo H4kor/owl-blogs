@@ -11,11 +11,12 @@ import (
 
 type EditorHandler struct {
 	entrySvc *app.EntryService
+	binSvc   *app.BinaryService
 	registry *app.EntryTypeRegistry
 }
 
-func NewEditorHandler(entryService *app.EntryService, registry *app.EntryTypeRegistry) *EditorHandler {
-	return &EditorHandler{entrySvc: entryService, registry: registry}
+func NewEditorHandler(entryService *app.EntryService, registry *app.EntryTypeRegistry, binService *app.BinaryService) *EditorHandler {
+	return &EditorHandler{entrySvc: entryService, registry: registry, binSvc: binService}
 }
 
 func (h *EditorHandler) paramToEntry(c *fiber.Ctx) (model.Entry, error) {
@@ -35,7 +36,7 @@ func (h *EditorHandler) HandleGet(c *fiber.Ctx) error {
 		return err
 	}
 
-	form := editor.NewEntryForm(entryType)
+	form := editor.NewEntryForm(entryType, h.binSvc)
 	htmlForm, err := form.HtmlForm()
 	if err != nil {
 		return err
@@ -51,7 +52,7 @@ func (h *EditorHandler) HandlePost(c *fiber.Ctx) error {
 		return err
 	}
 
-	form := editor.NewEntryForm(entryType)
+	form := editor.NewEntryForm(entryType, h.binSvc)
 	// get form data
 	entry, err := form.Parse(c)
 	if err != nil {

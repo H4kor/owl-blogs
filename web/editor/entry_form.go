@@ -3,6 +3,7 @@ package editor
 import (
 	"fmt"
 	"mime/multipart"
+	"owl-blogs/app"
 	"owl-blogs/domain/model"
 	"reflect"
 	"strings"
@@ -21,7 +22,8 @@ type HttpFormData interface {
 }
 
 type EditorEntryForm struct {
-	entry model.Entry
+	entry  model.Entry
+	binSvc *app.BinaryService
 }
 
 type EntryFormFieldParams struct {
@@ -34,9 +36,10 @@ type EntryFormField struct {
 	Params EntryFormFieldParams
 }
 
-func NewEntryForm(entry model.Entry) *EditorEntryForm {
+func NewEntryForm(entry model.Entry, binaryService *app.BinaryService) *EditorEntryForm {
 	return &EditorEntryForm{
-		entry: entry,
+		entry:  entry,
+		binSvc: binaryService,
 	}
 }
 
@@ -103,7 +106,7 @@ func (s *EditorEntryForm) HtmlForm() (string, error) {
 		return "", err
 	}
 
-	html := "<form method=\"POST\">\n"
+	html := "<form method=\"POST\" enctype=\"multipart/form-data\">\n"
 	for _, field := range fields {
 		html += field.Html()
 	}
@@ -126,13 +129,42 @@ func (s *EditorEntryForm) Parse(ctx HttpFormData) (model.Entry, error) {
 	if err != nil {
 		return nil, err
 	}
-	for field := range fields {
-		fieldName := fields[field].Name
-		fieldValue := ctx.FormValue(fieldName)
-		metaField := metaVal.Elem().FieldByName(fieldName)
-		if metaField.IsValid() {
-			metaField.SetString(fieldValue)
+	for _, field := range fields {
+		fieldName := field.Name
+
+		if field.Params.InputType == "file" {
+			file, err := ctx.FormFile(fieldName)
+			if err != nil {
+				return nil, err
+			}
+			fileData, err := file.Open()
+			if err != nil {
+				return nil, err
+			}
+			defer fileData.Close()
+			fileBytes := make([]byte, file.Size)
+			_, err = fileData.Read(fileBytes)
+			if err != nil {
+				return nil, err
+			}
+
+			binaryFile, err := s.binSvc.Create(file.Filename, fileBytes)
+			if err != nil {
+				return nil, err
+			}
+
+			metaField := metaVal.Elem().FieldByName(fieldName)
+			if metaField.IsValid() {
+				metaField.SetString(binaryFile.Id)
+			}
+		} else {
+			formValue := ctx.FormValue(fieldName)
+			metaField := metaVal.Elem().FieldByName(fieldName)
+			if metaField.IsValid() {
+				metaField.SetString(formValue)
+			}
 		}
+
 	}
 
 	return s.entry, nil

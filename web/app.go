@@ -23,7 +23,7 @@ func NewWebApp(entryService *app.EntryService, typeRegistry *app.EntryTypeRegist
 	rssHandler := NewRSSHandler(entryService)
 	loginHandler := NewLoginHandler(entryService)
 	editorListHandler := NewEditorListHandler(typeRegistry)
-	editorHandler := NewEditorHandler(entryService, typeRegistry)
+	editorHandler := NewEditorHandler(entryService, typeRegistry, binService)
 
 	// app.ServeFiles("/static/*filepath", http.Dir(repo.StaticDir()))
 	app.Get("/", indexHandler.Handle)

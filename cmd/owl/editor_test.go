@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"io"
+	"io/ioutil"
 	"math/rand"
 	"mime/multipart"
 	"net/http/httptest"
@@ -44,6 +45,7 @@ func TestEditorFormPost(t *testing.T) {
 	owlApp := App(db)
 	app := owlApp.FiberApp
 	repo := infra.NewEntryRepository(db, owlApp.Registry)
+	binRepo := infra.NewBinaryFileRepo(db)
 
 	fileDir, _ := os.Getwd()
 	fileName := "../../test/fixtures/test.png"
@@ -51,11 +53,13 @@ func TestEditorFormPost(t *testing.T) {
 
 	file, err := os.Open(filePath)
 	require.NoError(t, err)
+	fileBytes, err := ioutil.ReadFile(filePath)
+	require.NoError(t, err)
 	defer file.Close()
 
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
-	part, _ := writer.CreateFormFile("ImagePath", filepath.Base(file.Name()))
+	part, _ := writer.CreateFormFile("ImageId", filepath.Base(file.Name()))
 	io.Copy(part, file)
 	part, _ = writer.CreateFormField("Content")
 	io.WriteString(part, "test content")
@@ -72,6 +76,11 @@ func TestEditorFormPost(t *testing.T) {
 	entry, err := repo.FindById(id)
 	require.NoError(t, err)
 	require.Equal(t, "test content", entry.MetaData().(*model.ImageEntryMetaData).Content)
-	// require.Equal(t, "test.png", entry.MetaData().(*model.ImageEntryMetaData).ImagePath)
+	imageId := entry.MetaData().(*model.ImageEntryMetaData).ImageId
+	require.NotZero(t, imageId)
+	bin, err := binRepo.FindById(imageId)
+	require.NoError(t, err)
+	require.Equal(t, bin.Name, "test.png")
+	require.Equal(t, fileBytes, bin.Data)
 
 }

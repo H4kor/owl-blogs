@@ -1,6 +1,7 @@
 package infra
 
 import (
+	"owl-blogs/app/repository"
 	"owl-blogs/domain/model"
 
 	"github.com/google/uuid"
@@ -17,7 +18,7 @@ type DefaultBinaryFileRepo struct {
 	db *sqlx.DB
 }
 
-func NewBinaryFileRepo(db Database) *DefaultBinaryFileRepo {
+func NewBinaryFileRepo(db Database) repository.BinaryRepository {
 	sqlxdb := db.Get()
 
 	// Create table if not exists
