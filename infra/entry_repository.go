@@ -41,7 +41,9 @@ func (r *DefaultEntryRepo) Create(entry model.Entry, publishedAt *time.Time, met
 
 	id := uuid.New().String()
 	_, err = r.db.Exec("INSERT INTO entries (id, type, published_at, meta_data) VALUES (?, ?, ?, ?)", id, t, publishedAt, metaDataJson)
-	entry.Create(id, publishedAt, metaData)
+	entry.SetID(id)
+	entry.SetPublishedAt(publishedAt)
+	entry.SetMetaData(metaData)
 	return err
 }
 
@@ -146,6 +148,8 @@ func (r *DefaultEntryRepo) sqlEntryToEntry(entry sqlEntry) (model.Entry, error) 
 	}
 	metaData := reflect.New(reflect.TypeOf(e.MetaData()).Elem()).Interface()
 	json.Unmarshal([]byte(*entry.MetaData), metaData)
-	e.Create(entry.Id, entry.PublishedAt, metaData)
+	e.SetID(entry.Id)
+	e.SetPublishedAt(entry.PublishedAt)
+	e.SetMetaData(metaData)
 	return e, nil
 }
