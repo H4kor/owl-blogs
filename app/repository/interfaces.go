@@ -12,3 +12,8 @@ type EntryRepository interface {
 	FindById(id string) (model.Entry, error)
 	FindAll(types *[]string) ([]model.Entry, error)
 }
+
+type BinaryRepository interface {
+	Create(name string, data []byte) (*model.BinaryFile, error)
+	FindById(id string) (*model.BinaryFile, error)
+}

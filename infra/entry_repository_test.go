@@ -131,3 +131,39 @@ func TestRepoUpdate(t *testing.T) {
 	require.Equal(t, meta.Number, meta2.Number)
 	require.Equal(t, meta.Date.Unix(), meta2.Date.Unix())
 }
+
+func TestRepoNoSideEffect(t *testing.T) {
+	repo := setupRepo()
+
+	entry1 := &test.MockEntry{}
+	now1 := time.Now()
+	err := repo.Create(entry1, &now1, &test.MockEntryMetaData{
+		Str:    "1",
+		Number: 1,
+		Date:   now1,
+	})
+	require.NoError(t, err)
+
+	entry2 := &test.MockEntry{}
+	now2 := time.Now()
+	err = repo.Create(entry2, &now2, &test.MockEntryMetaData{
+		Str:    "2",
+		Number: 2,
+		Date:   now2,
+	})
+	require.NoError(t, err)
+
+	r1, err := repo.FindById(entry1.ID())
+	require.NoError(t, err)
+	r2, err := repo.FindById(entry2.ID())
+	require.NoError(t, err)
+
+	require.Equal(t, r1.MetaData().(*test.MockEntryMetaData).Str, "1")
+	require.Equal(t, r1.MetaData().(*test.MockEntryMetaData).Number, 1)
+	require.Equal(t, r1.MetaData().(*test.MockEntryMetaData).Date.Unix(), now1.Unix())
+
+	require.Equal(t, r2.MetaData().(*test.MockEntryMetaData).Str, "2")
+	require.Equal(t, r2.MetaData().(*test.MockEntryMetaData).Number, 2)
+	require.Equal(t, r2.MetaData().(*test.MockEntryMetaData).Date.Unix(), now2.Unix())
+
+}

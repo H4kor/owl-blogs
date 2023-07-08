@@ -9,8 +9,8 @@ type ImageEntry struct {
 }
 
 type ImageEntryMetaData struct {
-	ImagePath string `owl:"inputType=file"`
-	Content   string `owl:"inputType=text widget=textarea"`
+	ImageId string `owl:"inputType=file"`
+	Content string `owl:"inputType=text widget=textarea"`
 }
 
 func (e *ImageEntry) ID() string {

@@ -47,5 +47,12 @@ func (r *EntryTypeRegistry) Type(name string) (model.Entry, error) {
 	if _, ok := r.types[name]; !ok {
 		return nil, errors.New("entry type not registered")
 	}
-	return r.types[name], nil
+
+	val := reflect.ValueOf(r.types[name])
+	if val.Kind() == reflect.Ptr {
+		val = reflect.Indirect(val)
+	}
+	newEntry := reflect.New(val.Type()).Interface().(model.Entry)
+
+	return newEntry, nil
 }

@@ -14,9 +14,12 @@ func App(db infra.Database) *web.WebApp {
 
 	registry.Register(&model.ImageEntry{})
 
-	repo := infra.NewEntryRepository(db, registry)
-	entryService := app.NewEntryService(repo)
-	return web.NewWebApp(entryService, registry)
+	entryRepo := infra.NewEntryRepository(db, registry)
+	binRepo := infra.NewBinaryFileRepo(db)
+
+	entryService := app.NewEntryService(entryRepo)
+	binaryService := app.NewBinaryFileService(binRepo)
+	return web.NewWebApp(entryService, registry, binaryService)
 
 }
 
