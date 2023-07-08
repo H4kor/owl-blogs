@@ -17,3 +17,8 @@ type BinaryRepository interface {
 	Create(name string, data []byte) (*model.BinaryFile, error)
 	FindById(id string) (*model.BinaryFile, error)
 }
+
+type AuthorRepository interface {
+	Create(name string, passwordHash string) (*model.Author, error)
+	FindByName(name string) (*model.Author, error)
+}

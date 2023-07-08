@@ -2,6 +2,7 @@ package web
 
 import (
 	"owl-blogs/app"
+	"owl-blogs/web/middleware"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -11,9 +12,15 @@ type WebApp struct {
 	EntryService  *app.EntryService
 	BinaryService *app.BinaryService
 	Registry      *app.EntryTypeRegistry
+	AuthorService *app.AuthorService
 }
 
-func NewWebApp(entryService *app.EntryService, typeRegistry *app.EntryTypeRegistry, binService *app.BinaryService) *WebApp {
+func NewWebApp(
+	entryService *app.EntryService,
+	typeRegistry *app.EntryTypeRegistry,
+	binService *app.BinaryService,
+	authorService *app.AuthorService,
+) *WebApp {
 	app := fiber.New()
 
 	indexHandler := NewIndexHandler(entryService)
@@ -25,15 +32,20 @@ func NewWebApp(entryService *app.EntryService, typeRegistry *app.EntryTypeRegist
 	editorListHandler := NewEditorListHandler(typeRegistry)
 	editorHandler := NewEditorHandler(entryService, typeRegistry, binService)
 
+	// Login
+	app.Get("/auth/login", loginHandler.HandleGet)
+	app.Post("/auth/login", loginHandler.HandlePost)
+
+	// Editor
+	editor := app.Group("/editor")
+	editor.Use(middleware.NewAuthMiddleware(authorService).Handle)
+	editor.Get("/", editorListHandler.Handle)
+	editor.Get("/:editor/", editorHandler.HandleGet)
+	editor.Post("/:editor/", editorHandler.HandlePost)
+
 	// app.ServeFiles("/static/*filepath", http.Dir(repo.StaticDir()))
 	app.Get("/", indexHandler.Handle)
 	app.Get("/lists/:list/", listHandler.Handle)
-	// Editor
-	app.Get("/editor/auth/", loginHandler.HandleGet)
-	app.Post("/editor/auth/", loginHandler.HandlePost)
-	app.Get("/editor/", editorListHandler.Handle)
-	app.Get("/editor/:editor/", editorHandler.HandleGet)
-	app.Post("/editor/:editor/", editorHandler.HandlePost)
 	// Media
 	app.Get("/media/*filepath", mediaHandler.Handle)
 	// RSS
@@ -57,6 +69,7 @@ func NewWebApp(entryService *app.EntryService, typeRegistry *app.EntryTypeRegist
 		EntryService:  entryService,
 		Registry:      typeRegistry,
 		BinaryService: binService,
+		AuthorService: authorService,
 	}
 }
 

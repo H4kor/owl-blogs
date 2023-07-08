@@ -4,46 +4,64 @@ import (
 	"bytes"
 	"io"
 	"io/ioutil"
-	"math/rand"
 	"mime/multipart"
+	"net/http"
 	"net/http/httptest"
 	"os"
+	"owl-blogs/app"
 	"owl-blogs/domain/model"
 	"owl-blogs/infra"
+	"owl-blogs/test"
 	"path"
 	"path/filepath"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 )
 
-func testDbName() string {
-	var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-	rand.Seed(time.Now().UnixNano())
-	b := make([]rune, 6)
-	for i := range b {
-		b[i] = letterRunes[rand.Intn(len(letterRunes))]
+func getUserToken(service *app.AuthorService) string {
+	_, err := service.Create("test", "test")
+	if err != nil {
+		panic(err)
 	}
-	return "/tmp/" + string(b) + ".db"
+	token, err := service.CreateToken("test")
+	if err != nil {
+		panic(err)
+	}
+	return token
 }
 
 func TestEditorFormGet(t *testing.T) {
-	db := infra.NewSqliteDB(testDbName())
-	app := App(db).FiberApp
+	db := test.NewMockDb()
+	owlApp := App(db)
+	app := owlApp.FiberApp
+	token := getUserToken(owlApp.AuthorService)
 
 	req := httptest.NewRequest("GET", "/editor/ImageEntry", nil)
+	req.AddCookie(&http.Cookie{Name: "token", Value: token})
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 	require.Equal(t, 200, resp.StatusCode)
 }
 
-func TestEditorFormPost(t *testing.T) {
-	dbName := testDbName()
-	db := infra.NewSqliteDB(dbName)
+func TestEditorFormGetNoAuth(t *testing.T) {
+	db := test.NewMockDb()
 	owlApp := App(db)
 	app := owlApp.FiberApp
+
+	req := httptest.NewRequest("GET", "/editor/ImageEntry", nil)
+	req.AddCookie(&http.Cookie{Name: "token", Value: "invalid"})
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, 302, resp.StatusCode)
+}
+
+func TestEditorFormPost(t *testing.T) {
+	db := test.NewMockDb()
+	owlApp := App(db)
+	app := owlApp.FiberApp
+	token := getUserToken(owlApp.AuthorService)
 	repo := infra.NewEntryRepository(db, owlApp.Registry)
 	binRepo := infra.NewBinaryFileRepo(db)
 
@@ -67,6 +85,7 @@ func TestEditorFormPost(t *testing.T) {
 
 	req := httptest.NewRequest("POST", "/editor/ImageEntry", body)
 	req.Header.Set("Content-Type", writer.FormDataContentType())
+	req.AddCookie(&http.Cookie{Name: "token", Value: token})
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 	require.Equal(t, 302, resp.StatusCode)
@@ -82,5 +101,36 @@ func TestEditorFormPost(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, bin.Name, "test.png")
 	require.Equal(t, fileBytes, bin.Data)
+
+}
+
+func TestEditorFormPostNoAuth(t *testing.T) {
+	db := test.NewMockDb()
+	owlApp := App(db)
+	app := owlApp.FiberApp
+
+	fileDir, _ := os.Getwd()
+	fileName := "../../test/fixtures/test.png"
+	filePath := path.Join(fileDir, fileName)
+
+	file, err := os.Open(filePath)
+	require.NoError(t, err)
+	defer file.Close()
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	part, _ := writer.CreateFormFile("ImageId", filepath.Base(file.Name()))
+	io.Copy(part, file)
+	part, _ = writer.CreateFormField("Content")
+	io.WriteString(part, "test content")
+	writer.Close()
+
+	req := httptest.NewRequest("POST", "/editor/ImageEntry", body)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	req.AddCookie(&http.Cookie{Name: "token", Value: "invalid"})
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, 302, resp.StatusCode)
+	require.Contains(t, resp.Header.Get("Location"), "/auth/login")
 
 }

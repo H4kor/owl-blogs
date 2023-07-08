@@ -15,8 +15,16 @@ type EditorHandler struct {
 	registry *app.EntryTypeRegistry
 }
 
-func NewEditorHandler(entryService *app.EntryService, registry *app.EntryTypeRegistry, binService *app.BinaryService) *EditorHandler {
-	return &EditorHandler{entrySvc: entryService, registry: registry, binSvc: binService}
+func NewEditorHandler(
+	entryService *app.EntryService,
+	registry *app.EntryTypeRegistry,
+	binService *app.BinaryService,
+) *EditorHandler {
+	return &EditorHandler{
+		entrySvc: entryService,
+		registry: registry,
+		binSvc:   binService,
+	}
 }
 
 func (h *EditorHandler) paramToEntry(c *fiber.Ctx) (model.Entry, error) {

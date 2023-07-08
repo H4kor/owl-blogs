@@ -2,6 +2,7 @@ package main
 
 import (
 	"owl-blogs/app"
+	"owl-blogs/config"
 	"owl-blogs/domain/model"
 	"owl-blogs/infra"
 	"owl-blogs/web"
@@ -10,16 +11,20 @@ import (
 const DbPath = "owlblogs.db"
 
 func App(db infra.Database) *web.WebApp {
-	registry := app.NewEntryTypeRegistry()
+	config := config.NewConfig()
 
+	registry := app.NewEntryTypeRegistry()
 	registry.Register(&model.ImageEntry{})
 
 	entryRepo := infra.NewEntryRepository(db, registry)
 	binRepo := infra.NewBinaryFileRepo(db)
+	authorRepo := infra.NewDefaultAuthorRepo(db)
 
 	entryService := app.NewEntryService(entryRepo)
 	binaryService := app.NewBinaryFileService(binRepo)
-	return web.NewWebApp(entryService, registry, binaryService)
+	authorService := app.NewAuthorService(authorRepo, config)
+
+	return web.NewWebApp(entryService, registry, binaryService, authorService)
 
 }
 
