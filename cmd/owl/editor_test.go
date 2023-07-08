@@ -38,7 +38,7 @@ func TestEditorFormGet(t *testing.T) {
 	app := owlApp.FiberApp
 	token := getUserToken(owlApp.AuthorService)
 
-	req := httptest.NewRequest("GET", "/editor/ImageEntry", nil)
+	req := httptest.NewRequest("GET", "/editor/Image", nil)
 	req.AddCookie(&http.Cookie{Name: "token", Value: token})
 	resp, err := app.Test(req)
 	require.NoError(t, err)
@@ -50,7 +50,7 @@ func TestEditorFormGetNoAuth(t *testing.T) {
 	owlApp := App(db)
 	app := owlApp.FiberApp
 
-	req := httptest.NewRequest("GET", "/editor/ImageEntry", nil)
+	req := httptest.NewRequest("GET", "/editor/Image", nil)
 	req.AddCookie(&http.Cookie{Name: "token", Value: "invalid"})
 	resp, err := app.Test(req)
 	require.NoError(t, err)
@@ -83,7 +83,7 @@ func TestEditorFormPost(t *testing.T) {
 	io.WriteString(part, "test content")
 	writer.Close()
 
-	req := httptest.NewRequest("POST", "/editor/ImageEntry", body)
+	req := httptest.NewRequest("POST", "/editor/Image", body)
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 	req.AddCookie(&http.Cookie{Name: "token", Value: token})
 	resp, err := app.Test(req)
@@ -94,8 +94,8 @@ func TestEditorFormPost(t *testing.T) {
 	id := strings.Split(resp.Header.Get("Location"), "/")[2]
 	entry, err := repo.FindById(id)
 	require.NoError(t, err)
-	require.Equal(t, "test content", entry.MetaData().(*model.ImageEntryMetaData).Content)
-	imageId := entry.MetaData().(*model.ImageEntryMetaData).ImageId
+	require.Equal(t, "test content", entry.MetaData().(*model.ImageMetaData).Content)
+	imageId := entry.MetaData().(*model.ImageMetaData).ImageId
 	require.NotZero(t, imageId)
 	bin, err := binRepo.FindById(imageId)
 	require.NoError(t, err)
@@ -125,7 +125,7 @@ func TestEditorFormPostNoAuth(t *testing.T) {
 	io.WriteString(part, "test content")
 	writer.Close()
 
-	req := httptest.NewRequest("POST", "/editor/ImageEntry", body)
+	req := httptest.NewRequest("POST", "/editor/Image", body)
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 	req.AddCookie(&http.Cookie{Name: "token", Value: "invalid"})
 	resp, err := app.Test(req)
