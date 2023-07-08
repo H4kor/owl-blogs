@@ -26,7 +26,7 @@ func NewWebApp(
 	indexHandler := NewIndexHandler(entryService)
 	listHandler := NewListHandler(entryService)
 	entryHandler := NewEntryHandler(entryService, typeRegistry)
-	mediaHandler := NewMediaHandler(entryService)
+	mediaHandler := NewMediaHandler(binService)
 	rssHandler := NewRSSHandler(entryService)
 	loginHandler := NewLoginHandler(authorService)
 	editorListHandler := NewEditorListHandler(typeRegistry)
@@ -47,7 +47,7 @@ func NewWebApp(
 	app.Get("/", indexHandler.Handle)
 	app.Get("/lists/:list/", listHandler.Handle)
 	// Media
-	app.Get("/media/*filepath", mediaHandler.Handle)
+	app.Get("/media/:id", mediaHandler.Handle)
 	// RSS
 	app.Get("/index.xml", rssHandler.Handle)
 	// Posts

@@ -7,13 +7,18 @@ import (
 )
 
 type MediaHandler struct {
-	entrySvc *app.EntryService
+	binaryService *app.BinaryService
 }
 
-func NewMediaHandler(entryService *app.EntryService) *MediaHandler {
-	return &MediaHandler{entrySvc: entryService}
+func NewMediaHandler(binaryService *app.BinaryService) *MediaHandler {
+	return &MediaHandler{binaryService: binaryService}
 }
 
 func (h *MediaHandler) Handle(c *fiber.Ctx) error {
-	return c.SendString("Hello, Media!")
+	id := c.Params("id")
+	binary, err := h.binaryService.FindById(id)
+	if err != nil {
+		return err
+	}
+	return c.Send(binary.Data)
 }
