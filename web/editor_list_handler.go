@@ -2,6 +2,7 @@ package web
 
 import (
 	"owl-blogs/app"
+	"owl-blogs/render"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -32,5 +33,5 @@ func (h *EditorListHandler) Handle(c *fiber.Ctx) error {
 		typeNames = append(typeNames, name)
 	}
 
-	return RenderTemplate(c, "views/editor_list", &EditorListContext{Types: typeNames})
+	return render.RenderTemplateWithBase(c, "views/editor_list", &EditorListContext{Types: typeNames})
 }

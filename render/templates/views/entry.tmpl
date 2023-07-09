@@ -1,0 +1,18 @@
+{{define "title"}}{{.Title}}{{end}}
+
+{{define "main"}}
+
+{{if .Title}}
+    <h1>{{.Title}}</h1>
+{{end}}
+<p>
+    Published: {{.PublishedAt}}
+</p>
+
+
+{{.Content}}
+
+
+    
+{{end}}
+

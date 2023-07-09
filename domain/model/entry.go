@@ -9,7 +9,9 @@ type Entry interface {
 	Content() EntryContent
 	PublishedAt() *time.Time
 	MetaData() interface{}
-	// Create(id string, publishedAt *time.Time, metaData EntryMetaData) error
+
+	// Optional: can return empty string
+	Title() string
 
 	SetID(id string)
 	SetPublishedAt(publishedAt *time.Time)

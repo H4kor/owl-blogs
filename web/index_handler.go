@@ -2,6 +2,7 @@ package web
 
 import (
 	"owl-blogs/app"
+	"owl-blogs/render"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -15,5 +16,13 @@ func NewIndexHandler(entryService *app.EntryService) *IndexHandler {
 }
 
 func (h *IndexHandler) Handle(c *fiber.Ctx) error {
-	return c.SendString("Hello, World 👋!")
+	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
+	entries, err := h.entrySvc.FindAll()
+
+	if err != nil {
+		return err
+	}
+
+	return render.RenderTemplateWithBase(c, "views/index", entries)
+
 }

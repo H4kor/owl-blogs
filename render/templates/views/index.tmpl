@@ -1,0 +1,22 @@
+{{define "title"}}Index{{end}}
+
+{{define "main"}}
+
+{{ range . }}
+    <div>
+        <h2>
+            <a href="/posts/{{ .ID }}">
+                {{if .Title}}
+                    {{ .Title }}
+                {{else}}
+                    #
+                {{end}}
+            </a>
+        </h2>
+        <p>{{ .PublishedAt }}</p>
+        {{ .Content }}
+    </div>
+    <hr>
+{{ end }}
+
+{{end}}

@@ -2,6 +2,7 @@ package web
 
 import (
 	"owl-blogs/app"
+	"owl-blogs/render"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -17,7 +18,7 @@ func NewLoginHandler(authorService *app.AuthorService) *LoginHandler {
 
 func (h *LoginHandler) HandleGet(c *fiber.Ctx) error {
 	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
-	return RenderTemplate(c, "views/login", nil)
+	return render.RenderTemplateWithBase(c, "views/login", nil)
 }
 
 func (h *LoginHandler) HandlePost(c *fiber.Ctx) error {

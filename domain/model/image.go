@@ -1,5 +1,10 @@
 package model
 
+import (
+	"fmt"
+	"owl-blogs/render"
+)
+
 type Image struct {
 	EntryBase
 	meta ImageMetaData
@@ -10,8 +15,16 @@ type ImageMetaData struct {
 	Content string `owl:"inputType=text widget=textarea"`
 }
 
+func (e *Image) Title() string {
+	return ""
+}
+
 func (e *Image) Content() EntryContent {
-	return EntryContent(e.meta.Content)
+	str, err := render.RenderTemplateToString("entry/Image", e)
+	if err != nil {
+		fmt.Println(err)
+	}
+	return EntryContent(str)
 }
 
 func (e *Image) MetaData() interface{} {
