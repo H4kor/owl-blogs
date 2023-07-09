@@ -18,7 +18,7 @@ func setupBinaryRepo() repository.BinaryRepository {
 func TestBinaryRepoCreate(t *testing.T) {
 	repo := setupBinaryRepo()
 
-	file, err := repo.Create("name", []byte("😀 😃 😄 😁"))
+	file, err := repo.Create("name", []byte("😀 😃 😄 😁"), nil)
 	require.NoError(t, err)
 
 	file, err = repo.FindById(file.Id)
@@ -30,10 +30,10 @@ func TestBinaryRepoCreate(t *testing.T) {
 func TestBinaryRepoNoSideEffect(t *testing.T) {
 	repo := setupBinaryRepo()
 
-	file, err := repo.Create("name1", []byte("111"))
+	file, err := repo.Create("name1", []byte("111"), nil)
 	require.NoError(t, err)
 
-	file2, err := repo.Create("name2", []byte("222"))
+	file2, err := repo.Create("name2", []byte("222"), nil)
 	require.NoError(t, err)
 
 	file, err = repo.FindById(file.Id)

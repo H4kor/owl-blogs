@@ -17,8 +17,9 @@ type BinaryRepository interface {
 	// Create creates a new binary file
 	// The name is the original file name, and is not unique
 	// BinaryFile.Id is a unique identifier
-	Create(name string, data []byte) (*model.BinaryFile, error)
+	Create(name string, data []byte, entry model.Entry) (*model.BinaryFile, error)
 	FindById(id string) (*model.BinaryFile, error)
+	FindByNameForEntry(name string, entry model.Entry) (*model.BinaryFile, error)
 }
 
 type AuthorRepository interface {
