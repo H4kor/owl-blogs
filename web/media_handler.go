@@ -15,7 +15,7 @@ func NewMediaHandler(binaryService *app.BinaryService) *MediaHandler {
 }
 
 func (h *MediaHandler) Handle(c *fiber.Ctx) error {
-	id := c.Params("id")
+	id := c.Params("+")
 	binary, err := h.binaryService.FindById(id)
 	if err != nil {
 		return err

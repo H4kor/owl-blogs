@@ -47,12 +47,11 @@ func NewWebApp(
 	app.Get("/", indexHandler.Handle)
 	app.Get("/lists/:list/", listHandler.Handle)
 	// Media
-	app.Get("/media/:id", mediaHandler.Handle)
+	app.Get("/media/+", mediaHandler.Handle)
 	// RSS
 	app.Get("/index.xml", rssHandler.Handle)
 	// Posts
 	app.Get("/posts/:post/", entryHandler.Handle)
-	app.Get("/posts/:post/media/*filepath", mediaHandler.Handle)
 	// Webmention
 	// app.Post("/webmention/", userWebmentionHandler(repo))
 	// Micropub
