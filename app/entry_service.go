@@ -3,7 +3,6 @@ package app
 import (
 	"owl-blogs/app/repository"
 	"owl-blogs/domain/model"
-	"time"
 )
 
 type EntryService struct {
@@ -14,8 +13,8 @@ func NewEntryService(entryRepository repository.EntryRepository) *EntryService {
 	return &EntryService{EntryRepository: entryRepository}
 }
 
-func (s *EntryService) Create(entry model.Entry, publishedAt *time.Time, metaData model.EntryMetaData) error {
-	return s.EntryRepository.Create(entry, publishedAt, metaData)
+func (s *EntryService) Create(entry model.Entry) error {
+	return s.EntryRepository.Create(entry)
 }
 
 func (s *EntryService) Update(entry model.Entry) error {

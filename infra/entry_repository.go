@@ -28,7 +28,7 @@ type DefaultEntryRepo struct {
 }
 
 // Create implements repository.EntryRepository.
-func (r *DefaultEntryRepo) Create(entry model.Entry, publishedAt *time.Time, metaData model.EntryMetaData) error {
+func (r *DefaultEntryRepo) Create(entry model.Entry) error {
 	t, err := r.typeRegistry.TypeName(entry)
 	if err != nil {
 		return errors.New("entry type not registered")
@@ -36,14 +36,14 @@ func (r *DefaultEntryRepo) Create(entry model.Entry, publishedAt *time.Time, met
 
 	var metaDataJson []byte
 	if entry.MetaData() != nil {
-		metaDataJson, _ = json.Marshal(metaData)
+		metaDataJson, _ = json.Marshal(entry.MetaData())
 	}
 
-	id := uuid.New().String()
-	_, err = r.db.Exec("INSERT INTO entries (id, type, published_at, meta_data) VALUES (?, ?, ?, ?)", id, t, publishedAt, metaDataJson)
-	entry.SetID(id)
-	entry.SetPublishedAt(publishedAt)
-	entry.SetMetaData(metaData)
+	if entry.ID() == "" {
+		entry.SetID(uuid.New().String())
+	}
+
+	_, err = r.db.Exec("INSERT INTO entries (id, type, published_at, meta_data) VALUES (?, ?, ?, ?)", entry.ID(), t, entry.PublishedAt(), metaDataJson)
 	return err
 }
 

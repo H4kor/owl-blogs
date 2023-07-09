@@ -69,7 +69,9 @@ func (h *EditorHandler) HandlePost(c *fiber.Ctx) error {
 
 	// create entry
 	now := time.Now()
-	err = h.entrySvc.Create(entry, &now, entry.MetaData())
+	entry.SetPublishedAt(&now)
+
+	err = h.entrySvc.Create(entry)
 	if err != nil {
 		return err
 	}

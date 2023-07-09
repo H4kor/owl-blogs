@@ -24,11 +24,13 @@ func TestRepoCreate(t *testing.T) {
 
 	entry := &test.MockEntry{}
 	now := time.Now()
-	err := repo.Create(entry, &now, &test.MockEntryMetaData{
+	entry.SetPublishedAt(&now)
+	entry.SetMetaData(&test.MockEntryMetaData{
 		Str:    "str",
 		Number: 1,
 		Date:   now,
 	})
+	err := repo.Create(entry)
 	require.NoError(t, err)
 
 	entry2, err := repo.FindById(entry.ID())
@@ -48,11 +50,13 @@ func TestRepoDelete(t *testing.T) {
 
 	entry := &test.MockEntry{}
 	now := time.Now()
-	err := repo.Create(entry, &now, &test.MockEntryMetaData{
+	entry.SetPublishedAt(&now)
+	entry.SetMetaData(&test.MockEntryMetaData{
 		Str:    "str",
 		Number: 1,
 		Date:   now,
 	})
+	err := repo.Create(entry)
 	require.NoError(t, err)
 
 	err = repo.Delete(entry)
@@ -67,21 +71,26 @@ func TestRepoFindAll(t *testing.T) {
 
 	entry := &test.MockEntry{}
 	now := time.Now()
-	err := repo.Create(entry, &now, &test.MockEntryMetaData{
+	entry.SetPublishedAt(&now)
+	entry.SetMetaData(&test.MockEntryMetaData{
 		Str:    "str",
 		Number: 1,
 		Date:   now,
 	})
+	err := repo.Create(entry)
 
 	require.NoError(t, err)
 
 	entry2 := &test.MockEntry{}
 	now2 := time.Now()
-	err = repo.Create(entry2, &now2, &test.MockEntryMetaData{
+	entry2.SetPublishedAt(&now2)
+	entry2.SetMetaData(&test.MockEntryMetaData{
 		Str:    "str",
 		Number: 1,
 		Date:   now,
 	})
+
+	err = repo.Create(entry2)
 	require.NoError(t, err)
 
 	entries, err := repo.FindAll(nil)
@@ -103,20 +112,24 @@ func TestRepoUpdate(t *testing.T) {
 
 	entry := &test.MockEntry{}
 	now := time.Now()
-	err := repo.Create(entry, &now, &test.MockEntryMetaData{
+	entry.SetPublishedAt(&now)
+	entry.SetMetaData(&test.MockEntryMetaData{
 		Str:    "str",
 		Number: 1,
 		Date:   now,
 	})
+	err := repo.Create(entry)
 	require.NoError(t, err)
 
 	entry2 := &test.MockEntry{}
 	now2 := time.Now()
-	err = repo.Create(entry2, &now2, &test.MockEntryMetaData{
+	entry2.SetPublishedAt(&now2)
+	entry2.SetMetaData(&test.MockEntryMetaData{
 		Str:    "str2",
 		Number: 2,
 		Date:   now2,
 	})
+	err = repo.Create(entry2)
 	require.NoError(t, err)
 	err = repo.Update(entry2)
 	require.NoError(t, err)
@@ -137,20 +150,25 @@ func TestRepoNoSideEffect(t *testing.T) {
 
 	entry1 := &test.MockEntry{}
 	now1 := time.Now()
-	err := repo.Create(entry1, &now1, &test.MockEntryMetaData{
+	entry1.SetPublishedAt(&now1)
+	entry1.SetMetaData(&test.MockEntryMetaData{
 		Str:    "1",
 		Number: 1,
 		Date:   now1,
 	})
+
+	err := repo.Create(entry1)
 	require.NoError(t, err)
 
 	entry2 := &test.MockEntry{}
 	now2 := time.Now()
-	err = repo.Create(entry2, &now2, &test.MockEntryMetaData{
+	entry2.SetPublishedAt(&now2)
+	entry2.SetMetaData(&test.MockEntryMetaData{
 		Str:    "2",
 		Number: 2,
 		Date:   now2,
 	})
+	err = repo.Create(entry2)
 	require.NoError(t, err)
 
 	r1, err := repo.FindById(entry1.ID())
