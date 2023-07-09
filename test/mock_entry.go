@@ -27,3 +27,7 @@ func (e *MockEntry) MetaData() interface{} {
 func (e *MockEntry) SetMetaData(metaData interface{}) {
 	e.metaData = metaData.(*MockEntryMetaData)
 }
+
+func (e *MockEntry) Title() string {
+	return ""
+}

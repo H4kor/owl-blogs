@@ -82,6 +82,10 @@ func (e *MockEntry) SetMetaData(metaData interface{}) {
 	e.metaData = *metaData.(*MockEntryMetaData)
 }
 
+func (e *MockEntry) Title() string {
+	return ""
+}
+
 func TestFieldToFormField(t *testing.T) {
 	field := reflect.TypeOf(&MockEntryMetaData{}).Elem().Field(0)
 	formField, err := editor.FieldToFormField(field)
