@@ -4,15 +4,18 @@
     <head>
         <meta charset='utf-8'>
         <title>{{template "title" .}} - Owl Blog</title>
+        <link rel='stylesheet' href='/static/pico.min.css'>
     </head>
     <body>
-        <header>
-            Owl Blog
+        <header class="container">
+            <a href="/">Owl Blog</a>
         </header>
-        <main>
+        <main class="container">
             {{template "main" .}}
         </main>
-        <footer>Powered by <a href='https://golang.org/'>Go</a></footer>
+        <footer class="container">
+            Powered by <a href='https://golang.org/'>Go</a>
+        </footer>
     </body>
 </html>
 {{end}}

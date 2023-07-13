@@ -1,17 +1,33 @@
-{{define "title"}}{{.Title}}{{end}}
+{{define "title"}}{{.Entry.Title}}{{end}}
 
 {{define "main"}}
 
-{{if .Title}}
-    <h1>{{.Title}}</h1>
-{{end}}
-<p>
-    Published: {{.PublishedAt}}
-</p>
+<div class="h-entry">
+    <hgroup>
+        {{if .Entry.Title}}
+            <h1 class="p-name">{{.Entry.Title}}</h1>
+        {{end}}
+        <small>
+            <a class="u-url" href="">#</a>
+            Published:
+            <time class="dt-published" datetime="{{.Entry.PublishedAt}}">
+                {{.Entry.PublishedAt}}
+            </time>
+            {{ if .Author.Name }}
+                by
+                <a class="p-author h-card" href="{{.Author.FullUrl}}">
+                    {{ if .Author.AvatarUrl }}
+                        <img class="u-photo u-logo" style="height: 1em;" src="{{ .Author.AvatarUrl }}" alt="{{ .Author.Config.Title }}" />
+                    {{ end }}
+                    {{.Author.Name}}
+                </a>
+            {{ end }}
+        </small> 
+    </hgroup>
 
+    {{.Entry.Content}}
 
-{{.Content}}
-
+</div>
 
     
 {{end}}

@@ -1,11 +1,17 @@
 package web
 
 import (
+	"embed"
+	"net/http"
 	"owl-blogs/app"
 	"owl-blogs/web/middleware"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/filesystem"
 )
+
+//go:embed static/*
+var embedDirStatic embed.FS
 
 type WebApp struct {
 	FiberApp      *fiber.App
@@ -25,7 +31,7 @@ func NewWebApp(
 
 	indexHandler := NewIndexHandler(entryService)
 	listHandler := NewListHandler(entryService)
-	entryHandler := NewEntryHandler(entryService, typeRegistry)
+	entryHandler := NewEntryHandler(entryService, typeRegistry, authorService)
 	mediaHandler := NewMediaHandler(binService)
 	rssHandler := NewRSSHandler(entryService)
 	loginHandler := NewLoginHandler(authorService)
@@ -43,7 +49,12 @@ func NewWebApp(
 	editor.Get("/:editor/", editorHandler.HandleGet)
 	editor.Post("/:editor/", editorHandler.HandlePost)
 
-	// app.ServeFiles("/static/*filepath", http.Dir(repo.StaticDir()))
+	// app.Static("/static/*filepath", http.Dir(repo.StaticDir()))
+	app.Use("/static", filesystem.New(filesystem.Config{
+		Root:       http.FS(embedDirStatic),
+		PathPrefix: "static",
+		Browse:     false,
+	}))
 	app.Get("/", indexHandler.Handle)
 	app.Get("/lists/:list/", listHandler.Handle)
 	// Media

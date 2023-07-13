@@ -34,5 +34,16 @@ func (s *EntryService) FindAllByType(types *[]string) ([]model.Entry, error) {
 }
 
 func (s *EntryService) FindAll() ([]model.Entry, error) {
-	return s.EntryRepository.FindAll(nil)
+	entries, err := s.EntryRepository.FindAll(nil)
+	if err != nil {
+		return nil, err
+	}
+	// filter unpublished entries
+	publishedEntries := make([]model.Entry, 0)
+	for _, entry := range entries {
+		if entry.PublishedAt() != nil && !entry.PublishedAt().IsZero() {
+			publishedEntries = append(publishedEntries, entry)
+		}
+	}
+	return publishedEntries, nil
 }
