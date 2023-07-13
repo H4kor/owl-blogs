@@ -32,9 +32,9 @@ func (h *EntryHandler) Handle(c *fiber.Ctx) error {
 		return err
 	}
 
-	author, err := h.authorSvc.FindByName("h4kor")
+	author, err := h.authorSvc.FindByName(entry.AuthorId())
 	if err != nil {
-		return err
+		author = &model.Author{}
 	}
 
 	return render.RenderTemplateWithBase(c, "views/entry", entryData{Entry: entry, Author: author})

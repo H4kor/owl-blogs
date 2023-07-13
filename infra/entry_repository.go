@@ -20,6 +20,7 @@ type sqlEntry struct {
 	Type        string     `db:"type"`
 	PublishedAt *time.Time `db:"published_at"`
 	MetaData    *string    `db:"meta_data"`
+	AuthorId    string     `db:"author_id"`
 }
 
 type DefaultEntryRepo struct {
@@ -43,7 +44,7 @@ func (r *DefaultEntryRepo) Create(entry model.Entry) error {
 		entry.SetID(uuid.New().String())
 	}
 
-	_, err = r.db.Exec("INSERT INTO entries (id, type, published_at, meta_data) VALUES (?, ?, ?, ?)", entry.ID(), t, entry.PublishedAt(), metaDataJson)
+	_, err = r.db.Exec("INSERT INTO entries (id, type, published_at, author_id, meta_data) VALUES (?, ?, ?, ?, ?)", entry.ID(), t, entry.PublishedAt(), entry.AuthorId(), metaDataJson)
 	return err
 }
 
@@ -118,7 +119,7 @@ func (r *DefaultEntryRepo) Update(entry model.Entry) error {
 		metaDataJson, _ = json.Marshal(entry.MetaData())
 	}
 
-	_, err = r.db.Exec("UPDATE entries SET published_at = ?, meta_data = ? WHERE id = ?", entry.PublishedAt(), metaDataJson, entry.ID())
+	_, err = r.db.Exec("UPDATE entries SET published_at = ?, author_id = ?, meta_data = ? WHERE id = ?", entry.PublishedAt(), entry.AuthorId(), metaDataJson, entry.ID())
 	return err
 }
 
@@ -131,6 +132,7 @@ func NewEntryRepository(db Database, register *app.EntryTypeRegistry) repository
 			id TEXT PRIMARY KEY,
 			type TEXT NOT NULL,
 			published_at DATETIME,
+			author_id TEXT NOT NULL,
 			meta_data TEXT NOT NULL
 		);
 	`)
@@ -151,5 +153,6 @@ func (r *DefaultEntryRepo) sqlEntryToEntry(entry sqlEntry) (model.Entry, error) 
 	e.SetID(entry.Id)
 	e.SetPublishedAt(entry.PublishedAt)
 	e.SetMetaData(metaData)
+	e.SetAuthorId(entry.AuthorId)
 	return e, nil
 }

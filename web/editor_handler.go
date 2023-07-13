@@ -70,6 +70,7 @@ func (h *EditorHandler) HandlePost(c *fiber.Ctx) error {
 	// create entry
 	now := time.Now()
 	entry.SetPublishedAt(&now)
+	entry.SetAuthorId(c.Locals("author").(string))
 
 	err = h.entrySvc.Create(entry)
 	if err != nil {

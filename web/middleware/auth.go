@@ -22,10 +22,13 @@ func (m *AuthMiddleware) Handle(c *fiber.Ctx) error {
 	}
 
 	// check token
-	valid := m.authorService.ValidateToken(token)
+	valid, name := m.authorService.ValidateToken(token)
 	if !valid {
 		return c.Redirect("/auth/login")
 	}
+
+	// set author name to context
+	c.Locals("author", name)
 
 	return c.Next()
 }

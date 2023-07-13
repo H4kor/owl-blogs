@@ -25,6 +25,7 @@ func TestRepoCreate(t *testing.T) {
 	entry := &test.MockEntry{}
 	now := time.Now()
 	entry.SetPublishedAt(&now)
+	entry.SetAuthorId("authorId")
 	entry.SetMetaData(&test.MockEntryMetaData{
 		Str:    "str",
 		Number: 1,
@@ -37,6 +38,7 @@ func TestRepoCreate(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, entry.ID(), entry2.ID())
 	require.Equal(t, entry.Content(), entry2.Content())
+	require.Equal(t, entry.AuthorId(), entry2.AuthorId())
 	require.Equal(t, entry.PublishedAt().Unix(), entry2.PublishedAt().Unix())
 	meta := entry.MetaData().(*test.MockEntryMetaData)
 	meta2 := entry2.MetaData().(*test.MockEntryMetaData)
@@ -113,6 +115,7 @@ func TestRepoUpdate(t *testing.T) {
 	entry := &test.MockEntry{}
 	now := time.Now()
 	entry.SetPublishedAt(&now)
+	entry.SetAuthorId("authorId")
 	entry.SetMetaData(&test.MockEntryMetaData{
 		Str:    "str",
 		Number: 1,
@@ -124,6 +127,7 @@ func TestRepoUpdate(t *testing.T) {
 	entry2 := &test.MockEntry{}
 	now2 := time.Now()
 	entry2.SetPublishedAt(&now2)
+	entry.SetAuthorId("authorId2")
 	entry2.SetMetaData(&test.MockEntryMetaData{
 		Str:    "str2",
 		Number: 2,
@@ -138,6 +142,7 @@ func TestRepoUpdate(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, entry3.Content(), entry2.Content())
 	require.Equal(t, entry3.PublishedAt().Unix(), entry2.PublishedAt().Unix())
+	require.Equal(t, entry3.AuthorId(), entry2.AuthorId())
 	meta := entry3.MetaData().(*test.MockEntryMetaData)
 	meta2 := entry2.MetaData().(*test.MockEntryMetaData)
 	require.Equal(t, meta.Str, meta2.Str)

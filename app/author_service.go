@@ -62,7 +62,7 @@ func (s *AuthorService) CreateToken(name string) (string, error) {
 	return fmt.Sprintf("%s.%x", name, hash.Sum(nil)), nil
 }
 
-func (s *AuthorService) ValidateToken(token string) bool {
+func (s *AuthorService) ValidateToken(token string) (bool, string) {
 	parts := strings.Split(token, ".")
 	witness := parts[len(parts)-1]
 	name := strings.Join(parts[:len(parts)-1], ".")
@@ -70,7 +70,7 @@ func (s *AuthorService) ValidateToken(token string) bool {
 	hash := sha256.New()
 	_, err := hash.Write([]byte(name + s.getSecretKey()))
 	if err != nil {
-		return false
+		return false, ""
 	}
-	return fmt.Sprintf("%x", hash.Sum(nil)) == witness
+	return fmt.Sprintf("%x", hash.Sum(nil)) == witness, name
 }

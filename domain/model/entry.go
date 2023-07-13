@@ -8,6 +8,7 @@ type Entry interface {
 	ID() string
 	Content() EntryContent
 	PublishedAt() *time.Time
+	AuthorId() string
 	MetaData() interface{}
 
 	// Optional: can return empty string
@@ -16,6 +17,7 @@ type Entry interface {
 	SetID(id string)
 	SetPublishedAt(publishedAt *time.Time)
 	SetMetaData(metaData interface{})
+	SetAuthorId(authorId string)
 }
 
 type EntryMetaData interface {
@@ -24,6 +26,7 @@ type EntryMetaData interface {
 type EntryBase struct {
 	id          string
 	publishedAt *time.Time
+	authorId    string
 }
 
 func (e *EntryBase) ID() string {
@@ -40,4 +43,12 @@ func (e *EntryBase) SetID(id string) {
 
 func (e *EntryBase) SetPublishedAt(publishedAt *time.Time) {
 	e.publishedAt = publishedAt
+}
+
+func (e *EntryBase) AuthorId() string {
+	return e.authorId
+}
+
+func (e *EntryBase) SetAuthorId(authorId string) {
+	e.authorId = authorId
 }

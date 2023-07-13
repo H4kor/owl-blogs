@@ -12,12 +12,15 @@ import (
 )
 
 var userPath string
+var author string
 
 func init() {
 	rootCmd.AddCommand(importCmd)
 
 	importCmd.Flags().StringVarP(&userPath, "path", "p", "", "Path to the user folder")
 	importCmd.MarkFlagRequired("path")
+	importCmd.Flags().StringVarP(&author, "author", "a", "", "The author name")
+	importCmd.MarkFlagRequired("author")
 }
 
 var importCmd = &cobra.Command{
@@ -56,63 +59,64 @@ var importCmd = &cobra.Command{
 				app.BinaryService.CreateEntryFile(file, fileData, entry)
 			}
 
+			var entry model.Entry
+
 			switch post.Meta.Type {
 			case "article":
-				article := model.Article{}
-				article.SetID(post.Id)
-				article.SetPublishedAt(&post.Meta.Date)
-				article.SetMetaData(&model.ArticleMetaData{
+				entry = &model.Article{}
+				entry.SetID(post.Id)
+				entry.SetPublishedAt(&post.Meta.Date)
+				entry.SetMetaData(&model.ArticleMetaData{
 					Title:   post.Meta.Title,
 					Content: post.Content,
 				})
-				app.EntryService.Create(&article)
 			case "bookmark":
 
 			case "reply":
 
 			case "photo":
-				photo := model.Image{}
-				photo.SetID(post.Id)
-				photo.SetPublishedAt(&post.Meta.Date)
-				photo.SetMetaData(&model.ImageMetaData{
+				entry = &model.Image{}
+				entry.SetID(post.Id)
+				entry.SetPublishedAt(&post.Meta.Date)
+				entry.SetMetaData(&model.ImageMetaData{
 					Title:   post.Meta.Title,
 					Content: post.Content,
 					ImageId: post.Meta.PhotoPath,
 				})
-				app.EntryService.Create(&photo)
 			case "note":
-				note := model.Note{}
-				note.SetID(post.Id)
-				note.SetPublishedAt(&post.Meta.Date)
-				note.SetMetaData(&model.NoteMetaData{
+				entry = &model.Note{}
+				entry.SetID(post.Id)
+				entry.SetPublishedAt(&post.Meta.Date)
+				entry.SetMetaData(&model.NoteMetaData{
 					Content: post.Content,
 				})
-				app.EntryService.Create(&note)
 			case "recipe":
-				recipe := model.Recipe{}
-				recipe.SetID(post.Id)
-				recipe.SetPublishedAt(&post.Meta.Date)
-				recipe.SetMetaData(&model.RecipeMetaData{
+				entry = &model.Recipe{}
+				entry.SetID(post.Id)
+				entry.SetPublishedAt(&post.Meta.Date)
+				entry.SetMetaData(&model.RecipeMetaData{
 					Title:       post.Meta.Title,
 					Yield:       post.Meta.Recipe.Yield,
 					Duration:    post.Meta.Recipe.Duration,
 					Ingredients: post.Meta.Recipe.Ingredients,
 					Content:     post.Content,
 				})
-				app.EntryService.Create(&recipe)
 			case "page":
-				page := model.Page{}
-				page.SetID(post.Id)
-				page.SetPublishedAt(&post.Meta.Date)
-				page.SetMetaData(&model.PageMetaData{
+				entry = &model.Page{}
+				entry.SetID(post.Id)
+				entry.SetPublishedAt(&post.Meta.Date)
+				entry.SetMetaData(&model.PageMetaData{
 					Title:   post.Meta.Title,
 					Content: post.Content,
 				})
-				app.EntryService.Create(&page)
 			default:
 				panic("Unknown type")
 			}
 
+			if entry != nil {
+				entry.SetAuthorId(author)
+				app.EntryService.Create(entry)
+			}
 		}
 	},
 }
