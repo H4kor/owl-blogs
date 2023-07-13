@@ -17,6 +17,10 @@ func (s *BinaryService) Create(name string, file []byte) (*model.BinaryFile, err
 	return s.repo.Create(name, file, nil)
 }
 
+func (s *BinaryService) CreateEntryFile(name string, file []byte, entry model.Entry) (*model.BinaryFile, error) {
+	return s.repo.Create(name, file, entry)
+}
+
 func (s *BinaryService) FindById(id string) (*model.BinaryFile, error) {
 	return s.repo.FindById(id)
 }

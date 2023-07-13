@@ -3,6 +3,7 @@ package web
 import (
 	"owl-blogs/app"
 	"owl-blogs/render"
+	"sort"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -18,6 +19,11 @@ func NewIndexHandler(entryService *app.EntryService) *IndexHandler {
 func (h *IndexHandler) Handle(c *fiber.Ctx) error {
 	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
 	entries, err := h.entrySvc.FindAll()
+
+	// sort entries by date descending
+	sort.Slice(entries, func(i, j int) bool {
+		return entries[i].PublishedAt().After(*entries[j].PublishedAt())
+	})
 
 	if err != nil {
 		return err

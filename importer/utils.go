@@ -43,6 +43,10 @@ type Post struct {
 	Content string
 }
 
+func (post *Post) MediaDir() string {
+	return path.Join("public", post.Id, "media")
+}
+
 func (pm *PostMeta) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	type T struct {
 		Type        string       `yaml:"type"`
@@ -155,7 +159,7 @@ func LoadMeta(data []byte) (PostMeta, error) {
 }
 
 func AllUserPosts(userPath string) ([]Post, error) {
-	postFiles := listDir(path.Join(userPath, "public"))
+	postFiles := ListDir(path.Join(userPath, "public"))
 	posts := make([]Post, 0)
 	for _, id := range postFiles {
 		// if is a directory and has index.md, add to posts
@@ -182,7 +186,7 @@ func AllUserPosts(userPath string) ([]Post, error) {
 	return posts, nil
 }
 
-func listDir(path string) []string {
+func ListDir(path string) []string {
 	dir, _ := os.Open(path)
 	defer dir.Close()
 	files, _ := dir.Readdirnames(-1)

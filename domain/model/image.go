@@ -12,11 +12,12 @@ type Image struct {
 
 type ImageMetaData struct {
 	ImageId string `owl:"inputType=file"`
+	Title   string `owl:"inputType=text"`
 	Content string `owl:"inputType=text widget=textarea"`
 }
 
 func (e *Image) Title() string {
-	return ""
+	return e.meta.Title
 }
 
 func (e *Image) Content() EntryContent {
