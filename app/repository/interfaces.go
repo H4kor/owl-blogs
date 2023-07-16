@@ -29,3 +29,8 @@ type AuthorRepository interface {
 	// It returns an error if the author is not found
 	FindByName(name string) (*model.Author, error)
 }
+
+type SiteConfigRepository interface {
+	Get() (model.SiteConfig, error)
+	Update(siteConfig model.SiteConfig) error
+}
