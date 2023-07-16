@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"embed"
 	"io"
+	"owl-blogs/domain/model"
 	"text/template"
 
 	"github.com/yuin/goldmark"
@@ -11,6 +12,11 @@ import (
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/renderer/html"
 )
+
+type TemplateData struct {
+	Data       interface{}
+	SiteConfig model.SiteConfig
+}
 
 //go:embed templates
 var templates embed.FS
@@ -42,7 +48,10 @@ func RenderTemplateWithBase(w io.Writer, templateName string, data interface{}) 
 		return err
 	}
 
-	err = t.ExecuteTemplate(w, "base", data)
+	err = t.ExecuteTemplate(w, "base", TemplateData{
+		Data:       data,
+		SiteConfig: model.SiteConfig{},
+	})
 
 	return err
 

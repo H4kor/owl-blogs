@@ -4,8 +4,7 @@ import (
 	"fmt"
 	"os"
 	"owl-blogs/app"
-	"owl-blogs/config"
-	"owl-blogs/domain/model"
+	entrytypes "owl-blogs/entry_types"
 	"owl-blogs/infra"
 	"owl-blogs/web"
 
@@ -27,22 +26,21 @@ func Execute() {
 }
 
 func App(db infra.Database) *web.WebApp {
-	config := config.NewConfig()
-
 	registry := app.NewEntryTypeRegistry()
-	registry.Register(&model.Image{})
-	registry.Register(&model.Article{})
-	registry.Register(&model.Page{})
-	registry.Register(&model.Recipe{})
-	registry.Register(&model.Note{})
+	registry.Register(&entrytypes.Image{})
+	registry.Register(&entrytypes.Article{})
+	registry.Register(&entrytypes.Page{})
+	registry.Register(&entrytypes.Recipe{})
+	registry.Register(&entrytypes.Note{})
 
 	entryRepo := infra.NewEntryRepository(db, registry)
 	binRepo := infra.NewBinaryFileRepo(db)
 	authorRepo := infra.NewDefaultAuthorRepo(db)
+	siteConfigRepo := infra.NewSiteConfigRepo(db)
 
 	entryService := app.NewEntryService(entryRepo)
 	binaryService := app.NewBinaryFileService(binRepo)
-	authorService := app.NewAuthorService(authorRepo, config)
+	authorService := app.NewAuthorService(authorRepo, siteConfigRepo)
 
 	return web.NewWebApp(entryService, registry, binaryService, authorService)
 

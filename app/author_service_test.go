@@ -2,6 +2,7 @@ package app_test
 
 import (
 	"owl-blogs/app"
+	"owl-blogs/domain/model"
 	"owl-blogs/infra"
 	"owl-blogs/test"
 	"strings"
@@ -10,17 +11,25 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type testConfig struct {
+type testConfigRepo struct {
+	config model.SiteConfig
 }
 
-func (c *testConfig) SECRET_KEY() string {
-	return "test"
+// Get implements repository.SiteConfigRepository.
+func (c *testConfigRepo) Get() (model.SiteConfig, error) {
+	return c.config, nil
+}
+
+// Update implements repository.SiteConfigRepository.
+func (c *testConfigRepo) Update(siteConfig model.SiteConfig) error {
+	c.config = siteConfig
+	return nil
 }
 
 func getAutherService() *app.AuthorService {
 	db := test.NewMockDb()
 	authorRepo := infra.NewDefaultAuthorRepo(db)
-	authorService := app.NewAuthorService(authorRepo, &testConfig{})
+	authorService := app.NewAuthorService(authorRepo, &testConfigRepo{})
 	return authorService
 
 }

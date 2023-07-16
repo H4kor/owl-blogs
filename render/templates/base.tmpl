@@ -3,15 +3,94 @@
 <html lang='en'>
     <head>
         <meta charset='utf-8'>
-        <title>{{template "title" .}} - Owl Blog</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>{{template "title" .Data}} - {{ .SiteConfig.Title }}</title>
+        <meta property="og:title" content="{{template "title" .Data}}" />
+        
         <link rel='stylesheet' href='/static/pico.min.css'>
+        <style>
+            header {
+                background-color: {{.SiteConfig.HeaderColor}};
+                padding-bottom: 1rem !important;
+            }
+
+            footer {
+                border-top: dashed 2px;
+                border-color: #ccc;
+            }
+
+            .avatar {
+                float: left;
+                margin-right: 1rem;
+
+            }
+
+            .header {
+                display: flex;
+                flex-flow: row wrap;
+                justify-content: space-between;
+                align-items: flex-start;
+            }
+
+            .header-title {
+                order: 0;
+            }
+
+            .header-profile {
+                order: 1;
+            }
+
+            hgroup h2 a { color: inherit; } 
+        
+            .photo-grid {
+                display: flex;
+                flex-wrap: wrap;
+                padding: 0 4px;
+            }
+
+            .photo-grid-item {
+                flex: 1 0 25%;
+                padding: 4px;
+            }
+
+            .photo-grid-item img {
+                width: 100%;
+                height: 100%;
+                aspect-ratio: 1 / 1 ;
+                object-fit: cover;
+            }
+
+        </style>        
     </head>
     <body>
-        <header class="container">
-            <a href="/">Owl Blog</a>
+        <header>
+            <div class="container header h-card">
+                <hgroup class="header-title">
+                    <h2><a class="p-name u-url" href="/">{{ .SiteConfig.Title }}</a></h2>
+                    <h3 class="p-note">{{ .SiteConfig.SubTitle }}</h3>
+                </hgroup>
+
+                <div class="header-profile">
+                    {{ if .SiteConfig.AvatarUrl }}
+                        <img class="u-photo u-logo avatar" src="{{ .SiteConfig.AvatarUrl }}" alt="{{ .SiteConfig.Title }}" width="100" height="100" />
+                    {{ end }}
+                    <div style="float: right; list-style: none;">
+                    {{ range $me := .SiteConfig.Me }}
+                        <li><a href="{{$me.Url}}" rel="me">{{$me.Name}}</a>
+                        </li>
+                    {{ end }}
+                    </div>
+                </div>
+            </div>
+            <div class="container">
+                <nav>
+                    <ul>
+                    </ul>
+                </nav>
+            </div>
         </header>
         <main class="container">
-            {{template "main" .}}
+            {{template "main" .Data}}
         </main>
         <footer class="container">
             Powered by <a href='https://golang.org/'>Go</a>

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"owl-blogs/domain/model"
+	entrytypes "owl-blogs/entry_types"
 	"owl-blogs/importer"
 	"owl-blogs/infra"
 	"path"
@@ -49,7 +50,7 @@ var importCmd = &cobra.Command{
 			files := importer.ListDir(mediaDir)
 			for _, file := range files {
 				// mock entry to pass to binary service
-				entry := &model.Article{}
+				entry := &entrytypes.Article{}
 				entry.SetID(post.Id)
 
 				fileData, err := os.ReadFile(path.Join(mediaDir, file))
@@ -63,10 +64,10 @@ var importCmd = &cobra.Command{
 
 			switch post.Meta.Type {
 			case "article":
-				entry = &model.Article{}
+				entry = &entrytypes.Article{}
 				entry.SetID(post.Id)
 				entry.SetPublishedAt(&post.Meta.Date)
-				entry.SetMetaData(&model.ArticleMetaData{
+				entry.SetMetaData(&entrytypes.ArticleMetaData{
 					Title:   post.Meta.Title,
 					Content: post.Content,
 				})
@@ -75,26 +76,26 @@ var importCmd = &cobra.Command{
 			case "reply":
 
 			case "photo":
-				entry = &model.Image{}
+				entry = &entrytypes.Image{}
 				entry.SetID(post.Id)
 				entry.SetPublishedAt(&post.Meta.Date)
-				entry.SetMetaData(&model.ImageMetaData{
+				entry.SetMetaData(&entrytypes.ImageMetaData{
 					Title:   post.Meta.Title,
 					Content: post.Content,
 					ImageId: post.Meta.PhotoPath,
 				})
 			case "note":
-				entry = &model.Note{}
+				entry = &entrytypes.Note{}
 				entry.SetID(post.Id)
 				entry.SetPublishedAt(&post.Meta.Date)
-				entry.SetMetaData(&model.NoteMetaData{
+				entry.SetMetaData(&entrytypes.NoteMetaData{
 					Content: post.Content,
 				})
 			case "recipe":
-				entry = &model.Recipe{}
+				entry = &entrytypes.Recipe{}
 				entry.SetID(post.Id)
 				entry.SetPublishedAt(&post.Meta.Date)
-				entry.SetMetaData(&model.RecipeMetaData{
+				entry.SetMetaData(&entrytypes.RecipeMetaData{
 					Title:       post.Meta.Title,
 					Yield:       post.Meta.Recipe.Yield,
 					Duration:    post.Meta.Recipe.Duration,
@@ -102,10 +103,10 @@ var importCmd = &cobra.Command{
 					Content:     post.Content,
 				})
 			case "page":
-				entry = &model.Page{}
+				entry = &entrytypes.Page{}
 				entry.SetID(post.Id)
 				entry.SetPublishedAt(&post.Meta.Date)
-				entry.SetMetaData(&model.PageMetaData{
+				entry.SetMetaData(&entrytypes.PageMetaData{
 					Title:   post.Meta.Title,
 					Content: post.Content,
 				})

@@ -3,6 +3,7 @@ package web
 import (
 	"owl-blogs/app"
 	"owl-blogs/domain/model"
+	"owl-blogs/render"
 	"owl-blogs/web/editor"
 	"time"
 
@@ -49,7 +50,7 @@ func (h *EditorHandler) HandleGet(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	return c.SendString(htmlForm)
+	return render.RenderTemplateWithBase(c, "views/editor", htmlForm)
 }
 
 func (h *EditorHandler) HandlePost(c *fiber.Ctx) error {

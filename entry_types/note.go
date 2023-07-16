@@ -1,7 +1,9 @@
-package model
+package entrytypes
+
+import "owl-blogs/domain/model"
 
 type Note struct {
-	EntryBase
+	model.EntryBase
 	meta NoteMetaData
 }
 
@@ -13,8 +15,8 @@ func (e *Note) Title() string {
 	return ""
 }
 
-func (e *Note) Content() EntryContent {
-	return EntryContent(e.meta.Content)
+func (e *Note) Content() model.EntryContent {
+	return model.EntryContent(e.meta.Content)
 }
 
 func (e *Note) MetaData() interface{} {

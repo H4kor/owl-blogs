@@ -1,12 +1,13 @@
-package model
+package entrytypes
 
 import (
 	"fmt"
+	"owl-blogs/domain/model"
 	"owl-blogs/render"
 )
 
 type Page struct {
-	EntryBase
+	model.EntryBase
 	meta PageMetaData
 }
 
@@ -19,12 +20,12 @@ func (e *Page) Title() string {
 	return e.meta.Title
 }
 
-func (e *Page) Content() EntryContent {
+func (e *Page) Content() model.EntryContent {
 	str, err := render.RenderTemplateToString("entry/Page", e)
 	if err != nil {
 		fmt.Println(err)
 	}
-	return EntryContent(str)
+	return model.EntryContent(str)
 }
 
 func (e *Page) MetaData() interface{} {

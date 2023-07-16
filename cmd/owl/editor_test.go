@@ -9,7 +9,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"owl-blogs/app"
-	"owl-blogs/domain/model"
+	entrytypes "owl-blogs/entry_types"
 	"owl-blogs/infra"
 	"owl-blogs/test"
 	"path"
@@ -94,8 +94,8 @@ func TestEditorFormPost(t *testing.T) {
 	id := strings.Split(resp.Header.Get("Location"), "/")[2]
 	entry, err := repo.FindById(id)
 	require.NoError(t, err)
-	require.Equal(t, "test content", entry.MetaData().(*model.ImageMetaData).Content)
-	imageId := entry.MetaData().(*model.ImageMetaData).ImageId
+	require.Equal(t, "test content", entry.MetaData().(*entrytypes.ImageMetaData).Content)
+	imageId := entry.MetaData().(*entrytypes.ImageMetaData).ImageId
 	require.NotZero(t, imageId)
 	bin, err := binRepo.FindById(imageId)
 	require.NoError(t, err)

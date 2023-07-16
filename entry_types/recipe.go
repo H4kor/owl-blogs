@@ -1,12 +1,13 @@
-package model
+package entrytypes
 
 import (
 	"fmt"
+	"owl-blogs/domain/model"
 	"owl-blogs/render"
 )
 
 type Recipe struct {
-	EntryBase
+	model.EntryBase
 	meta RecipeMetaData
 }
 
@@ -22,12 +23,12 @@ func (e *Recipe) Title() string {
 	return e.meta.Title
 }
 
-func (e *Recipe) Content() EntryContent {
+func (e *Recipe) Content() model.EntryContent {
 	str, err := render.RenderTemplateToString("entry/Recipe", e)
 	if err != nil {
 		fmt.Println(err)
 	}
-	return EntryContent(str)
+	return model.EntryContent(str)
 }
 
 func (e *Recipe) MetaData() interface{} {

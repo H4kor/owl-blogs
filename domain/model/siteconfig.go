@@ -30,4 +30,5 @@ type SiteConfig struct {
 	HeaderMenu         []MenuItem
 	FooterMenu         []MenuItem
 	Secret             string
+	AvatarUrl          string
 }
