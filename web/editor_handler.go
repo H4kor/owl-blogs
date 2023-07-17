@@ -2,6 +2,7 @@ package web
 
 import (
 	"owl-blogs/app"
+	"owl-blogs/app/repository"
 	"owl-blogs/domain/model"
 	"owl-blogs/render"
 	"owl-blogs/web/editor"
@@ -11,20 +12,23 @@ import (
 )
 
 type EditorHandler struct {
-	entrySvc *app.EntryService
-	binSvc   *app.BinaryService
-	registry *app.EntryTypeRegistry
+	configRepo repository.SiteConfigRepository
+	entrySvc   *app.EntryService
+	binSvc     *app.BinaryService
+	registry   *app.EntryTypeRegistry
 }
 
 func NewEditorHandler(
 	entryService *app.EntryService,
 	registry *app.EntryTypeRegistry,
 	binService *app.BinaryService,
+	configRepo repository.SiteConfigRepository,
 ) *EditorHandler {
 	return &EditorHandler{
-		entrySvc: entryService,
-		registry: registry,
-		binSvc:   binService,
+		entrySvc:   entryService,
+		registry:   registry,
+		binSvc:     binService,
+		configRepo: configRepo,
 	}
 }
 
@@ -50,7 +54,7 @@ func (h *EditorHandler) HandleGet(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	return render.RenderTemplateWithBase(c, "views/editor", htmlForm)
+	return render.RenderTemplateWithBase(c, getConfig(h.configRepo), "views/editor", htmlForm)
 }
 
 func (h *EditorHandler) HandlePost(c *fiber.Ctx) error {

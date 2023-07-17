@@ -2,6 +2,7 @@ package web
 
 import (
 	"owl-blogs/app"
+	"owl-blogs/app/repository"
 	"owl-blogs/domain/model"
 	"owl-blogs/render"
 
@@ -9,9 +10,10 @@ import (
 )
 
 type EntryHandler struct {
-	entrySvc  *app.EntryService
-	authorSvc *app.AuthorService
-	registry  *app.EntryTypeRegistry
+	configRepo repository.SiteConfigRepository
+	entrySvc   *app.EntryService
+	authorSvc  *app.AuthorService
+	registry   *app.EntryTypeRegistry
 }
 
 type entryData struct {
@@ -19,8 +21,18 @@ type entryData struct {
 	Author *model.Author
 }
 
-func NewEntryHandler(entryService *app.EntryService, registry *app.EntryTypeRegistry, authorService *app.AuthorService) *EntryHandler {
-	return &EntryHandler{entrySvc: entryService, authorSvc: authorService, registry: registry}
+func NewEntryHandler(
+	entryService *app.EntryService,
+	registry *app.EntryTypeRegistry,
+	authorService *app.AuthorService,
+	configRepo repository.SiteConfigRepository,
+) *EntryHandler {
+	return &EntryHandler{
+		entrySvc:   entryService,
+		authorSvc:  authorService,
+		registry:   registry,
+		configRepo: configRepo,
+	}
 }
 
 func (h *EntryHandler) Handle(c *fiber.Ctx) error {
@@ -37,5 +49,5 @@ func (h *EntryHandler) Handle(c *fiber.Ctx) error {
 		author = &model.Author{}
 	}
 
-	return render.RenderTemplateWithBase(c, "views/entry", entryData{Entry: entry, Author: author})
+	return render.RenderTemplateWithBase(c, getConfig(h.configRepo), "views/entry", entryData{Entry: entry, Author: author})
 }

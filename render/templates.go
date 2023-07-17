@@ -40,7 +40,7 @@ func CreateTemplateWithBase(templateName string) (*template.Template, error) {
 	)
 }
 
-func RenderTemplateWithBase(w io.Writer, templateName string, data interface{}) error {
+func RenderTemplateWithBase(w io.Writer, siteConfig model.SiteConfig, templateName string, data interface{}) error {
 
 	t, err := CreateTemplateWithBase(templateName)
 
@@ -50,7 +50,7 @@ func RenderTemplateWithBase(w io.Writer, templateName string, data interface{}) 
 
 	err = t.ExecuteTemplate(w, "base", TemplateData{
 		Data:       data,
-		SiteConfig: model.SiteConfig{},
+		SiteConfig: siteConfig,
 	})
 
 	return err

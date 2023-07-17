@@ -4,6 +4,7 @@ import (
 	"embed"
 	"net/http"
 	"owl-blogs/app"
+	"owl-blogs/app/repository"
 	"owl-blogs/web/middleware"
 
 	"github.com/gofiber/fiber/v2"
@@ -14,11 +15,12 @@ import (
 var embedDirStatic embed.FS
 
 type WebApp struct {
-	FiberApp      *fiber.App
-	EntryService  *app.EntryService
-	BinaryService *app.BinaryService
-	Registry      *app.EntryTypeRegistry
-	AuthorService *app.AuthorService
+	FiberApp       *fiber.App
+	EntryService   *app.EntryService
+	BinaryService  *app.BinaryService
+	Registry       *app.EntryTypeRegistry
+	AuthorService  *app.AuthorService
+	SiteConfigRepo repository.SiteConfigRepository
 }
 
 func NewWebApp(
@@ -26,17 +28,18 @@ func NewWebApp(
 	typeRegistry *app.EntryTypeRegistry,
 	binService *app.BinaryService,
 	authorService *app.AuthorService,
+	siteConfigRepo repository.SiteConfigRepository,
 ) *WebApp {
 	app := fiber.New()
 
-	indexHandler := NewIndexHandler(entryService)
+	indexHandler := NewIndexHandler(entryService, siteConfigRepo)
 	listHandler := NewListHandler(entryService)
-	entryHandler := NewEntryHandler(entryService, typeRegistry, authorService)
+	entryHandler := NewEntryHandler(entryService, typeRegistry, authorService, siteConfigRepo)
 	mediaHandler := NewMediaHandler(binService)
 	rssHandler := NewRSSHandler(entryService)
-	loginHandler := NewLoginHandler(authorService)
-	editorListHandler := NewEditorListHandler(typeRegistry)
-	editorHandler := NewEditorHandler(entryService, typeRegistry, binService)
+	loginHandler := NewLoginHandler(authorService, siteConfigRepo)
+	editorListHandler := NewEditorListHandler(typeRegistry, siteConfigRepo)
+	editorHandler := NewEditorHandler(entryService, typeRegistry, binService, siteConfigRepo)
 
 	// Login
 	app.Get("/auth/login", loginHandler.HandleGet)
@@ -48,6 +51,12 @@ func NewWebApp(
 	editor.Get("/", editorListHandler.Handle)
 	editor.Get("/:editor/", editorHandler.HandleGet)
 	editor.Post("/:editor/", editorHandler.HandlePost)
+
+	// SiteConfig
+	siteConfig := app.Group("/site-config")
+	siteConfig.Use(middleware.NewAuthMiddleware(authorService).Handle)
+	siteConfig.Get("/", NewSiteConfigHandler(siteConfigRepo).HandleGet)
+	siteConfig.Post("/", NewSiteConfigHandler(siteConfigRepo).HandlePost)
 
 	// app.Static("/static/*filepath", http.Dir(repo.StaticDir()))
 	app.Use("/static", filesystem.New(filesystem.Config{
@@ -75,11 +84,12 @@ func NewWebApp(
 	// app.Get("/.well-known/oauth-authorization-server", userAuthMetadataHandler(repo))
 	// app.NotFound = http.HandlerFunc(notFoundHandler(repo))
 	return &WebApp{
-		FiberApp:      app,
-		EntryService:  entryService,
-		Registry:      typeRegistry,
-		BinaryService: binService,
-		AuthorService: authorService,
+		FiberApp:       app,
+		EntryService:   entryService,
+		Registry:       typeRegistry,
+		BinaryService:  binService,
+		AuthorService:  authorService,
+		SiteConfigRepo: siteConfigRepo,
 	}
 }
 

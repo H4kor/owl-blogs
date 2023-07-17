@@ -2,6 +2,7 @@ package web
 
 import (
 	"owl-blogs/app"
+	"owl-blogs/app/repository"
 	"owl-blogs/render"
 	"time"
 
@@ -9,16 +10,23 @@ import (
 )
 
 type LoginHandler struct {
+	configRepo    repository.SiteConfigRepository
 	authorService *app.AuthorService
 }
 
-func NewLoginHandler(authorService *app.AuthorService) *LoginHandler {
-	return &LoginHandler{authorService: authorService}
+func NewLoginHandler(
+	authorService *app.AuthorService,
+	configRepo repository.SiteConfigRepository,
+) *LoginHandler {
+	return &LoginHandler{
+		authorService: authorService,
+		configRepo:    configRepo,
+	}
 }
 
 func (h *LoginHandler) HandleGet(c *fiber.Ctx) error {
 	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
-	return render.RenderTemplateWithBase(c, "views/login", nil)
+	return render.RenderTemplateWithBase(c, getConfig(h.configRepo), "views/login", nil)
 }
 
 func (h *LoginHandler) HandlePost(c *fiber.Ctx) error {
