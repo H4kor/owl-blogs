@@ -2,7 +2,15 @@
 
 {{define "main"}}
 
-<form method="post" enctyep="multipart/form-data">
+<nav>
+    <ul>
+        <li><a href="me">Me Links</a></li>
+    </ul>
+</nav>
+
+<h2>Site Settings</h2>
+
+<form method="post" enctype="multipart/form-data">
     <label for="Title">Title</label>
     <input type="text" name="Title" id="Title" value="{{.Title}}"/>
 

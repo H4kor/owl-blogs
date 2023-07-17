@@ -1,0 +1,58 @@
+{{define "title"}}Editor{{end}}
+
+{{define "main"}}
+
+<h2>Create a List</h2>
+<form action="/site-config/lists/create" method="post" enctype="multipart/form-data">
+    <label for="Id">Id</label>
+    <input type="text" name="Id" id="Id"/>
+
+    <label for="Title">Title</label>
+    <input type="text" name="Title" id="Title"/>
+
+    <label for="Include">Include</label>
+    {{ range .Types}}
+        <input type="checkbox" name="Include" value="{{.}}" id="{{.}}"/>
+        <label for="{{.}}">{{.}}</label>
+    {{end}}
+
+    <br>
+    <br>
+    <label for="ListType">ListType</label>
+    <input type="text" name="ListType" id="ListType"/>
+
+    <input type="submit" value="Create" />
+</form>
+
+<h2>Me Links</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Title</th>
+            <th>Include</th>
+            <th>ListType</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{range $i, $l := .Lists}}
+        <tr>
+            <td>{{$l.Id}}</td>
+            <td>{{$l.Title}}</td>
+            <td>{{$l.Include}}</td>
+            <td>{{$l.ListType}}</td>
+            <td>
+                <form action="/site-config/lists/delete" method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="idx" value="{{$i}}"/>
+                    <input type="submit" value="Delete" />
+                </form>
+            </td>
+        </tr>
+        {{end}}
+    </tbody>
+</table>
+
+
+{{end}}

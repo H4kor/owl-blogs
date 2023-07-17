@@ -55,8 +55,20 @@ func NewWebApp(
 	// SiteConfig
 	siteConfig := app.Group("/site-config")
 	siteConfig.Use(middleware.NewAuthMiddleware(authorService).Handle)
-	siteConfig.Get("/", NewSiteConfigHandler(siteConfigRepo).HandleGet)
-	siteConfig.Post("/", NewSiteConfigHandler(siteConfigRepo).HandlePost)
+
+	siteConfigHandler := NewSiteConfigHandler(siteConfigRepo)
+	siteConfig.Get("/", siteConfigHandler.HandleGet)
+	siteConfig.Post("/", siteConfigHandler.HandlePost)
+
+	siteConfigMeHandler := NewSiteConfigMeHandler(siteConfigRepo)
+	siteConfig.Get("/me", siteConfigMeHandler.HandleGet)
+	siteConfig.Post("/me/create/", siteConfigMeHandler.HandleCreate)
+	siteConfig.Post("/me/delete/", siteConfigMeHandler.HandleDelete)
+
+	siteConfigListHandler := NewSiteConfigListHandler(siteConfigRepo, typeRegistry)
+	siteConfig.Get("/lists", siteConfigListHandler.HandleGet)
+	siteConfig.Post("/lists/create/", siteConfigListHandler.HandleCreate)
+	siteConfig.Post("/lists/delete/", siteConfigListHandler.HandleDelete)
 
 	// app.Static("/static/*filepath", http.Dir(repo.StaticDir()))
 	app.Use("/static", filesystem.New(filesystem.Config{
