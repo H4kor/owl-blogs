@@ -1,0 +1,95 @@
+{{define "title"}}Editor{{end}}
+
+{{define "main"}}
+
+<h2>Create a List</h2>
+<form action="/site-config/menus/create" method="post" enctype="multipart/form-data">
+
+    <select name="menu" id="menu">
+        <option value="header">Header</option>
+        <option value="footer">Footer</option>
+    </select>
+
+    <label for="Title">Title</label>
+    <input type="text" name="Title" id="Title"/>
+
+    <label for="Url">Url</label>
+    <input type="text" name="Url" id="Url"/>
+
+    <label for="List">List</label>
+    <input type="text" name="List" id="List"/>
+
+    <label for="Post">Post</label>
+    <input type="text" name="Post" id="Post"/>
+
+    <label for="ListType">ListType</label>
+    <input type="text" name="ListType" id="ListType"/>
+
+    <input type="submit" value="Create" />
+</form>
+
+<h2>Header Menu</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>List</th>
+            <th>Url</th>
+            <th>Post</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{range $i, $l := .HeaderMenu}}
+        <tr>
+            <td>{{$l.Title}}</td>
+            <td>{{$l.List}}</td>
+            <td>{{$l.Url}}</td>
+            <td>{{$l.Post}}</td>
+            <td>
+                <form action="/site-config/menus/delete" method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="idx" value="{{$i}}"/>
+                    <input type="hidden" name="menu" value="header"/>
+                    <input type="submit" value="Delete" />
+                </form>
+            </td>
+        </tr>
+        {{end}}
+    </tbody>
+</table>
+
+
+<h2>Footer Menu</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>List</th>
+            <th>Url</th>
+            <th>Post</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{range $i, $l := .FooterMenu}}
+        <tr>
+            <td>{{$l.Title}}</td>
+            <td>{{$l.List}}</td>
+            <td>{{$l.Url}}</td>
+            <td>{{$l.Post}}</td>
+            <td>
+                <form action="/site-config/menus/delete" method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="idx" value="{{$i}}"/>
+                    <input type="hidden" name="menu" value="footer"/>
+                    <input type="submit" value="Delete" />
+                </form>
+            </td>
+        </tr>
+        {{end}}
+    </tbody>
+</table>
+
+
+{{end}}

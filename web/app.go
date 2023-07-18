@@ -70,6 +70,11 @@ func NewWebApp(
 	siteConfig.Post("/lists/create/", siteConfigListHandler.HandleCreate)
 	siteConfig.Post("/lists/delete/", siteConfigListHandler.HandleDelete)
 
+	siteConfigMenusHandler := NewSiteConfigMenusHandler(siteConfigRepo)
+	siteConfig.Get("/menus", siteConfigMenusHandler.HandleGet)
+	siteConfig.Post("/menus/create/", siteConfigMenusHandler.HandleCreate)
+	siteConfig.Post("/menus/delete/", siteConfigMenusHandler.HandleDelete)
+
 	// app.Static("/static/*filepath", http.Dir(repo.StaticDir()))
 	app.Use("/static", filesystem.New(filesystem.Config{
 		Root:       http.FS(embedDirStatic),
