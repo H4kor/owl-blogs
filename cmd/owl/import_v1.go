@@ -10,6 +10,7 @@ import (
 	"path"
 
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
 )
 
 var userPath string
@@ -33,6 +34,68 @@ var importCmd = &cobra.Command{
 		app := App(db)
 
 		posts, err := importer.AllUserPosts(userPath)
+		if err != nil {
+			panic(err)
+		}
+
+		// import config
+		bytes, err := os.ReadFile(path.Join(userPath, "meta/config.yml"))
+		if err != nil {
+			panic(err)
+		}
+		v1Config := importer.V1UserConfig{}
+		yaml.Unmarshal(bytes, &v1Config)
+
+		mes := []model.MeLinks{}
+		for _, me := range v1Config.Me {
+			mes = append(mes, model.MeLinks{
+				Name: me.Name,
+				Url:  me.Url,
+			})
+		}
+
+		lists := []model.EntryList{}
+		for _, list := range v1Config.Lists {
+			lists = append(lists, model.EntryList{
+				Id:       list.Id,
+				Title:    list.Title,
+				Include:  importer.ConvertTypeList(list.Include, app.Registry),
+				ListType: list.ListType,
+			})
+		}
+
+		headerMenu := []model.MenuItem{}
+		for _, item := range v1Config.HeaderMenu {
+			headerMenu = append(headerMenu, model.MenuItem{
+				Title: item.Title,
+				List:  item.List,
+				Url:   item.Url,
+				Post:  item.Post,
+			})
+		}
+
+		footerMenu := []model.MenuItem{}
+		for _, item := range v1Config.FooterMenu {
+			footerMenu = append(footerMenu, model.MenuItem{
+				Title: item.Title,
+				List:  item.List,
+				Url:   item.Url,
+				Post:  item.Post,
+			})
+		}
+
+		v2Config, _ := app.SiteConfigRepo.Get()
+		v2Config.Title = v1Config.Title
+		v2Config.SubTitle = v1Config.SubTitle
+		v2Config.HeaderColor = v1Config.HeaderColor
+		v2Config.AuthorName = v1Config.AuthorName
+		v2Config.Me = mes
+		v2Config.Lists = lists
+		v2Config.PrimaryListInclude = v1Config.PrimaryListInclude
+		v2Config.HeaderMenu = headerMenu
+		v2Config.FooterMenu = footerMenu
+
+		err = app.SiteConfigRepo.Update(v2Config)
 		if err != nil {
 			panic(err)
 		}
@@ -72,9 +135,23 @@ var importCmd = &cobra.Command{
 					Content: post.Content,
 				})
 			case "bookmark":
-
+				entry = &entrytypes.Bookmark{}
+				entry.SetID(post.Id)
+				entry.SetPublishedAt(&post.Meta.Date)
+				entry.SetMetaData(&entrytypes.BookmarkMetaData{
+					Url:     post.Meta.Bookmark.Url,
+					Title:   post.Meta.Bookmark.Text,
+					Content: post.Content,
+				})
 			case "reply":
-
+				entry = &entrytypes.Reply{}
+				entry.SetID(post.Id)
+				entry.SetPublishedAt(&post.Meta.Date)
+				entry.SetMetaData(&entrytypes.ReplyMetaData{
+					Url:     post.Meta.Reply.Url,
+					Title:   post.Meta.Reply.Text,
+					Content: post.Content,
+				})
 			case "photo":
 				entry = &entrytypes.Image{}
 				entry.SetID(post.Id)

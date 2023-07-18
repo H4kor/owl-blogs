@@ -85,6 +85,15 @@
             <div class="container">
                 <nav>
                     <ul>
+                        {{ range $link := .SiteConfig.HeaderMenu }}
+                            {{ if $link.List }}
+                                <li><a href="/lists/{{ $link.List }}">{{ $link.Title }}</a></li>
+                            {{ else if $link.Post }}
+                                <li><a href="/posts/{{ $link.Post }}">{{ $link.Title }}</a></li>
+                            {{ else }}
+                                <li><a href="{{ $link.Url }}">{{ $link.Title }}</a></li>
+                            {{ end }}
+                        {{ end }}
                     </ul>
                 </nav>
             </div>
@@ -93,7 +102,19 @@
             {{template "main" .Data}}
         </main>
         <footer class="container">
-            Powered by <a href='https://golang.org/'>Go</a>
+            <nav>
+                <ul>
+                    {{ range $link := .SiteConfig.FooterMenu }}
+                        {{ if $link.List }}
+                            <li><a href="/lists/{{ $link.List }}">{{ $link.Title }}</a></li>
+                        {{ else if $link.Post }}
+                            <li><a href="/posts/{{ $link.Post }}">{{ $link.Title }}</a></li>
+                        {{ else }}
+                            <li><a href="{{ $link.Url }}">{{ $link.Title }}</a></li>
+                        {{ end }}
+                    {{ end }}
+                </ul>
+            </nav>
         </footer>
     </body>
 </html>

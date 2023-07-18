@@ -3,6 +3,8 @@ package importer
 import (
 	"bytes"
 	"os"
+	"owl-blogs/app"
+	entrytypes "owl-blogs/entry_types"
 	"path"
 	"time"
 
@@ -201,4 +203,36 @@ func dirExists(path string) bool {
 func fileExists(path string) bool {
 	_, err := os.Stat(path)
 	return err == nil
+}
+
+func ConvertTypeList(v1 []string, registry *app.EntryTypeRegistry) []string {
+	v2 := make([]string, len(v1))
+	for i, v1Type := range v1 {
+		switch v1Type {
+		case "article":
+			name, _ := registry.TypeName(&entrytypes.Article{})
+			v2[i] = name
+		case "bookmark":
+			name, _ := registry.TypeName(&entrytypes.Bookmark{})
+			v2[i] = name
+		case "reply":
+			name, _ := registry.TypeName(&entrytypes.Reply{})
+			v2[i] = name
+		case "photo":
+			name, _ := registry.TypeName(&entrytypes.Image{})
+			v2[i] = name
+		case "note":
+			name, _ := registry.TypeName(&entrytypes.Note{})
+			v2[i] = name
+		case "recipe":
+			name, _ := registry.TypeName(&entrytypes.Recipe{})
+			v2[i] = name
+		case "page":
+			name, _ := registry.TypeName(&entrytypes.Page{})
+			v2[i] = name
+		default:
+			v2[i] = v1Type
+		}
+	}
+	return v2
 }

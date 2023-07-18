@@ -32,6 +32,8 @@ func App(db infra.Database) *web.WebApp {
 	registry.Register(&entrytypes.Page{})
 	registry.Register(&entrytypes.Recipe{})
 	registry.Register(&entrytypes.Note{})
+	registry.Register(&entrytypes.Bookmark{})
+	registry.Register(&entrytypes.Reply{})
 
 	entryRepo := infra.NewEntryRepository(db, registry)
 	binRepo := infra.NewBinaryFileRepo(db)
