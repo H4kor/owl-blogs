@@ -96,7 +96,7 @@ var importCmd = &cobra.Command{
 		v2Config.AuthorName = v1Config.AuthorName
 		v2Config.Me = mes
 		v2Config.Lists = lists
-		v2Config.PrimaryListInclude = v1Config.PrimaryListInclude
+		v2Config.PrimaryListInclude = importer.ConvertTypeList(v1Config.PrimaryListInclude, app.Registry)
 		v2Config.HeaderMenu = headerMenu
 		v2Config.FooterMenu = footerMenu
 

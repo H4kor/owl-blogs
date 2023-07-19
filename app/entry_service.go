@@ -29,21 +29,26 @@ func (s *EntryService) FindById(id string) (model.Entry, error) {
 	return s.EntryRepository.FindById(id)
 }
 
-func (s *EntryService) FindAllByType(types *[]string) ([]model.Entry, error) {
-	return s.EntryRepository.FindAll(types)
+func (s *EntryService) filterEntries(entries []model.Entry, published bool, drafts bool) []model.Entry {
+	filteredEntries := make([]model.Entry, 0)
+	for _, entry := range entries {
+		if published && entry.PublishedAt() != nil && !entry.PublishedAt().IsZero() {
+			filteredEntries = append(filteredEntries, entry)
+		}
+		if drafts && (entry.PublishedAt() == nil || entry.PublishedAt().IsZero()) {
+			filteredEntries = append(filteredEntries, entry)
+		}
+	}
+	return filteredEntries
+}
+
+func (s *EntryService) FindAllByType(types *[]string, published bool, drafts bool) ([]model.Entry, error) {
+	entries, err := s.EntryRepository.FindAll(types)
+	return s.filterEntries(entries, published, drafts), err
+
 }
 
 func (s *EntryService) FindAll() ([]model.Entry, error) {
 	entries, err := s.EntryRepository.FindAll(nil)
-	if err != nil {
-		return nil, err
-	}
-	// filter unpublished entries
-	publishedEntries := make([]model.Entry, 0)
-	for _, entry := range entries {
-		if entry.PublishedAt() != nil && !entry.PublishedAt().IsZero() {
-			publishedEntries = append(publishedEntries, entry)
-		}
-	}
-	return publishedEntries, nil
+	return s.filterEntries(entries, true, true), err
 }

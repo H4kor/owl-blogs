@@ -37,7 +37,10 @@ type indexRenderData struct {
 
 func (h *IndexHandler) Handle(c *fiber.Ctx) error {
 	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
-	entries, err := h.entrySvc.FindAll()
+
+	siteConfig := getSiteConfig(h.configRepo)
+
+	entries, err := h.entrySvc.FindAllByType(&siteConfig.PrimaryListInclude, true, false)
 	if err != nil {
 		return err
 	}
@@ -73,7 +76,7 @@ func (h *IndexHandler) Handle(c *fiber.Ctx) error {
 		return err
 	}
 
-	return render.RenderTemplateWithBase(c, getSiteConfig(h.configRepo), "views/index", indexRenderData{
+	return render.RenderTemplateWithBase(c, siteConfig, "views/index", indexRenderData{
 		Entries:   entries,
 		Page:      pageNum,
 		NextPage:  pageNum + 1,

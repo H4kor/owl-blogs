@@ -28,18 +28,18 @@ func NewWebApp(
 	typeRegistry *app.EntryTypeRegistry,
 	binService *app.BinaryService,
 	authorService *app.AuthorService,
-	siteConfigRepo repository.ConfigRepository,
+	configRepo repository.ConfigRepository,
 ) *WebApp {
 	app := fiber.New()
 
-	indexHandler := NewIndexHandler(entryService, siteConfigRepo)
-	listHandler := NewListHandler(entryService)
-	entryHandler := NewEntryHandler(entryService, typeRegistry, authorService, siteConfigRepo)
+	indexHandler := NewIndexHandler(entryService, configRepo)
+	listHandler := NewListHandler(entryService, configRepo)
+	entryHandler := NewEntryHandler(entryService, typeRegistry, authorService, configRepo)
 	mediaHandler := NewMediaHandler(binService)
 	rssHandler := NewRSSHandler(entryService)
-	loginHandler := NewLoginHandler(authorService, siteConfigRepo)
-	editorListHandler := NewEditorListHandler(typeRegistry, siteConfigRepo)
-	editorHandler := NewEditorHandler(entryService, typeRegistry, binService, siteConfigRepo)
+	loginHandler := NewLoginHandler(authorService, configRepo)
+	editorListHandler := NewEditorListHandler(typeRegistry, configRepo)
+	editorHandler := NewEditorHandler(entryService, typeRegistry, binService, configRepo)
 
 	// Login
 	app.Get("/auth/login", loginHandler.HandleGet)
@@ -56,21 +56,21 @@ func NewWebApp(
 	siteConfig := app.Group("/site-config")
 	siteConfig.Use(middleware.NewAuthMiddleware(authorService).Handle)
 
-	siteConfigHandler := NewSiteConfigHandler(siteConfigRepo)
+	siteConfigHandler := NewSiteConfigHandler(configRepo)
 	siteConfig.Get("/", siteConfigHandler.HandleGet)
 	siteConfig.Post("/", siteConfigHandler.HandlePost)
 
-	siteConfigMeHandler := NewSiteConfigMeHandler(siteConfigRepo)
+	siteConfigMeHandler := NewSiteConfigMeHandler(configRepo)
 	siteConfig.Get("/me", siteConfigMeHandler.HandleGet)
 	siteConfig.Post("/me/create/", siteConfigMeHandler.HandleCreate)
 	siteConfig.Post("/me/delete/", siteConfigMeHandler.HandleDelete)
 
-	siteConfigListHandler := NewSiteConfigListHandler(siteConfigRepo, typeRegistry)
+	siteConfigListHandler := NewSiteConfigListHandler(configRepo, typeRegistry)
 	siteConfig.Get("/lists", siteConfigListHandler.HandleGet)
 	siteConfig.Post("/lists/create/", siteConfigListHandler.HandleCreate)
 	siteConfig.Post("/lists/delete/", siteConfigListHandler.HandleDelete)
 
-	siteConfigMenusHandler := NewSiteConfigMenusHandler(siteConfigRepo)
+	siteConfigMenusHandler := NewSiteConfigMenusHandler(configRepo)
 	siteConfig.Get("/menus", siteConfigMenusHandler.HandleGet)
 	siteConfig.Post("/menus/create/", siteConfigMenusHandler.HandleCreate)
 	siteConfig.Post("/menus/delete/", siteConfigMenusHandler.HandleDelete)
@@ -106,7 +106,7 @@ func NewWebApp(
 		Registry:       typeRegistry,
 		BinaryService:  binService,
 		AuthorService:  authorService,
-		SiteConfigRepo: siteConfigRepo,
+		SiteConfigRepo: configRepo,
 	}
 }
 

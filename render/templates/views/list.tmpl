@@ -1,0 +1,44 @@
+{{define "title"}}Index{{end}}
+
+{{define "main"}}
+
+<div class="h-feed">
+{{ range .Entries }}
+    <div class="h-entry">
+        <hgroup>
+            <h3>
+                <a class="u-url" href="/posts/{{ .ID }}">
+                    {{if .Title}}
+                        {{ .Title }}
+                    {{else}}
+                        #
+                    {{end}}
+                </a>
+            </h3>
+            <small style="font-size: 0.75em;">
+                <time class="dt-published" datetime="{{ .PublishedAt }}">{{ .PublishedAt }}</time>
+            </small>
+        </hgroup>
+        {{ .Content }}
+    </div>
+    <hr>
+{{ end }}
+</div>
+
+<hr>
+<nav class="row">
+    {{ if not .FirstPage }}
+        <div>
+            <a href="/lists/{{.List.Id}}/?page={{ .PrevPage }}">Prev</a>
+        </div>
+    {{ end }}
+    
+    <div>Page {{.Page}}</div>
+
+    {{ if not .LastPage }}
+        <div>
+            <a href="/lists/{{.List.Id}}/?page={{ .NextPage }}">Next</a>
+        </div>
+    {{ end }}
+</nav>
+{{end}}
