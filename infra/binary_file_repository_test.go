@@ -45,3 +45,15 @@ func TestBinaryRepoNoSideEffect(t *testing.T) {
 	require.Equal(t, file2.Name, "name2")
 	require.Equal(t, file2.Data, []byte("222"))
 }
+
+func TestBinaryWithSpaceInName(t *testing.T) {
+	repo := setupBinaryRepo()
+
+	file, err := repo.Create("name with space", []byte("111"), nil)
+	require.NoError(t, err)
+
+	file, err = repo.FindById(file.Id)
+	require.NoError(t, err)
+	require.Equal(t, file.Name, "name with space")
+	require.Equal(t, file.Data, []byte("111"))
+}

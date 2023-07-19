@@ -1,6 +1,7 @@
 package web
 
 import (
+	"net/url"
 	"owl-blogs/app"
 
 	"github.com/gofiber/fiber/v2"
@@ -16,6 +17,11 @@ func NewMediaHandler(binaryService *app.BinaryService) *MediaHandler {
 
 func (h *MediaHandler) Handle(c *fiber.Ctx) error {
 	id := c.Params("+")
+	// urldecode
+	id, err := url.PathUnescape(id)
+	if err != nil {
+		return err
+	}
 	binary, err := h.binaryService.FindById(id)
 	if err != nil {
 		return err
