@@ -12,13 +12,13 @@ import (
 )
 
 type IndexHandler struct {
-	configRepo repository.SiteConfigRepository
+	configRepo repository.ConfigRepository
 	entrySvc   *app.EntryService
 }
 
 func NewIndexHandler(
 	entryService *app.EntryService,
-	configRepo repository.SiteConfigRepository,
+	configRepo repository.ConfigRepository,
 ) *IndexHandler {
 	return &IndexHandler{
 		entrySvc:   entryService,
@@ -73,7 +73,7 @@ func (h *IndexHandler) Handle(c *fiber.Ctx) error {
 		return err
 	}
 
-	return render.RenderTemplateWithBase(c, getConfig(h.configRepo), "views/index", indexRenderData{
+	return render.RenderTemplateWithBase(c, getSiteConfig(h.configRepo), "views/index", indexRenderData{
 		Entries:   entries,
 		Page:      pageNum,
 		NextPage:  pageNum + 1,

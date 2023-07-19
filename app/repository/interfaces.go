@@ -30,7 +30,7 @@ type AuthorRepository interface {
 	FindByName(name string) (*model.Author, error)
 }
 
-type SiteConfigRepository interface {
-	Get() (model.SiteConfig, error)
-	Update(siteConfig model.SiteConfig) error
+type ConfigRepository interface {
+	Get(name string, config interface{}) error
+	Update(name string, siteConfig interface{}) error
 }

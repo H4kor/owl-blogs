@@ -16,13 +16,14 @@ type testConfigRepo struct {
 }
 
 // Get implements repository.SiteConfigRepository.
-func (c *testConfigRepo) Get() (model.SiteConfig, error) {
-	return c.config, nil
+func (c *testConfigRepo) Get(name string, result interface{}) error {
+	*result.(*model.SiteConfig) = c.config
+	return nil
 }
 
 // Update implements repository.SiteConfigRepository.
-func (c *testConfigRepo) Update(siteConfig model.SiteConfig) error {
-	c.config = siteConfig
+func (c *testConfigRepo) Update(name string, result interface{}) error {
+	c.config = result.(model.SiteConfig)
 	return nil
 }
 

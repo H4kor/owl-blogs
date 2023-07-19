@@ -9,7 +9,7 @@ import (
 )
 
 type EditorListHandler struct {
-	configRepo repository.SiteConfigRepository
+	configRepo repository.ConfigRepository
 	registry   *app.EntryTypeRegistry
 }
 
@@ -18,7 +18,7 @@ type EditorListContext struct {
 }
 
 func NewEditorListHandler(registry *app.EntryTypeRegistry,
-	configRepo repository.SiteConfigRepository) *EditorListHandler {
+	configRepo repository.ConfigRepository) *EditorListHandler {
 	return &EditorListHandler{
 		registry:   registry,
 		configRepo: configRepo,
@@ -37,5 +37,5 @@ func (h *EditorListHandler) Handle(c *fiber.Ctx) error {
 		typeNames = append(typeNames, name)
 	}
 
-	return render.RenderTemplateWithBase(c, getConfig(h.configRepo), "views/editor_list", &EditorListContext{Types: typeNames})
+	return render.RenderTemplateWithBase(c, getSiteConfig(h.configRepo), "views/editor_list", &EditorListContext{Types: typeNames})
 }

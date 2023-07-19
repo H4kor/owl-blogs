@@ -3,6 +3,7 @@ package web
 import (
 	"owl-blogs/app"
 	"owl-blogs/app/repository"
+	"owl-blogs/config"
 	"owl-blogs/domain/model"
 	"owl-blogs/render"
 	"strconv"
@@ -11,7 +12,7 @@ import (
 )
 
 type SiteConfigListHandler struct {
-	siteConfigRepo repository.SiteConfigRepository
+	siteConfigRepo repository.ConfigRepository
 	typeRegistry   *app.EntryTypeRegistry
 }
 
@@ -21,7 +22,7 @@ type siteConfigListTemplateData struct {
 }
 
 func NewSiteConfigListHandler(
-	siteConfigRepo repository.SiteConfigRepository,
+	siteConfigRepo repository.ConfigRepository,
 	typeRegistry *app.EntryTypeRegistry,
 ) *SiteConfigListHandler {
 	return &SiteConfigListHandler{
@@ -33,7 +34,9 @@ func NewSiteConfigListHandler(
 func (h *SiteConfigListHandler) HandleGet(c *fiber.Ctx) error {
 	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
 
-	config, err := h.siteConfigRepo.Get()
+	siteConfig := model.SiteConfig{}
+	err := h.siteConfigRepo.Get(config.SITE_CONFIG, &siteConfig)
+
 	if err != nil {
 		return err
 	}
@@ -48,8 +51,8 @@ func (h *SiteConfigListHandler) HandleGet(c *fiber.Ctx) error {
 	}
 
 	return render.RenderTemplateWithBase(
-		c, getConfig(h.siteConfigRepo), "views/site_config_list", siteConfigListTemplateData{
-			Lists: config.Lists,
+		c, getSiteConfig(h.siteConfigRepo), "views/site_config_list", siteConfigListTemplateData{
+			Lists: siteConfig.Lists,
 			Types: types,
 		})
 }
@@ -57,7 +60,9 @@ func (h *SiteConfigListHandler) HandleGet(c *fiber.Ctx) error {
 func (h *SiteConfigListHandler) HandleCreate(c *fiber.Ctx) error {
 	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
 
-	config, err := h.siteConfigRepo.Get()
+	siteConfig := model.SiteConfig{}
+	err := h.siteConfigRepo.Get(config.SITE_CONFIG, &siteConfig)
+
 	if err != nil {
 		return err
 	}
@@ -67,14 +72,14 @@ func (h *SiteConfigListHandler) HandleCreate(c *fiber.Ctx) error {
 		return err
 	}
 
-	config.Lists = append(config.Lists, model.EntryList{
+	siteConfig.Lists = append(siteConfig.Lists, model.EntryList{
 		Id:       c.FormValue("Id"),
 		Title:    c.FormValue("Title"),
 		Include:  form.Value["Include"],
 		ListType: c.FormValue("ListType"),
 	})
 
-	err = h.siteConfigRepo.Update(config)
+	err = h.siteConfigRepo.Update(config.SITE_CONFIG, siteConfig)
 	if err != nil {
 		return err
 	}
@@ -85,7 +90,9 @@ func (h *SiteConfigListHandler) HandleCreate(c *fiber.Ctx) error {
 func (h *SiteConfigListHandler) HandleDelete(c *fiber.Ctx) error {
 	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
 
-	config, err := h.siteConfigRepo.Get()
+	siteConfig := model.SiteConfig{}
+	err := h.siteConfigRepo.Get(config.SITE_CONFIG, &siteConfig)
+
 	if err != nil {
 		return err
 	}
@@ -95,9 +102,9 @@ func (h *SiteConfigListHandler) HandleDelete(c *fiber.Ctx) error {
 		return err
 	}
 
-	config.Lists = append(config.Lists[:id], config.Lists[id+1:]...)
+	siteConfig.Lists = append(siteConfig.Lists[:id], siteConfig.Lists[id+1:]...)
 
-	err = h.siteConfigRepo.Update(config)
+	err = h.siteConfigRepo.Update(config.SITE_CONFIG, siteConfig)
 	if err != nil {
 		return err
 	}

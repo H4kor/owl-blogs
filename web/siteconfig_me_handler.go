@@ -2,6 +2,7 @@ package web
 
 import (
 	"owl-blogs/app/repository"
+	"owl-blogs/config"
 	"owl-blogs/domain/model"
 	"owl-blogs/render"
 	"strconv"
@@ -10,10 +11,10 @@ import (
 )
 
 type SiteConfigMeHandler struct {
-	siteConfigRepo repository.SiteConfigRepository
+	siteConfigRepo repository.ConfigRepository
 }
 
-func NewSiteConfigMeHandler(siteConfigRepo repository.SiteConfigRepository) *SiteConfigMeHandler {
+func NewSiteConfigMeHandler(siteConfigRepo repository.ConfigRepository) *SiteConfigMeHandler {
 	return &SiteConfigMeHandler{
 		siteConfigRepo: siteConfigRepo,
 	}
@@ -22,29 +23,33 @@ func NewSiteConfigMeHandler(siteConfigRepo repository.SiteConfigRepository) *Sit
 func (h *SiteConfigMeHandler) HandleGet(c *fiber.Ctx) error {
 	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
 
-	config, err := h.siteConfigRepo.Get()
+	siteConfig := model.SiteConfig{}
+	err := h.siteConfigRepo.Get(config.SITE_CONFIG, &siteConfig)
+
 	if err != nil {
 		return err
 	}
 
 	return render.RenderTemplateWithBase(
-		c, getConfig(h.siteConfigRepo), "views/site_config_me", config.Me)
+		c, getSiteConfig(h.siteConfigRepo), "views/site_config_me", siteConfig.Me)
 }
 
 func (h *SiteConfigMeHandler) HandleCreate(c *fiber.Ctx) error {
 	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
 
-	config, err := h.siteConfigRepo.Get()
+	siteConfig := model.SiteConfig{}
+	err := h.siteConfigRepo.Get(config.SITE_CONFIG, &siteConfig)
+
 	if err != nil {
 		return err
 	}
 
-	config.Me = append(config.Me, model.MeLinks{
+	siteConfig.Me = append(siteConfig.Me, model.MeLinks{
 		Name: c.FormValue("Name"),
 		Url:  c.FormValue("Url"),
 	})
 
-	err = h.siteConfigRepo.Update(config)
+	err = h.siteConfigRepo.Update(config.SITE_CONFIG, siteConfig)
 	if err != nil {
 		return err
 	}
@@ -55,7 +60,9 @@ func (h *SiteConfigMeHandler) HandleCreate(c *fiber.Ctx) error {
 func (h *SiteConfigMeHandler) HandleDelete(c *fiber.Ctx) error {
 	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
 
-	config, err := h.siteConfigRepo.Get()
+	siteConfig := model.SiteConfig{}
+	err := h.siteConfigRepo.Get(config.SITE_CONFIG, &siteConfig)
+
 	if err != nil {
 		return err
 	}
@@ -64,9 +71,9 @@ func (h *SiteConfigMeHandler) HandleDelete(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	config.Me = append(config.Me[:idx], config.Me[idx+1:]...)
+	siteConfig.Me = append(siteConfig.Me[:idx], siteConfig.Me[idx+1:]...)
 
-	err = h.siteConfigRepo.Update(config)
+	err = h.siteConfigRepo.Update(config.SITE_CONFIG, siteConfig)
 	if err != nil {
 		return err
 	}

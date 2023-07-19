@@ -2,6 +2,10 @@ package config
 
 import "os"
 
+const (
+	SITE_CONFIG = "site_config"
+)
+
 type Config interface {
 }
 

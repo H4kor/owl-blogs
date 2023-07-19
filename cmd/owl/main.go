@@ -38,7 +38,7 @@ func App(db infra.Database) *web.WebApp {
 	entryRepo := infra.NewEntryRepository(db, registry)
 	binRepo := infra.NewBinaryFileRepo(db)
 	authorRepo := infra.NewDefaultAuthorRepo(db)
-	siteConfigRepo := infra.NewSiteConfigRepo(db)
+	siteConfigRepo := infra.NewConfigRepo(db)
 
 	entryService := app.NewEntryService(entryRepo)
 	binaryService := app.NewBinaryFileService(binRepo)

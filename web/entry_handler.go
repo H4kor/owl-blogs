@@ -10,7 +10,7 @@ import (
 )
 
 type EntryHandler struct {
-	configRepo repository.SiteConfigRepository
+	configRepo repository.ConfigRepository
 	entrySvc   *app.EntryService
 	authorSvc  *app.AuthorService
 	registry   *app.EntryTypeRegistry
@@ -25,7 +25,7 @@ func NewEntryHandler(
 	entryService *app.EntryService,
 	registry *app.EntryTypeRegistry,
 	authorService *app.AuthorService,
-	configRepo repository.SiteConfigRepository,
+	configRepo repository.ConfigRepository,
 ) *EntryHandler {
 	return &EntryHandler{
 		entrySvc:   entryService,
@@ -49,5 +49,5 @@ func (h *EntryHandler) Handle(c *fiber.Ctx) error {
 		author = &model.Author{}
 	}
 
-	return render.RenderTemplateWithBase(c, getConfig(h.configRepo), "views/entry", entryData{Entry: entry, Author: author})
+	return render.RenderTemplateWithBase(c, getSiteConfig(h.configRepo), "views/entry", entryData{Entry: entry, Author: author})
 }

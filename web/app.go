@@ -20,7 +20,7 @@ type WebApp struct {
 	BinaryService  *app.BinaryService
 	Registry       *app.EntryTypeRegistry
 	AuthorService  *app.AuthorService
-	SiteConfigRepo repository.SiteConfigRepository
+	SiteConfigRepo repository.ConfigRepository
 }
 
 func NewWebApp(
@@ -28,7 +28,7 @@ func NewWebApp(
 	typeRegistry *app.EntryTypeRegistry,
 	binService *app.BinaryService,
 	authorService *app.AuthorService,
-	siteConfigRepo repository.SiteConfigRepository,
+	siteConfigRepo repository.ConfigRepository,
 ) *WebApp {
 	app := fiber.New()
 

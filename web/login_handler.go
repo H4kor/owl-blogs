@@ -10,13 +10,13 @@ import (
 )
 
 type LoginHandler struct {
-	configRepo    repository.SiteConfigRepository
+	configRepo    repository.ConfigRepository
 	authorService *app.AuthorService
 }
 
 func NewLoginHandler(
 	authorService *app.AuthorService,
-	configRepo repository.SiteConfigRepository,
+	configRepo repository.ConfigRepository,
 ) *LoginHandler {
 	return &LoginHandler{
 		authorService: authorService,
@@ -26,7 +26,7 @@ func NewLoginHandler(
 
 func (h *LoginHandler) HandleGet(c *fiber.Ctx) error {
 	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
-	return render.RenderTemplateWithBase(c, getConfig(h.configRepo), "views/login", nil)
+	return render.RenderTemplateWithBase(c, getSiteConfig(h.configRepo), "views/login", nil)
 }
 
 func (h *LoginHandler) HandlePost(c *fiber.Ctx) error {

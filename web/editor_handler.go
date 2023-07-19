@@ -12,7 +12,7 @@ import (
 )
 
 type EditorHandler struct {
-	configRepo repository.SiteConfigRepository
+	configRepo repository.ConfigRepository
 	entrySvc   *app.EntryService
 	binSvc     *app.BinaryService
 	registry   *app.EntryTypeRegistry
@@ -22,7 +22,7 @@ func NewEditorHandler(
 	entryService *app.EntryService,
 	registry *app.EntryTypeRegistry,
 	binService *app.BinaryService,
-	configRepo repository.SiteConfigRepository,
+	configRepo repository.ConfigRepository,
 ) *EditorHandler {
 	return &EditorHandler{
 		entrySvc:   entryService,
@@ -54,7 +54,7 @@ func (h *EditorHandler) HandleGet(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	return render.RenderTemplateWithBase(c, getConfig(h.configRepo), "views/editor", htmlForm)
+	return render.RenderTemplateWithBase(c, getSiteConfig(h.configRepo), "views/editor", htmlForm)
 }
 
 func (h *EditorHandler) HandlePost(c *fiber.Ctx) error {

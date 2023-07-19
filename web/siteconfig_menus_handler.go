@@ -2,6 +2,7 @@ package web
 
 import (
 	"owl-blogs/app/repository"
+	"owl-blogs/config"
 	"owl-blogs/domain/model"
 	"owl-blogs/render"
 	"strconv"
@@ -10,7 +11,7 @@ import (
 )
 
 type SiteConfigMenusHandler struct {
-	siteConfigRepo repository.SiteConfigRepository
+	siteConfigRepo repository.ConfigRepository
 }
 
 type siteConfigMenusTemplateData struct {
@@ -18,7 +19,7 @@ type siteConfigMenusTemplateData struct {
 	FooterMenu []model.MenuItem
 }
 
-func NewSiteConfigMenusHandler(siteConfigRepo repository.SiteConfigRepository) *SiteConfigMenusHandler {
+func NewSiteConfigMenusHandler(siteConfigRepo repository.ConfigRepository) *SiteConfigMenusHandler {
 	return &SiteConfigMenusHandler{
 		siteConfigRepo: siteConfigRepo,
 	}
@@ -27,22 +28,26 @@ func NewSiteConfigMenusHandler(siteConfigRepo repository.SiteConfigRepository) *
 func (h *SiteConfigMenusHandler) HandleGet(c *fiber.Ctx) error {
 	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
 
-	config, err := h.siteConfigRepo.Get()
+	siteConfig := model.SiteConfig{}
+	err := h.siteConfigRepo.Get(config.SITE_CONFIG, &siteConfig)
+
 	if err != nil {
 		return err
 	}
 
 	return render.RenderTemplateWithBase(
-		c, getConfig(h.siteConfigRepo), "views/site_config_menus", siteConfigMenusTemplateData{
-			HeaderMenu: config.HeaderMenu,
-			FooterMenu: config.FooterMenu,
+		c, getSiteConfig(h.siteConfigRepo), "views/site_config_menus", siteConfigMenusTemplateData{
+			HeaderMenu: siteConfig.HeaderMenu,
+			FooterMenu: siteConfig.FooterMenu,
 		})
 }
 
 func (h *SiteConfigMenusHandler) HandleCreate(c *fiber.Ctx) error {
 	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
 
-	config, err := h.siteConfigRepo.Get()
+	siteConfig := model.SiteConfig{}
+	err := h.siteConfigRepo.Get(config.SITE_CONFIG, &siteConfig)
+
 	if err != nil {
 		return err
 	}
@@ -55,12 +60,12 @@ func (h *SiteConfigMenusHandler) HandleCreate(c *fiber.Ctx) error {
 	}
 
 	if c.FormValue("menu") == "header" {
-		config.HeaderMenu = append(config.HeaderMenu, menuItem)
+		siteConfig.HeaderMenu = append(siteConfig.HeaderMenu, menuItem)
 	} else if c.FormValue("menu") == "footer" {
-		config.FooterMenu = append(config.FooterMenu, menuItem)
+		siteConfig.FooterMenu = append(siteConfig.FooterMenu, menuItem)
 	}
 
-	err = h.siteConfigRepo.Update(config)
+	err = h.siteConfigRepo.Update(config.SITE_CONFIG, siteConfig)
 	if err != nil {
 		return err
 	}
@@ -71,7 +76,9 @@ func (h *SiteConfigMenusHandler) HandleCreate(c *fiber.Ctx) error {
 func (h *SiteConfigMenusHandler) HandleDelete(c *fiber.Ctx) error {
 	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
 
-	config, err := h.siteConfigRepo.Get()
+	siteConfig := model.SiteConfig{}
+	err := h.siteConfigRepo.Get(config.SITE_CONFIG, &siteConfig)
+
 	if err != nil {
 		return err
 	}
@@ -83,12 +90,12 @@ func (h *SiteConfigMenusHandler) HandleDelete(c *fiber.Ctx) error {
 	}
 
 	if menu == "header" {
-		config.HeaderMenu = append(config.HeaderMenu[:idx], config.HeaderMenu[idx+1:]...)
+		siteConfig.HeaderMenu = append(siteConfig.HeaderMenu[:idx], siteConfig.HeaderMenu[idx+1:]...)
 	} else if menu == "footer" {
-		config.FooterMenu = append(config.FooterMenu[:idx], config.FooterMenu[idx+1:]...)
+		siteConfig.FooterMenu = append(siteConfig.FooterMenu[:idx], siteConfig.FooterMenu[idx+1:]...)
 	}
 
-	err = h.siteConfigRepo.Update(config)
+	err = h.siteConfigRepo.Update(config.SITE_CONFIG, siteConfig)
 	if err != nil {
 		return err
 	}

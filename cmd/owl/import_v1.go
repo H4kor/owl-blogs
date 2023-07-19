@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"owl-blogs/config"
 	"owl-blogs/domain/model"
 	entrytypes "owl-blogs/entry_types"
 	"owl-blogs/importer"
@@ -84,7 +85,11 @@ var importCmd = &cobra.Command{
 			})
 		}
 
-		v2Config, _ := app.SiteConfigRepo.Get()
+		v2Config := &model.SiteConfig{}
+		err = app.SiteConfigRepo.Get(config.SITE_CONFIG, v2Config)
+		if err != nil {
+			panic(err)
+		}
 		v2Config.Title = v1Config.Title
 		v2Config.SubTitle = v1Config.SubTitle
 		v2Config.HeaderColor = v1Config.HeaderColor
@@ -95,7 +100,7 @@ var importCmd = &cobra.Command{
 		v2Config.HeaderMenu = headerMenu
 		v2Config.FooterMenu = footerMenu
 
-		err = app.SiteConfigRepo.Update(v2Config)
+		err = app.SiteConfigRepo.Update(config.SITE_CONFIG, v2Config)
 		if err != nil {
 			panic(err)
 		}
