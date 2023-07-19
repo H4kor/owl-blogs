@@ -1,17 +1,13 @@
 package main
 
 import (
-	web "h4kor/owl-blogs/cmd/owl/web"
+	"owl-blogs/infra"
 
 	"github.com/spf13/cobra"
 )
 
-var port int
-
 func init() {
 	rootCmd.AddCommand(webCmd)
-
-	webCmd.PersistentFlags().IntVar(&port, "port", 8080, "Port to use")
 }
 
 var webCmd = &cobra.Command{
@@ -19,6 +15,7 @@ var webCmd = &cobra.Command{
 	Short: "Start the web server",
 	Long:  `Start the web server`,
 	Run: func(cmd *cobra.Command, args []string) {
-		web.StartServer(repoPath, port)
+		db := infra.NewSqliteDB(DbPath)
+		App(db).Run()
 	},
 }

@@ -1,0 +1,24 @@
+{{define "title"}}Editor List{{end}}
+
+{{define "main"}}
+
+
+<nav>
+    <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/editor">Editor</a></li>
+        <li><a href="/site-config">Site Settings</a></li>
+        <li><a href="/site-config/me">Me Links</a></li>
+        <li><a href="/site-config/lists">Lists</a></li>
+        <li><a href="/site-config/menus">Menus</a></li>
+    </ul>
+</nav>
+
+<h1>Editor List</h1>
+
+<ul>
+{{range .Types}}
+<li><a href="/editor/{{.}}">{{.}}</a></li>
+{{end}}
+
+{{end}}

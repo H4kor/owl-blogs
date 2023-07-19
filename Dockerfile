@@ -1,7 +1,7 @@
 ##
 ## Build Container
 ##
-FROM golang:1.19-alpine as build
+FROM golang:1.20-alpine as build
 
 
 RUN apk add --no-cache git
@@ -21,7 +21,7 @@ RUN go build -o ./out/owl ./cmd/owl
 ##
 ## Run Container
 ##
-FROM alpine:3.9 
+FROM alpine
 RUN apk add ca-certificates
 
 COPY --from=build /tmp/owl/out/ /bin/

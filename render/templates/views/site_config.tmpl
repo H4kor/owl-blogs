@@ -1,0 +1,38 @@
+{{define "title"}}Editor{{end}}
+
+{{define "main"}}
+
+<nav>
+    <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/editor">Editor</a></li>
+        <li><a href="/site-config">Site Settings</a></li>
+        <li><a href="/site-config/me">Me Links</a></li>
+        <li><a href="/site-config/lists">Lists</a></li>
+        <li><a href="/site-config/menus">Menus</a></li>
+    </ul>
+</nav>
+
+<h2>Site Settings</h2>
+
+<form method="post" enctype="multipart/form-data">
+    <label for="Title">Title</label>
+    <input type="text" name="Title" id="Title" value="{{.Title}}"/>
+
+    <label for="SubTitle">SubTitle</label>
+    <input type="text" name="SubTitle" id="SubTitle" value="{{.SubTitle}}"/>
+
+    <label for="HeaderColor">HeaderColor</label>
+    <input type="color" name="HeaderColor" id="HeaderColor" value="{{.HeaderColor}}"/>
+
+    <label for="AuthorName">AuthorName</label>
+    <input type="text" name="AuthorName" id="AuthorName" value="{{.AuthorName}}"/>
+
+    <label for="AvatarUrl">AvatarUrl</label>
+    <input type="text" name="AvatarUrl" id="AvatarUrl" value="{{.AvatarUrl}}"/>
+    
+    <input type="submit" value="Save" />
+</form>
+
+
+{{end}}

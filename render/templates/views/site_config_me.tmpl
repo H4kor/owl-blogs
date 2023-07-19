@@ -1,0 +1,54 @@
+{{define "title"}}Editor{{end}}
+
+{{define "main"}}
+
+<nav>
+    <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/editor">Editor</a></li>
+        <li><a href="/site-config">Site Settings</a></li>
+        <li><a href="/site-config/me">Me Links</a></li>
+        <li><a href="/site-config/lists">Lists</a></li>
+        <li><a href="/site-config/menus">Menus</a></li>
+    </ul>
+</nav>
+
+<h2>Create a Me Link</h2>
+<form action="/site-config/me/create" method="post" enctype="multipart/form-data">
+    <label for="Name">Name</label>
+    <input type="text" name="Name" id="Name"/>
+
+    <label for="Url">URL</label>
+    <input type="text" name="Url" id="Url"/>
+    
+    <input type="submit" value="Create" />
+</form>
+
+<h2>Me Links</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>URL</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{range $i, $a := .}}
+        <tr>
+            <td>{{.Name}}</td>
+            <td>{{.Url}}</td>
+            <td>
+                <form action="/site-config/me/delete" method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="idx" value="{{$i}}"/>
+                    <input type="submit" value="Delete" />
+                </form>
+            </td>
+        </tr>
+        {{end}}
+    </tbody>
+</table>
+
+
+{{end}}
