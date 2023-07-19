@@ -1,6 +1,10 @@
 package entrytypes
 
-import "owl-blogs/domain/model"
+import (
+	"fmt"
+	"owl-blogs/domain/model"
+	"owl-blogs/render"
+)
 
 type Note struct {
 	model.EntryBase
@@ -16,7 +20,11 @@ func (e *Note) Title() string {
 }
 
 func (e *Note) Content() model.EntryContent {
-	return model.EntryContent(e.meta.Content)
+	str, err := render.RenderTemplateToString("entry/Note", e)
+	if err != nil {
+		fmt.Println(err)
+	}
+	return model.EntryContent(str)
 }
 
 func (e *Note) MetaData() interface{} {
