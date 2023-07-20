@@ -48,7 +48,7 @@ func RenderRSSFeed(config model.SiteConfig, entries []model.Entry) (string, erro
 
 	for _, entry := range entries {
 		content := entry.Content()
-		url, _ := url.JoinPath(config.FullUrl, "/posts/", entry.ID())
+		url, _ := url.JoinPath(config.FullUrl, "/posts/", entry.ID(), "/")
 		rss.Channel.Items = append(rss.Channel.Items, RSSItem{
 			Guid:        url,
 			Title:       entry.Title(),
