@@ -4,7 +4,7 @@
 FROM golang:1.20-alpine as build
 
 
-RUN apk add --no-cache git
+RUN apk add --no-cache --update git gcc g++
 
 WORKDIR /tmp/owl
 
@@ -15,7 +15,7 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o ./out/owl ./cmd/owl
+RUN CGO_ENABLED=1 GOOS=linux go build -o ./out/owl ./cmd/owl
 
 
 ##
@@ -27,7 +27,9 @@ RUN apk add ca-certificates
 COPY --from=build /tmp/owl/out/ /bin/
 
 # This container exposes port 8080 to the outside world
-EXPOSE 8080
+EXPOSE 3000
+
+WORKDIR /owl
 
 # Run the binary program produced by `go install`
 ENTRYPOINT ["/bin/owl"]

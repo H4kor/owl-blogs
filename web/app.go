@@ -36,7 +36,7 @@ func NewWebApp(
 	listHandler := NewListHandler(entryService, configRepo)
 	entryHandler := NewEntryHandler(entryService, typeRegistry, authorService, configRepo)
 	mediaHandler := NewMediaHandler(binService)
-	rssHandler := NewRSSHandler(entryService)
+	rssHandler := NewRSSHandler(entryService, configRepo)
 	loginHandler := NewLoginHandler(authorService, configRepo)
 	editorListHandler := NewEditorListHandler(typeRegistry, configRepo)
 	editorHandler := NewEditorHandler(entryService, typeRegistry, binService, configRepo)
