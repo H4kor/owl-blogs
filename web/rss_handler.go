@@ -19,19 +19,24 @@ type RSS struct {
 	Channel RSSChannel `xml:"channel"`
 }
 
+type RSSDescription struct {
+	XMLName xml.Name `xml:"description"`
+	Text    string   `xml:",cdata"`
+}
+
 type RSSChannel struct {
-	Title       string    `xml:"title"`
-	Link        string    `xml:"link"`
-	Description string    `xml:"description"`
-	Items       []RSSItem `xml:"item"`
+	Title       string         `xml:"title"`
+	Link        string         `xml:"link"`
+	Description RSSDescription `xml:"description"`
+	Items       []RSSItem      `xml:"item"`
 }
 
 type RSSItem struct {
-	Guid        string `xml:"guid"`
-	Title       string `xml:"title"`
-	Link        string `xml:"link"`
-	PubDate     string `xml:"pubDate"`
-	Description string `xml:"description"`
+	Guid        string         `xml:"guid"`
+	Title       string         `xml:"title"`
+	Link        string         `xml:"link"`
+	PubDate     string         `xml:"pubDate"`
+	Description RSSDescription `xml:"description"`
 }
 
 func RenderRSSFeed(config model.SiteConfig, entries []model.Entry) (string, error) {
@@ -39,27 +44,34 @@ func RenderRSSFeed(config model.SiteConfig, entries []model.Entry) (string, erro
 	rss := RSS{
 		Version: "2.0",
 		Channel: RSSChannel{
-			Title:       config.Title,
-			Link:        config.FullUrl,
-			Description: config.SubTitle,
-			Items:       make([]RSSItem, 0),
+			Title: config.Title,
+			Link:  config.FullUrl,
+			Description: RSSDescription{
+				Text: config.SubTitle,
+			},
+			Items: make([]RSSItem, 0),
 		},
 	}
 
 	for _, entry := range entries {
 		content := entry.Content()
-		url, _ := url.JoinPath(config.FullUrl, "/posts/", entry.ID(), "/")
+		entryUrl, _ := url.JoinPath(config.FullUrl, "/posts/", url.PathEscape(entry.ID()), "/")
+
 		rss.Channel.Items = append(rss.Channel.Items, RSSItem{
-			Guid:        url,
-			Title:       entry.Title(),
-			Link:        url,
-			PubDate:     entry.PublishedAt().Format(time.RFC1123Z),
-			Description: string(content),
+			Guid:    entryUrl,
+			Title:   entry.Title(),
+			Link:    entryUrl,
+			PubDate: entry.PublishedAt().Format(time.RFC1123Z),
+			Description: RSSDescription{
+				Text: string(content),
+			},
 		})
 	}
 
 	buf := new(bytes.Buffer)
-	err := xml.NewEncoder(buf).Encode(rss)
+	encoder := xml.NewEncoder(buf)
+	encoder.Indent("", "  ")
+	err := encoder.Encode(rss)
 	if err != nil {
 		return "", err
 	}
