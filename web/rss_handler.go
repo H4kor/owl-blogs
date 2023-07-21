@@ -16,6 +16,7 @@ import (
 type RSS struct {
 	XMLName xml.Name   `xml:"rss"`
 	Version string     `xml:"version,attr"`
+	Atom    string     `xml:"xmlns:atom,attr"`
 	Channel RSSChannel `xml:"channel"`
 }
 
@@ -24,9 +25,17 @@ type RSSDescription struct {
 	Text    string   `xml:",cdata"`
 }
 
+type AtomLink struct {
+	Href  string `xml:"href,attr"`
+	Rel   string `xml:"rel,attr,omitempty"`
+	Type  string `xml:"type,attr,omitempty"`
+	Title string `xml:"title,attr,omitempty"`
+}
+
 type RSSChannel struct {
 	Title       string         `xml:"title"`
 	Link        string         `xml:"link"`
+	AtomLinks   []AtomLink     `xml:"atom:link"`
 	Description RSSDescription `xml:"description"`
 	Items       []RSSItem      `xml:"item"`
 }
@@ -43,9 +52,17 @@ func RenderRSSFeed(config model.SiteConfig, entries []model.Entry) (string, erro
 
 	rss := RSS{
 		Version: "2.0",
+		Atom:    "http://www.w3.org/2005/Atom",
 		Channel: RSSChannel{
 			Title: config.Title,
 			Link:  config.FullUrl,
+			AtomLinks: []AtomLink{
+				{
+					Href: config.FullUrl + "/index.xml",
+					Rel:  "self",
+					Type: "application/rss+xml",
+				},
+			},
 			Description: RSSDescription{
 				Text: config.SubTitle,
 			},
