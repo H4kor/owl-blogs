@@ -37,6 +37,9 @@ type RSSChannel struct {
 	Link        string         `xml:"link"`
 	AtomLinks   []AtomLink     `xml:"atom:link"`
 	Description RSSDescription `xml:"description"`
+	PubDate     string         `xml:"pubDate"`
+	LastBuild   string         `xml:"lastBuildDate"`
+	Generator   string         `xml:"generator"`
 	Items       []RSSItem      `xml:"item"`
 }
 
@@ -66,7 +69,10 @@ func RenderRSSFeed(config model.SiteConfig, entries []model.Entry) (string, erro
 			Description: RSSDescription{
 				Text: config.SubTitle,
 			},
-			Items: make([]RSSItem, 0),
+			PubDate:   time.Now().Format(time.RFC1123Z),
+			LastBuild: time.Now().Format(time.RFC1123Z),
+			Generator: "owl-blogs",
+			Items:     make([]RSSItem, 0),
 		},
 	}
 
