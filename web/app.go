@@ -29,6 +29,7 @@ func NewWebApp(
 	binService *app.BinaryService,
 	authorService *app.AuthorService,
 	configRepo repository.ConfigRepository,
+	configRegister *app.ConfigRegister,
 ) *WebApp {
 	app := fiber.New()
 
@@ -44,6 +45,14 @@ func NewWebApp(
 	// Login
 	app.Get("/auth/login", loginHandler.HandleGet)
 	app.Post("/auth/login", loginHandler.HandlePost)
+
+	// admin
+	adminHandler := NewAdminHandler(configRepo, configRegister)
+	admin := app.Group("/admin")
+	admin.Use(middleware.NewAuthMiddleware(authorService).Handle)
+	admin.Get("/", adminHandler.Handle)
+	admin.Get("/config/:config/", adminHandler.HandleConfigGet)
+	admin.Post("/config/:config/", adminHandler.HandleConfigPost)
 
 	// Editor
 	editor := app.Group("/editor")
@@ -92,6 +101,7 @@ func NewWebApp(
 
 	// ActivityPub
 	// activityPubServer := NewActivityPubServer(configRepo)
+	configRegister.Register(ACT_PUB_CONF_NAME, &ActivityPubConfig{})
 	// app.Get("/.well-known/webfinger", activityPubServer.HandleWebfinger)
 	// app.Route("/activitypub", activityPubServer.Router)
 

@@ -44,7 +44,12 @@ func App(db infra.Database) *web.WebApp {
 	binaryService := app.NewBinaryFileService(binRepo)
 	authorService := app.NewAuthorService(authorRepo, siteConfigRepo)
 
-	return web.NewWebApp(entryService, registry, binaryService, authorService, siteConfigRepo)
+	configRegister := app.NewConfigRegister()
+
+	return web.NewWebApp(
+		entryService, registry, binaryService,
+		authorService, siteConfigRepo, configRegister,
+	)
 
 }
 

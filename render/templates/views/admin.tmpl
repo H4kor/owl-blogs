@@ -1,0 +1,9 @@
+{{define "title"}}Admin{{end}}
+
+{{define "main"}}
+<ul>
+    {{ range . }}
+        <li><a href="/admin/config/{{.Name}}">{{.Name}}</a></li>
+    {{ end }}
+</ul>
+{{end}}
