@@ -89,6 +89,12 @@ func NewWebApp(
 	app.Get("/index.xml", rssHandler.Handle)
 	// Posts
 	app.Get("/posts/:post/", entryHandler.Handle)
+
+	// ActivityPub
+	// activityPubServer := NewActivityPubServer(configRepo)
+	// app.Get("/.well-known/webfinger", activityPubServer.HandleWebfinger)
+	// app.Route("/activitypub", activityPubServer.Router)
+
 	// Webmention
 	// app.Post("/webmention/", userWebmentionHandler(repo))
 	// Micropub
