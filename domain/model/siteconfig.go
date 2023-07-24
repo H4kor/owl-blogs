@@ -32,4 +32,6 @@ type SiteConfig struct {
 	Secret             string
 	AvatarUrl          string
 	FullUrl            string
+	HtmlHeadExtra      string
+	FooterExtra        string
 }

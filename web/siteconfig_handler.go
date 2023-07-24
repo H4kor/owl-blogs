@@ -47,6 +47,8 @@ func (h *SiteConfigHandler) HandlePost(c *fiber.Ctx) error {
 	siteConfig.AuthorName = c.FormValue("AuthorName")
 	siteConfig.AvatarUrl = c.FormValue("AvatarUrl")
 	siteConfig.FullUrl = c.FormValue("FullUrl")
+	siteConfig.HtmlHeadExtra = c.FormValue("HtmlHeadExtra")
+	siteConfig.FooterExtra = c.FormValue("FooterExtra")
 
 	err = h.siteConfigRepo.Update(config.SITE_CONFIG, siteConfig)
 	if err != nil {

@@ -60,7 +60,8 @@
                 object-fit: cover;
             }
 
-        </style>        
+        </style>
+        {{ .SiteConfig.HtmlHeadExtra }}
     </head>
     <body>
         <header>
@@ -115,6 +116,7 @@
                     {{ end }}
                 </ul>
             </nav>
+            {{ .SiteConfig.FooterExtra}}
         </footer>
     </body>
 </html>
