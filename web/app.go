@@ -36,6 +36,7 @@ func NewWebApp(
 	configRegister *app.ConfigRegister,
 ) *WebApp {
 	app := fiber.New()
+	app.Use(middleware.NewUserMiddleware(authorService).Handle)
 
 	indexHandler := NewIndexHandler(entryService, configRepo)
 	listHandler := NewListHandler(entryService, configRepo)
@@ -62,8 +63,10 @@ func NewWebApp(
 	editor := app.Group("/editor")
 	editor.Use(middleware.NewAuthMiddleware(authorService).Handle)
 	editor.Get("/", editorListHandler.Handle)
-	editor.Get("/:editor/", editorHandler.HandleGet)
-	editor.Post("/:editor/", editorHandler.HandlePost)
+	editor.Get("/new/:editor/", editorHandler.HandleGetNew)
+	editor.Post("/new/:editor/", editorHandler.HandlePostNew)
+	editor.Get("/edit/:id/", editorHandler.HandleGetEdit)
+	editor.Post("/edit/:id/", editorHandler.HandlePostEdit)
 
 	// SiteConfig
 	siteConfig := app.Group("/site-config")

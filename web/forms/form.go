@@ -135,6 +135,14 @@ func (s *Form) Parse(ctx HttpFormData) (interface{}, error) {
 		if field.Params.InputType == "file" {
 			file, err := ctx.FormFile(fieldName)
 			if err != nil {
+				// If field already has a value, we can ignore the error
+				if field.Value != "" {
+					metaField := dataVal.Elem().FieldByName(fieldName)
+					if metaField.IsValid() {
+						metaField.SetString(field.Value)
+					}
+					continue
+				}
 				return nil, err
 			}
 			fileData, err := file.Open()

@@ -17,8 +17,9 @@ type EntryHandler struct {
 }
 
 type entryData struct {
-	Entry  model.Entry
-	Author *model.Author
+	Entry    model.Entry
+	Author   *model.Author
+	LoggedIn bool
 }
 
 func NewEntryHandler(
@@ -49,5 +50,14 @@ func (h *EntryHandler) Handle(c *fiber.Ctx) error {
 		author = &model.Author{}
 	}
 
-	return render.RenderTemplateWithBase(c, getSiteConfig(h.configRepo), "views/entry", entryData{Entry: entry, Author: author})
+	return render.RenderTemplateWithBase(
+		c,
+		getSiteConfig(h.configRepo),
+		"views/entry",
+		entryData{
+			Entry:    entry,
+			Author:   author,
+			LoggedIn: c.Locals("author") != nil,
+		},
+	)
 }

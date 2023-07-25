@@ -5,7 +5,7 @@ import (
 	"owl-blogs/app/repository"
 	"owl-blogs/domain/model"
 	"owl-blogs/render"
-	"owl-blogs/web/editor"
+	"owl-blogs/web/forms"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -41,7 +41,7 @@ func (h *EditorHandler) paramToEntry(c *fiber.Ctx) (model.Entry, error) {
 	return entryType, nil
 }
 
-func (h *EditorHandler) HandleGet(c *fiber.Ctx) error {
+func (h *EditorHandler) HandleGetNew(c *fiber.Ctx) error {
 	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
 
 	entryType, err := h.paramToEntry(c)
@@ -49,7 +49,7 @@ func (h *EditorHandler) HandleGet(c *fiber.Ctx) error {
 		return err
 	}
 
-	form := editor.NewEntryForm(entryType, h.binSvc)
+	form := forms.NewForm(entryType.MetaData(), h.binSvc)
 	htmlForm, err := form.HtmlForm()
 	if err != nil {
 		return err
@@ -57,23 +57,24 @@ func (h *EditorHandler) HandleGet(c *fiber.Ctx) error {
 	return render.RenderTemplateWithBase(c, getSiteConfig(h.configRepo), "views/editor", htmlForm)
 }
 
-func (h *EditorHandler) HandlePost(c *fiber.Ctx) error {
+func (h *EditorHandler) HandlePostNew(c *fiber.Ctx) error {
 	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
 
-	entryType, err := h.paramToEntry(c)
+	entry, err := h.paramToEntry(c)
 	if err != nil {
 		return err
 	}
 
-	form := editor.NewEntryForm(entryType, h.binSvc)
+	form := forms.NewForm(entry.MetaData(), h.binSvc)
 	// get form data
-	entry, err := form.Parse(c)
+	entryMeta, err := form.Parse(c)
 	if err != nil {
 		return err
 	}
 
 	// create entry
 	now := time.Now()
+	entry.SetMetaData(entryMeta)
 	entry.SetPublishedAt(&now)
 	entry.SetAuthorId(c.Locals("author").(string))
 
@@ -83,4 +84,46 @@ func (h *EditorHandler) HandlePost(c *fiber.Ctx) error {
 	}
 	return c.Redirect("/posts/" + entry.ID() + "/")
 
+}
+
+func (h *EditorHandler) HandleGetEdit(c *fiber.Ctx) error {
+	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
+
+	id := c.Params("id")
+	entry, err := h.entrySvc.FindById(id)
+	if err != nil {
+		return err
+	}
+
+	form := forms.NewForm(entry.MetaData(), h.binSvc)
+	htmlForm, err := form.HtmlForm()
+	if err != nil {
+		return err
+	}
+	return render.RenderTemplateWithBase(c, getSiteConfig(h.configRepo), "views/editor", htmlForm)
+}
+
+func (h *EditorHandler) HandlePostEdit(c *fiber.Ctx) error {
+	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
+
+	id := c.Params("id")
+	entry, err := h.entrySvc.FindById(id)
+	if err != nil {
+		return err
+	}
+
+	form := forms.NewForm(entry.MetaData(), h.binSvc)
+	// get form data
+	meta, err := form.Parse(c)
+	if err != nil {
+		return err
+	}
+
+	// update entry
+	entry.SetMetaData(meta)
+	err = h.entrySvc.Update(entry)
+	if err != nil {
+		return err
+	}
+	return c.Redirect("/posts/" + entry.ID() + "/")
 }

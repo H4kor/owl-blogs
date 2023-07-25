@@ -1,4 +1,4 @@
-package editor_test
+package forms_test
 
 import (
 	"bytes"
@@ -6,10 +6,9 @@ import (
 	"mime/multipart"
 	"os"
 	"owl-blogs/app"
-	"owl-blogs/domain/model"
 	"owl-blogs/infra"
 	"owl-blogs/test"
-	"owl-blogs/web/editor"
+	"owl-blogs/web/forms"
 	"path"
 	"path/filepath"
 	"reflect"
@@ -18,7 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type MockEntryMetaData struct {
+type MockData struct {
 	Image   string `owl:"inputType=file"`
 	Content string `owl:"inputType=text"`
 }
@@ -65,37 +64,16 @@ func (f *MockFormData) FormValue(key string, defaultValue ...string) string {
 	return key
 }
 
-type MockEntry struct {
-	model.EntryBase
-	metaData MockEntryMetaData
-}
-
-func (e *MockEntry) Content() model.EntryContent {
-	return model.EntryContent(e.metaData.Content)
-}
-
-func (e *MockEntry) MetaData() interface{} {
-	return &e.metaData
-}
-
-func (e *MockEntry) SetMetaData(metaData interface{}) {
-	e.metaData = *metaData.(*MockEntryMetaData)
-}
-
-func (e *MockEntry) Title() string {
-	return ""
-}
-
 func TestFieldToFormField(t *testing.T) {
-	field := reflect.TypeOf(&MockEntryMetaData{}).Elem().Field(0)
-	formField, err := editor.FieldToFormField(field)
+	field := reflect.TypeOf(&MockData{}).Elem().Field(0)
+	formField, err := forms.FieldToFormField(field, "")
 	require.NoError(t, err)
 	require.Equal(t, "Image", formField.Name)
 	require.Equal(t, "file", formField.Params.InputType)
 }
 
 func TestStructToFields(t *testing.T) {
-	fields, err := editor.StructToFormFields(&MockEntryMetaData{})
+	fields, err := forms.StructToFormFields(&MockData{})
 	require.NoError(t, err)
 	require.Len(t, fields, 2)
 	require.Equal(t, "Image", fields[0].Name)
@@ -104,8 +82,8 @@ func TestStructToFields(t *testing.T) {
 	require.Equal(t, "text", fields[1].Params.InputType)
 }
 
-func TestEditorEntryForm_HtmlForm(t *testing.T) {
-	form := editor.NewEntryForm(&MockEntry{}, nil)
+func TestForm_HtmlForm(t *testing.T) {
+	form := forms.NewForm(&MockData{}, nil)
 	html, err := form.HtmlForm()
 	require.NoError(t, err)
 	require.Contains(t, html, "<form")
@@ -117,7 +95,7 @@ func TestEditorEntryForm_HtmlForm(t *testing.T) {
 }
 
 func TestFormParseNil(t *testing.T) {
-	form := editor.NewEntryForm(&MockEntry{}, nil)
+	form := forms.NewForm(&MockData{}, nil)
 	_, err := form.Parse(nil)
 	require.Error(t, err)
 }
@@ -125,9 +103,9 @@ func TestFormParseNil(t *testing.T) {
 func TestFormParse(t *testing.T) {
 	binRepo := infra.NewBinaryFileRepo(test.NewMockDb())
 	binService := app.NewBinaryFileService(binRepo)
-	form := editor.NewEntryForm(&MockEntry{}, binService)
-	entry, err := form.Parse(NewMockFormData())
+	form := forms.NewForm(&MockData{}, binService)
+	data, err := form.Parse(NewMockFormData())
 	require.NoError(t, err)
-	require.NotZero(t, entry.MetaData().(*MockEntryMetaData).Image)
-	require.Equal(t, "Content", entry.MetaData().(*MockEntryMetaData).Content)
+	require.NotZero(t, data.(*MockData).Image)
+	require.Equal(t, "Content", data.(*MockData).Content)
 }

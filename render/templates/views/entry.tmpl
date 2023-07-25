@@ -29,6 +29,13 @@
 
 </div>
 
+{{ if .LoggedIn }}
+<br>
+<br>
+<br>
+<a href="/editor/edit/{{.Entry.ID}}/" role="button" class="secondary outline">Edit</a>
+{{ end }}
+
     
 {{end}}
 
