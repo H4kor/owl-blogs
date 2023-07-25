@@ -23,6 +23,7 @@ func (h *MediaHandler) Handle(c *fiber.Ctx) error {
 		return err
 	}
 	binary, err := h.binaryService.FindById(id)
+	c.Set("Content-Type", binary.Mime())
 	if err != nil {
 		return err
 	}
