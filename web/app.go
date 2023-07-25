@@ -98,6 +98,11 @@ func NewWebApp(
 	app.Get("/index.xml", rssHandler.Handle)
 	// Posts
 	app.Get("/posts/:post/", entryHandler.Handle)
+	// robots.txt
+	app.Get("/robots.txt", func(c *fiber.Ctx) error {
+		c.Set("Content-Type", "text/plain")
+		return c.SendString("User-agent: *\nAllow: /\n")
+	})
 
 	// ActivityPub
 	// activityPubServer := NewActivityPubServer(configRepo)
