@@ -2,9 +2,13 @@ package web
 
 import (
 	"embed"
+	"fmt"
 	"net/http"
+	"net/url"
 	"owl-blogs/app"
 	"owl-blogs/app/repository"
+	"owl-blogs/config"
+	"owl-blogs/domain/model"
 	"owl-blogs/web/middleware"
 
 	"github.com/gofiber/fiber/v2"
@@ -100,9 +104,14 @@ func NewWebApp(
 	app.Get("/posts/:post/", entryHandler.Handle)
 	// robots.txt
 	app.Get("/robots.txt", func(c *fiber.Ctx) error {
+		siteConfig := model.SiteConfig{}
+		configRepo.Get(config.SITE_CONFIG, &siteConfig)
+		sitemapUrl, _ := url.JoinPath(siteConfig.FullUrl, "/sitemap.xml")
 		c.Set("Content-Type", "text/plain")
-		return c.SendString("User-agent: *\nAllow: /\n")
+		return c.SendString(fmt.Sprintf("User-agent: *\nAllow: /\n\nSitemap: %s\n", sitemapUrl))
 	})
+	// sitemap.xml
+	app.Get("/sitemap.xml", NewSiteMapHandler(entryService, configRepo).Handle)
 
 	// ActivityPub
 	// activityPubServer := NewActivityPubServer(configRepo)
