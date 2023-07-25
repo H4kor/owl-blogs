@@ -35,7 +35,22 @@
 <br>
 <br>
 <br>
-<a href="/editor/edit/{{.Entry.ID}}/" role="button" class="secondary outline">Edit</a>
+<h3>Actions</h3>
+<div class="grid">
+    <a href="/editor/edit/{{.Entry.ID}}/" role="button" class="secondary outline">Edit</a>
+</div>
+<br>
+<hr>
+<br>
+<form method="post" action="/editor/delete/{{.Entry.ID}}/" class="grid">
+    <label for="confirm">
+        Confirm deletion
+        <input type="checkbox" name="confirm" id="confirm" required />
+    </label>
+    <input type="submit" class="secondary outline" value="Delete" />
+</form>
+
+
 {{ end }}
 
     

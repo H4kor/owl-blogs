@@ -127,3 +127,24 @@ func (h *EditorHandler) HandlePostEdit(c *fiber.Ctx) error {
 	}
 	return c.Redirect("/posts/" + entry.ID() + "/")
 }
+
+func (h *EditorHandler) HandlePostDelete(c *fiber.Ctx) error {
+	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
+
+	id := c.Params("id")
+	entry, err := h.entrySvc.FindById(id)
+	if err != nil {
+		return err
+	}
+
+	confirm := c.FormValue("confirm")
+	if confirm != "on" {
+		return c.Redirect("/posts/" + entry.ID() + "/")
+	}
+
+	err = h.entrySvc.Delete(entry)
+	if err != nil {
+		return err
+	}
+	return c.Redirect("/")
+}
