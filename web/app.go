@@ -118,10 +118,10 @@ func NewWebApp(
 	app.Get("/sitemap.xml", NewSiteMapHandler(entryService, configRepo).Handle)
 
 	// ActivityPub
-	// activityPubServer := NewActivityPubServer(configRepo)
+	activityPubServer := NewActivityPubServer(configRepo, entryService)
 	configRegister.Register(ACT_PUB_CONF_NAME, &ActivityPubConfig{})
-	// app.Get("/.well-known/webfinger", activityPubServer.HandleWebfinger)
-	// app.Route("/activitypub", activityPubServer.Router)
+	app.Get("/.well-known/webfinger", activityPubServer.HandleWebfinger)
+	app.Route("/activitypub", activityPubServer.Router)
 
 	// Webmention
 	// app.Post("/webmention/", userWebmentionHandler(repo))
