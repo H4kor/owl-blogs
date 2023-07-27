@@ -99,3 +99,21 @@ func (repo *DefaultBinaryFileRepo) FindByNameForEntry(name string, entry model.E
 	}
 	return &model.BinaryFile{Id: sqlFile.Id, Name: sqlFile.Name, Data: sqlFile.Data}, nil
 }
+
+// ListIds implements repository.BinaryRepository
+func (repo *DefaultBinaryFileRepo) ListIds() ([]string, error) {
+	var ids []string
+	err := repo.db.Select(&ids, "SELECT id FROM binary_files")
+	if err != nil {
+		return nil, err
+	}
+	return ids, nil
+}
+
+// Delete implements repository.BinaryRepository
+func (repo *DefaultBinaryFileRepo) Delete(binary *model.BinaryFile) error {
+	id := binary.Id
+	println("Deleting binary file", id)
+	_, err := repo.db.Exec("DELETE FROM binary_files WHERE id = ?", id)
+	return err
+}

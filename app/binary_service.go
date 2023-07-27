@@ -24,3 +24,11 @@ func (s *BinaryService) CreateEntryFile(name string, file []byte, entry model.En
 func (s *BinaryService) FindById(id string) (*model.BinaryFile, error) {
 	return s.repo.FindById(id)
 }
+
+func (s *BinaryService) ListIds() ([]string, error) {
+	return s.repo.ListIds()
+}
+
+func (s *BinaryService) Delete(binary *model.BinaryFile) error {
+	return s.repo.Delete(binary)
+}

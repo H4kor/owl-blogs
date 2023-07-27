@@ -19,6 +19,8 @@ type BinaryRepository interface {
 	Create(name string, data []byte, entry model.Entry) (*model.BinaryFile, error)
 	FindById(id string) (*model.BinaryFile, error)
 	FindByNameForEntry(name string, entry model.Entry) (*model.BinaryFile, error)
+	ListIds() ([]string, error)
+	Delete(binary *model.BinaryFile) error
 }
 
 type AuthorRepository interface {

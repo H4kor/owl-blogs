@@ -1,0 +1,59 @@
+{{define "title"}}Binaries{{end}}
+
+{{define "main"}}
+
+<h2>Binaries</h2>
+
+<form action="/admin/binaries/new" method="post" enctype="multipart/form-data">
+    <div>
+        <label for="file">File</label>
+        <input type="file" name="file" id="file">
+    </div>
+    <div>
+        <input type="submit" value="Upload">
+    </div>
+</form>
+
+<table role="grid">
+    <thead>
+        <tr>
+            <th scope="col">File</th>
+            <th scope="col">Actions</th>
+        </tr>
+    </thead>
+    {{ range .Binaries }}
+        <tr>
+            <td scope="row">
+                <a href="/media/{{ . }}">{{ . }}</a>
+            </td>
+            <td>
+                <form action="/admin/binaries/delete" method="post">
+                    <input type="hidden" name="file" value="{{ . }}">
+                    <label for="confirm">
+                        <input type="checkbox" name="confirm"> Confirm
+                    </label>
+                    <input style="padding:0;height:2rem;" type="submit" value="Delete">
+                </form>
+            </td>
+        </tr>
+    {{ end }}
+</table>
+
+<hr>
+<nav class="row">
+    {{ if not .FirstPage }}
+        <div>
+            <a href="?page={{ .PrevPage }}">Prev</a>
+        </div>
+    {{ end }}
+    
+    <div>Page {{.Page}}</div>
+
+    {{ if not .LastPage }}
+        <div>
+            <a href="?page={{ .NextPage }}">Next</a>
+        </div>
+    {{ end }}
+</nav>
+
+{{end}}

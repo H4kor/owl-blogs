@@ -52,11 +52,15 @@ func NewWebApp(
 
 	// admin
 	adminHandler := NewAdminHandler(configRepo, configRegister, typeRegistry)
+	binaryManageHandler := NewBinaryManageHandler(configRepo, binService)
 	admin := app.Group("/admin")
 	admin.Use(middleware.NewAuthMiddleware(authorService).Handle)
 	admin.Get("/", adminHandler.Handle)
 	admin.Get("/config/:config/", adminHandler.HandleConfigGet)
 	admin.Post("/config/:config/", adminHandler.HandleConfigPost)
+	admin.Get("/binaries/", binaryManageHandler.Handle)
+	admin.Post("/binaries/new/", binaryManageHandler.HandleUpload)
+	admin.Post("/binaries/delete", binaryManageHandler.HandleDelete)
 
 	// Editor
 	editor := app.Group("/editor")
