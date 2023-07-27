@@ -44,7 +44,6 @@ func NewWebApp(
 	mediaHandler := NewMediaHandler(binService)
 	rssHandler := NewRSSHandler(entryService, configRepo)
 	loginHandler := NewLoginHandler(authorService, configRepo)
-	editorListHandler := NewEditorListHandler(typeRegistry, configRepo)
 	editorHandler := NewEditorHandler(entryService, typeRegistry, binService, configRepo)
 
 	// Login
@@ -52,7 +51,7 @@ func NewWebApp(
 	app.Post("/auth/login", loginHandler.HandlePost)
 
 	// admin
-	adminHandler := NewAdminHandler(configRepo, configRegister)
+	adminHandler := NewAdminHandler(configRepo, configRegister, typeRegistry)
 	admin := app.Group("/admin")
 	admin.Use(middleware.NewAuthMiddleware(authorService).Handle)
 	admin.Get("/", adminHandler.Handle)
@@ -62,7 +61,6 @@ func NewWebApp(
 	// Editor
 	editor := app.Group("/editor")
 	editor.Use(middleware.NewAuthMiddleware(authorService).Handle)
-	editor.Get("/", editorListHandler.Handle)
 	editor.Get("/new/:editor/", editorHandler.HandleGetNew)
 	editor.Post("/new/:editor/", editorHandler.HandlePostNew)
 	editor.Get("/edit/:id/", editorHandler.HandleGetEdit)

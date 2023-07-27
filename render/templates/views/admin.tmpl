@@ -1,9 +1,25 @@
 {{define "title"}}Admin{{end}}
 
 {{define "main"}}
+<h2>Write</h2>
+
 <ul>
-    {{ range . }}
-        <li><a href="/admin/config/{{.Name}}">{{.Name}}</a></li>
-    {{ end }}
+    {{range .Types}}
+    <li><a href="/editor/new/{{.}}/">{{.}}</a></li>
+    {{end}}
+</ul>
+
+<h2>Configurations</h2>
+<ul>
+    <li><a href="/site-config">Site Settings</a></li>
+    <li><a href="/site-config/me">Me Links</a></li>
+    <li><a href="/site-config/lists">Lists</a></li>
+    <li><a href="/site-config/menus">Menus</a></li>
+    <li>Modules</li>
+    <ul>
+        {{ range .Configs }}
+            <li><a href="/admin/config/{{.Name}}">{{.Name}}</a></li>
+        {{ end }}
+    </ul>
 </ul>
 {{end}}
