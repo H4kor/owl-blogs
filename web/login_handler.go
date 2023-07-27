@@ -52,6 +52,6 @@ func (h *LoginHandler) HandlePost(c *fiber.Ctx) error {
 	}
 	c.Cookie(&cookie)
 
-	return c.Redirect("/editor/")
+	return c.Redirect("/admin/")
 
 }
