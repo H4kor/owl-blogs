@@ -70,6 +70,7 @@ func NewWebApp(
 	editor.Get("/edit/:id/", editorHandler.HandleGetEdit)
 	editor.Post("/edit/:id/", editorHandler.HandlePostEdit)
 	editor.Post("/delete/:id/", editorHandler.HandlePostDelete)
+	editor.Post("/unpublish/:id/", editorHandler.HandlePostUnpublish)
 
 	// SiteConfig
 	siteConfig := app.Group("/site-config")

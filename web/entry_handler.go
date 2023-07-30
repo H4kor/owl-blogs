@@ -45,6 +45,10 @@ func (h *EntryHandler) Handle(c *fiber.Ctx) error {
 		return err
 	}
 
+	if entry.PublishedAt() == nil || entry.PublishedAt().IsZero() {
+		return fiber.NewError(fiber.StatusNotFound, "Entry not found")
+	}
+
 	author, err := h.authorSvc.FindByName(entry.AuthorId())
 	if err != nil {
 		author = &model.Author{}

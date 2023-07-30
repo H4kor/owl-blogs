@@ -148,3 +148,19 @@ func (h *EditorHandler) HandlePostDelete(c *fiber.Ctx) error {
 	}
 	return c.Redirect("/")
 }
+
+func (h *EditorHandler) HandlePostUnpublish(c *fiber.Ctx) error {
+	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
+
+	id := c.Params("id")
+	entry, err := h.entrySvc.FindById(id)
+	if err != nil {
+		return err
+	}
+	entry.SetPublishedAt(nil)
+	err = h.entrySvc.Update(entry)
+	if err != nil {
+		return err
+	}
+	return c.Redirect("/posts/" + entry.ID() + "/")
+}

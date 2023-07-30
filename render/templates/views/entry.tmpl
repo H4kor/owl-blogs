@@ -42,6 +42,16 @@
 <br>
 <hr>
 <br>
+<form method="post" action="/editor/unpublish/{{.Entry.ID}}/" class="grid">
+    <label for="confirm">
+        Confirm unpublishing
+        <input type="checkbox" name="confirm" id="confirm" required />
+    </label>
+    <input type="submit" class="secondary outline" value="Unpublish" />
+</form>
+<br>
+<hr>
+<br>
 <form method="post" action="/editor/delete/{{.Entry.ID}}/" class="grid">
     <label for="confirm">
         Confirm deletion
