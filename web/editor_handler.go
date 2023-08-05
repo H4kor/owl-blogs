@@ -127,8 +127,10 @@ func (h *EditorHandler) HandlePostEdit(c *fiber.Ctx) error {
 	published := c.FormValue("action") == "Publish"
 	if !published {
 		entry.SetPublishedAt(nil)
+	} else if entry.PublishedAt() == nil || entry.PublishedAt().IsZero() {
+		now := time.Now()
+		entry.SetPublishedAt(&now)
 	}
-
 	// update entry
 	entry.SetMetaData(meta)
 	err = h.entrySvc.Update(entry)
