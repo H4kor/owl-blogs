@@ -39,14 +39,18 @@ func NewEntryHandler(
 func (h *EntryHandler) Handle(c *fiber.Ctx) error {
 	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
 
+	loggedIn := c.Locals("author") != nil
+
 	entryId := c.Params("post")
 	entry, err := h.entrySvc.FindById(entryId)
 	if err != nil {
 		return err
 	}
 
-	if entry.PublishedAt() == nil || entry.PublishedAt().IsZero() {
-		return fiber.NewError(fiber.StatusNotFound, "Entry not found")
+	if !loggedIn {
+		if entry.PublishedAt() == nil || entry.PublishedAt().IsZero() {
+			return fiber.NewError(fiber.StatusNotFound, "Entry not found")
+		}
 	}
 
 	author, err := h.authorSvc.FindByName(entry.AuthorId())
@@ -61,7 +65,7 @@ func (h *EntryHandler) Handle(c *fiber.Ctx) error {
 		entryData{
 			Entry:    entry,
 			Author:   author,
-			LoggedIn: c.Locals("author") != nil,
+			LoggedIn: loggedIn,
 		},
 	)
 }

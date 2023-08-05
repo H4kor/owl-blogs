@@ -2,6 +2,14 @@
 
 {{define "main"}}
 
+{{ if not .Entry.PublishedAt }}
+    <mark>
+        This entry is a draft. It is only visible to logged in authors.
+    </mark>
+    <br>
+    <br>
+{{ end }}
+
 <div class="h-entry">
     <hgroup>
         {{if .Entry.Title}}

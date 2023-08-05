@@ -6,6 +6,13 @@
 <br>
 <br>
 
+<form method="POST" enctype="multipart/form-data">
 {{.}}
+
+<div class="grid">
+    <input type="submit" name="action" value="Publish" />
+    <input class="secondary" type="submit" name="action" value="Save as Draft" />
+</div>
+</form>
 
 {{end}}

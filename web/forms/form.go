@@ -107,12 +107,10 @@ func (s *Form) HtmlForm() (string, error) {
 		return "", err
 	}
 
-	html := "<form method=\"POST\" enctype=\"multipart/form-data\">\n"
+	html := ""
 	for _, field := range fields {
 		html += field.Html()
 	}
-	html += "<input type=\"submit\" value=\"Submit\" />\n"
-	html += "</form>\n"
 
 	return html, nil
 }

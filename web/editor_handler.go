@@ -75,7 +75,12 @@ func (h *EditorHandler) HandlePostNew(c *fiber.Ctx) error {
 	// create entry
 	now := time.Now()
 	entry.SetMetaData(entryMeta)
-	entry.SetPublishedAt(&now)
+	published := c.FormValue("action") == "Publish"
+	if published {
+		entry.SetPublishedAt(&now)
+	} else {
+		entry.SetPublishedAt(nil)
+	}
 	entry.SetAuthorId(c.Locals("author").(string))
 
 	err = h.entrySvc.Create(entry)
@@ -117,6 +122,11 @@ func (h *EditorHandler) HandlePostEdit(c *fiber.Ctx) error {
 	meta, err := form.Parse(c)
 	if err != nil {
 		return err
+	}
+
+	published := c.FormValue("action") == "Publish"
+	if !published {
+		entry.SetPublishedAt(nil)
 	}
 
 	// update entry
