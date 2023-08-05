@@ -15,7 +15,7 @@ type RecipeMetaData struct {
 	Title       string   `owl:"inputType=text"`
 	Yield       string   `owl:"inputType=text"`
 	Duration    string   `owl:"inputType=text"`
-	Ingredients []string `owl:"inputType=text widget=textarea"`
+	Ingredients []string `owl:"inputType=text widget=textlist"`
 	Content     string   `owl:"inputType=text widget=textarea"`
 }
 

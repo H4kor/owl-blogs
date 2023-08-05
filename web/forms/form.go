@@ -32,7 +32,7 @@ type FormFieldParams struct {
 
 type FormField struct {
 	Name   string
-	Value  string
+	Value  reflect.Value
 	Params FormFieldParams
 }
 
@@ -55,18 +55,30 @@ func (s *FormFieldParams) ApplyTag(tagKey string, tagValue string) error {
 	return nil
 }
 
+func (s *FormField) ToWidget() Widget {
+	switch s.Params.Widget {
+	case "textarea":
+		return &TextareaWidget{*s}
+	case "textlist":
+		return &TextListWidget{*s}
+	default:
+		return &TextWidget{*s}
+	}
+}
+
 func (s *FormField) Html() string {
 	html := ""
 	html += fmt.Sprintf("<label for=\"%v\">%v</label>\n", s.Name, s.Name)
-	if s.Params.InputType == "text" && s.Params.Widget == "textarea" {
-		html += fmt.Sprintf("<textarea name=\"%v\" id=\"%v\" rows=\"20\">%v</textarea>\n", s.Name, s.Name, s.Value)
-	} else {
+	if s.Params.InputType == "file" {
 		html += fmt.Sprintf("<input type=\"%v\" name=\"%v\" id=\"%v\" value=\"%v\" />\n", s.Params.InputType, s.Name, s.Name, s.Value)
+	} else {
+		html += s.ToWidget().Html()
+		html += "\n"
 	}
 	return html
 }
 
-func FieldToFormField(field reflect.StructField, value string) (FormField, error) {
+func FieldToFormField(field reflect.StructField, value reflect.Value) (FormField, error) {
 	formField := FormField{
 		Name:   field.Name,
 		Value:  value,
@@ -92,7 +104,10 @@ func StructToFormFields(data interface{}) ([]FormField, error) {
 	numFields := dataType.NumField()
 	fields := []FormField{}
 	for i := 0; i < numFields; i++ {
-		field, err := FieldToFormField(dataType.Field(i), dataValue.FieldByIndex([]int{i}).String())
+		field, err := FieldToFormField(
+			dataType.Field(i),
+			dataValue.FieldByIndex([]int{i}),
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -134,10 +149,10 @@ func (s *Form) Parse(ctx HttpFormData) (interface{}, error) {
 			file, err := ctx.FormFile(fieldName)
 			if err != nil {
 				// If field already has a value, we can ignore the error
-				if field.Value != "" {
+				if field.Value != reflect.Zero(field.Value.Type()) {
 					metaField := dataVal.Elem().FieldByName(fieldName)
 					if metaField.IsValid() {
-						metaField.SetString(field.Value)
+						metaField.SetString(field.Value.String())
 					}
 					continue
 				}
@@ -167,7 +182,7 @@ func (s *Form) Parse(ctx HttpFormData) (interface{}, error) {
 			formValue := ctx.FormValue(fieldName)
 			metaField := dataVal.Elem().FieldByName(fieldName)
 			if metaField.IsValid() {
-				metaField.SetString(formValue)
+				field.ToWidget().ParseValue(formValue, metaField)
 			}
 		}
 

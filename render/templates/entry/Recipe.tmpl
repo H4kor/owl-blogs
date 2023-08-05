@@ -1,0 +1,27 @@
+<small>
+    {{ if .MetaData.Yield }}
+    Servings: <span class="p-yield">{{ .MetaData.Yield }}</span>
+    {{ if .MetaData.Duration }}, {{end}}
+
+    {{ end }}
+
+    {{ if .MetaData.Duration }}
+    Prep Time: <time class="dt-duration" value="{{ .MetaData.Duration }}">
+        {{ .MetaData.Duration }}
+    </time>
+    {{ end }}
+</small>
+<br> <br>
+
+<h2>Ingredients</h2>
+
+<ul>
+    {{ range $ingredient := .MetaData.Ingredients }}
+    <li class="p-ingredient">
+        {{ $ingredient }}
+    </li>
+    {{ end }}
+</ul>
+
+<h2>Instructions</h2>
+{{.MetaData.Content | markdown }}
