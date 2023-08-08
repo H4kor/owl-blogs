@@ -97,7 +97,7 @@ func (r *DefaultEntryRepo) FindById(id string) (model.Entry, error) {
 		return nil, err
 	}
 	if data.Id == "" {
-		return nil, nil
+		return nil, errors.New("entry not found")
 	}
 	return r.sqlEntryToEntry(data)
 }

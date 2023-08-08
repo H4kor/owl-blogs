@@ -1,8 +1,11 @@
 package app
 
 import (
+	"fmt"
 	"owl-blogs/app/repository"
 	"owl-blogs/domain/model"
+	"regexp"
+	"strings"
 )
 
 type EntryService struct {
@@ -14,6 +17,22 @@ func NewEntryService(entryRepository repository.EntryRepository) *EntryService {
 }
 
 func (s *EntryService) Create(entry model.Entry) error {
+	// try to find a good ID
+	m := regexp.MustCompile(`[^a-z0-9-]`)
+	prefix := m.ReplaceAllString(strings.ToLower(entry.Title()), "-")
+	title := prefix
+	counter := 0
+	for {
+		_, err := s.EntryRepository.FindById(title)
+		if err == nil {
+			counter += 1
+			title = prefix + "-" + fmt.Sprintf("%s-%d", prefix, counter)
+		} else {
+			break
+		}
+	}
+	entry.SetID(title)
+
 	return s.EntryRepository.Create(entry)
 }
 

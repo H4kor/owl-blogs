@@ -9,6 +9,7 @@ type MockEntryMetaData struct {
 	Str    string
 	Number int
 	Date   time.Time
+	Title  string
 }
 
 type MockEntry struct {
@@ -29,5 +30,5 @@ func (e *MockEntry) SetMetaData(metaData interface{}) {
 }
 
 func (e *MockEntry) Title() string {
-	return ""
+	return e.metaData.Title
 }

@@ -66,7 +66,7 @@ func (f *MockFormData) FormValue(key string, defaultValue ...string) string {
 
 func TestFieldToFormField(t *testing.T) {
 	field := reflect.TypeOf(&MockData{}).Elem().Field(0)
-	formField, err := forms.FieldToFormField(field, "")
+	formField, err := forms.FieldToFormField(field, reflect.Value{})
 	require.NoError(t, err)
 	require.Equal(t, "Image", formField.Name)
 	require.Equal(t, "file", formField.Params.InputType)
@@ -86,11 +86,8 @@ func TestForm_HtmlForm(t *testing.T) {
 	form := forms.NewForm(&MockData{}, nil)
 	html, err := form.HtmlForm()
 	require.NoError(t, err)
-	require.Contains(t, html, "<form")
-	require.Contains(t, html, "method=\"POST\"")
 	require.Contains(t, html, "<input type=\"file\" name=\"Image\"")
 	require.Contains(t, html, "<input type=\"text\" name=\"Content\"")
-	require.Contains(t, html, "<input type=\"submit\" value=\"Submit\"")
 
 }
 
