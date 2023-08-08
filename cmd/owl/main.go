@@ -6,6 +6,7 @@ import (
 	"owl-blogs/app"
 	entrytypes "owl-blogs/entry_types"
 	"owl-blogs/infra"
+	"owl-blogs/interactions"
 	"owl-blogs/web"
 
 	"github.com/spf13/cobra"
@@ -26,29 +27,41 @@ func Execute() {
 }
 
 func App(db infra.Database) *web.WebApp {
-	registry := app.NewEntryTypeRegistry()
-	registry.Register(&entrytypes.Image{})
-	registry.Register(&entrytypes.Article{})
-	registry.Register(&entrytypes.Page{})
-	registry.Register(&entrytypes.Recipe{})
-	registry.Register(&entrytypes.Note{})
-	registry.Register(&entrytypes.Bookmark{})
-	registry.Register(&entrytypes.Reply{})
+	// Register Types
+	entryRegister := app.NewEntryTypeRegistry()
+	entryRegister.Register(&entrytypes.Image{})
+	entryRegister.Register(&entrytypes.Article{})
+	entryRegister.Register(&entrytypes.Page{})
+	entryRegister.Register(&entrytypes.Recipe{})
+	entryRegister.Register(&entrytypes.Note{})
+	entryRegister.Register(&entrytypes.Bookmark{})
+	entryRegister.Register(&entrytypes.Reply{})
 
-	entryRepo := infra.NewEntryRepository(db, registry)
-	binRepo := infra.NewBinaryFileRepo(db)
-	authorRepo := infra.NewDefaultAuthorRepo(db)
-	siteConfigRepo := infra.NewConfigRepo(db)
-
-	entryService := app.NewEntryService(entryRepo)
-	binaryService := app.NewBinaryFileService(binRepo)
-	authorService := app.NewAuthorService(authorRepo, siteConfigRepo)
+	interactionRegister := app.NewInteractionTypeRegistry()
+	interactionRegister.Register(&interactions.Webmention{})
 
 	configRegister := app.NewConfigRegister()
 
+	// Create Repositories
+	entryRepo := infra.NewEntryRepository(db, entryRegister)
+	binRepo := infra.NewBinaryFileRepo(db)
+	authorRepo := infra.NewDefaultAuthorRepo(db)
+	siteConfigRepo := infra.NewConfigRepo(db)
+	interactionRepo := infra.NewInteractionRepo(db, interactionRegister)
+
+	// Create Services
+	entryService := app.NewEntryService(entryRepo)
+	binaryService := app.NewBinaryFileService(binRepo)
+	authorService := app.NewAuthorService(authorRepo, siteConfigRepo)
+	webmentionService := app.NewWebmentionService(
+		interactionRepo, entryRepo,
+	)
+
+	// Create WebApp
 	return web.NewWebApp(
-		entryService, registry, binaryService,
+		entryService, entryRegister, binaryService,
 		authorService, siteConfigRepo, configRegister,
+		webmentionService,
 	)
 
 }

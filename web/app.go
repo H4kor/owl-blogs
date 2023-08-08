@@ -34,6 +34,7 @@ func NewWebApp(
 	authorService *app.AuthorService,
 	configRepo repository.ConfigRepository,
 	configRegister *app.ConfigRegister,
+	webmentionService *app.WebmentionService,
 ) *WebApp {
 	app := fiber.New()
 	app.Use(middleware.NewUserMiddleware(authorService).Handle)
