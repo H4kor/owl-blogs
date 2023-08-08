@@ -49,12 +49,15 @@ func App(db infra.Database) *web.WebApp {
 	siteConfigRepo := infra.NewConfigRepo(db)
 	interactionRepo := infra.NewInteractionRepo(db, interactionRegister)
 
+	// Create External Services
+	httpClient := &infra.OwlHttpClient{}
+
 	// Create Services
 	entryService := app.NewEntryService(entryRepo)
 	binaryService := app.NewBinaryFileService(binRepo)
 	authorService := app.NewAuthorService(authorRepo, siteConfigRepo)
 	webmentionService := app.NewWebmentionService(
-		interactionRepo, entryRepo,
+		interactionRepo, entryRepo, httpClient,
 	)
 
 	// Create WebApp

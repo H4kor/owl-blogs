@@ -46,6 +46,7 @@ func NewWebApp(
 	rssHandler := NewRSSHandler(entryService, configRepo)
 	loginHandler := NewLoginHandler(authorService, configRepo)
 	editorHandler := NewEditorHandler(entryService, typeRegistry, binService, configRepo)
+	webmentionHandler := NewWebmentionHandler(webmentionService, configRepo)
 
 	// Login
 	app.Get("/auth/login", loginHandler.HandleGet)
@@ -112,6 +113,8 @@ func NewWebApp(
 	app.Get("/index.xml", rssHandler.Handle)
 	// Posts
 	app.Get("/posts/:post/", entryHandler.Handle)
+	// Webmention
+	app.Post("/webmention/", webmentionHandler.Handle)
 	// robots.txt
 	app.Get("/robots.txt", func(c *fiber.Ctx) error {
 		siteConfig := model.SiteConfig{}

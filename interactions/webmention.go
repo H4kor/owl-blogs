@@ -10,6 +10,7 @@ type Webmention struct {
 type WebmentionInteractionMetaData struct {
 	Source string
 	Target string
+	Title  string
 }
 
 func (i *Webmention) Content() model.InteractionContent {
