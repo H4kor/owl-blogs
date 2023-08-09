@@ -117,7 +117,7 @@ func NewWebApp(
 		configRepo.Get(config.SITE_CONFIG, &siteConfig)
 		sitemapUrl, _ := url.JoinPath(siteConfig.FullUrl, "/sitemap.xml")
 		c.Set("Content-Type", "text/plain")
-		return c.SendString(fmt.Sprintf("User-agent: *\nAllow: /\n\nSitemap: %s\n", sitemapUrl))
+		return c.SendString(fmt.Sprintf("User-agent: GPTBot\nDisallow: /\n\nUser-agent: *\nAllow: /\n\nSitemap: %s\n", sitemapUrl))
 	})
 	// sitemap.xml
 	app.Get("/sitemap.xml", NewSiteMapHandler(entryService, configRepo).Handle)
