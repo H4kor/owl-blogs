@@ -36,3 +36,11 @@ type ConfigRepository interface {
 	Get(name string, config interface{}) error
 	Update(name string, siteConfig interface{}) error
 }
+
+type InteractionRepository interface {
+	Create(interaction model.Interaction) error
+	Update(interaction model.Interaction) error
+	Delete(interaction model.Interaction) error
+	FindById(id string) (model.Interaction, error)
+	FindAll(entryId string) ([]model.Interaction, error)
+}

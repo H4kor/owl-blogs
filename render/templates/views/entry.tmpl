@@ -39,6 +39,34 @@
 
 </div>
 
+{{if .Interactions}}
+<br>
+<br>
+<br>
+<hr>
+<h4>
+    Interactions
+</h4>
+<ul>
+    {{range .Interactions}}
+    <li>
+        {{ .Content }}
+        {{ if $.LoggedIn }}
+            <form method="post" action="/admin/interactions/{{.ID}}/delete/" class="grid">
+                <label for="confirm">
+                    Confirm deletion
+                    <input type="checkbox" name="confirm" id="confirm" required />
+                </label>
+                <input type="submit" class="secondary outline" value="Delete" />
+            </form>
+        {{ end }}
+    </li>
+    {{end}}
+</ul>
+{{end}}
+
+
+
 {{ if .LoggedIn }}
 <br>
 <br>

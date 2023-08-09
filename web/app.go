@@ -34,17 +34,20 @@ func NewWebApp(
 	authorService *app.AuthorService,
 	configRepo repository.ConfigRepository,
 	configRegister *app.ConfigRegister,
+	webmentionService *app.WebmentionService,
+	interactionRepo repository.InteractionRepository,
 ) *WebApp {
 	app := fiber.New()
 	app.Use(middleware.NewUserMiddleware(authorService).Handle)
 
 	indexHandler := NewIndexHandler(entryService, configRepo)
 	listHandler := NewListHandler(entryService, configRepo)
-	entryHandler := NewEntryHandler(entryService, typeRegistry, authorService, configRepo)
+	entryHandler := NewEntryHandler(entryService, typeRegistry, authorService, configRepo, interactionRepo)
 	mediaHandler := NewMediaHandler(binService)
 	rssHandler := NewRSSHandler(entryService, configRepo)
 	loginHandler := NewLoginHandler(authorService, configRepo)
 	editorHandler := NewEditorHandler(entryService, typeRegistry, binService, configRepo)
+	webmentionHandler := NewWebmentionHandler(webmentionService, configRepo)
 
 	// Login
 	app.Get("/auth/login", loginHandler.HandleGet)
@@ -54,6 +57,7 @@ func NewWebApp(
 	adminHandler := NewAdminHandler(configRepo, configRegister, typeRegistry)
 	draftHandler := NewDraftHandler(entryService, configRepo)
 	binaryManageHandler := NewBinaryManageHandler(configRepo, binService)
+	adminInteractionHandler := NewAdminInteractionHandler(configRepo, interactionRepo)
 	admin := app.Group("/admin")
 	admin.Use(middleware.NewAuthMiddleware(authorService).Handle)
 	admin.Get("/", adminHandler.Handle)
@@ -63,6 +67,7 @@ func NewWebApp(
 	admin.Get("/binaries/", binaryManageHandler.Handle)
 	admin.Post("/binaries/new/", binaryManageHandler.HandleUpload)
 	admin.Post("/binaries/delete", binaryManageHandler.HandleDelete)
+	admin.Post("/interactions/:id/delete/", adminInteractionHandler.HandleDelete)
 
 	// Editor
 	editor := app.Group("/editor")
@@ -111,6 +116,8 @@ func NewWebApp(
 	app.Get("/index.xml", rssHandler.Handle)
 	// Posts
 	app.Get("/posts/:post/", entryHandler.Handle)
+	// Webmention
+	app.Post("/webmention/", webmentionHandler.Handle)
 	// robots.txt
 	app.Get("/robots.txt", func(c *fiber.Ctx) error {
 		siteConfig := model.SiteConfig{}

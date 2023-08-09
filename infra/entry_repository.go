@@ -28,6 +28,26 @@ type DefaultEntryRepo struct {
 	db           *sqlx.DB
 }
 
+func NewEntryRepository(db Database, register *app.EntryTypeRegistry) repository.EntryRepository {
+	sqlxdb := db.Get()
+
+	// Create tables if not exists
+	sqlxdb.MustExec(`
+		CREATE TABLE IF NOT EXISTS entries (
+			id TEXT PRIMARY KEY,
+			type TEXT NOT NULL,
+			published_at DATETIME,
+			author_id TEXT NOT NULL,
+			meta_data TEXT NOT NULL
+		);
+	`)
+
+	return &DefaultEntryRepo{
+		db:           sqlxdb,
+		typeRegistry: register,
+	}
+}
+
 // Create implements repository.EntryRepository.
 func (r *DefaultEntryRepo) Create(entry model.Entry) error {
 	t, err := r.typeRegistry.TypeName(entry)
@@ -50,6 +70,9 @@ func (r *DefaultEntryRepo) Create(entry model.Entry) error {
 
 // Delete implements repository.EntryRepository.
 func (r *DefaultEntryRepo) Delete(entry model.Entry) error {
+	if entry.ID() == "" {
+		return errors.New("entry not found")
+	}
 	_, err := r.db.Exec("DELETE FROM entries WHERE id = ?", entry.ID())
 	return err
 }
@@ -121,26 +144,6 @@ func (r *DefaultEntryRepo) Update(entry model.Entry) error {
 
 	_, err = r.db.Exec("UPDATE entries SET published_at = ?, author_id = ?, meta_data = ? WHERE id = ?", entry.PublishedAt(), entry.AuthorId(), metaDataJson, entry.ID())
 	return err
-}
-
-func NewEntryRepository(db Database, register *app.EntryTypeRegistry) repository.EntryRepository {
-	sqlxdb := db.Get()
-
-	// Create tables if not exists
-	sqlxdb.MustExec(`
-		CREATE TABLE IF NOT EXISTS entries (
-			id TEXT PRIMARY KEY,
-			type TEXT NOT NULL,
-			published_at DATETIME,
-			author_id TEXT NOT NULL,
-			meta_data TEXT NOT NULL
-		);
-	`)
-
-	return &DefaultEntryRepo{
-		db:           sqlxdb,
-		typeRegistry: register,
-	}
 }
 
 func (r *DefaultEntryRepo) sqlEntryToEntry(entry sqlEntry) (model.Entry, error) {
