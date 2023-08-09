@@ -130,10 +130,6 @@ func (s *WebmentionService) ProcessWebmention(source string, target string) erro
 	}
 
 	entryId := UrlToEntryId(target)
-	println(entryId)
-	println(entryId)
-	println(entryId)
-	println(entryId)
 	_, err = s.EntryRepository.FindById(entryId)
 	if err != nil {
 		return err

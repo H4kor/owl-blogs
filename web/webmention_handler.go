@@ -26,6 +26,7 @@ func (h *WebmentionHandler) Handle(c *fiber.Ctx) error {
 	target := c.FormValue("target")
 	source := c.FormValue("source")
 
+	println("Incoming webmention")
 	println("target", target)
 	println("source", source)
 

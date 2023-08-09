@@ -57,6 +57,7 @@ func NewWebApp(
 	adminHandler := NewAdminHandler(configRepo, configRegister, typeRegistry)
 	draftHandler := NewDraftHandler(entryService, configRepo)
 	binaryManageHandler := NewBinaryManageHandler(configRepo, binService)
+	adminInteractionHandler := NewAdminInteractionHandler(configRepo, interactionRepo)
 	admin := app.Group("/admin")
 	admin.Use(middleware.NewAuthMiddleware(authorService).Handle)
 	admin.Get("/", adminHandler.Handle)
@@ -66,6 +67,7 @@ func NewWebApp(
 	admin.Get("/binaries/", binaryManageHandler.Handle)
 	admin.Post("/binaries/new/", binaryManageHandler.HandleUpload)
 	admin.Post("/binaries/delete", binaryManageHandler.HandleDelete)
+	admin.Post("/interactions/:id/delete/", adminInteractionHandler.HandleDelete)
 
 	// Editor
 	editor := app.Group("/editor")

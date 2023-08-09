@@ -51,6 +51,15 @@
     {{range .Interactions}}
     <li>
         {{ .Content }}
+        {{ if $.LoggedIn }}
+            <form method="post" action="/admin/interactions/{{.ID}}/delete/" class="grid">
+                <label for="confirm">
+                    Confirm deletion
+                    <input type="checkbox" name="confirm" id="confirm" required />
+                </label>
+                <input type="submit" class="secondary outline" value="Delete" />
+            </form>
+        {{ end }}
     </li>
     {{end}}
 </ul>

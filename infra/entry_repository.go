@@ -70,6 +70,9 @@ func (r *DefaultEntryRepo) Create(entry model.Entry) error {
 
 // Delete implements repository.EntryRepository.
 func (r *DefaultEntryRepo) Delete(entry model.Entry) error {
+	if entry.ID() == "" {
+		return errors.New("entry not found")
+	}
 	_, err := r.db.Exec("DELETE FROM entries WHERE id = ?", entry.ID())
 	return err
 }

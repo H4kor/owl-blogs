@@ -78,8 +78,12 @@ func (repo *DefaultInteractionRepo) Create(interaction model.Interaction) error 
 }
 
 // Delete implements repository.InteractionRepository.
-func (*DefaultInteractionRepo) Delete(interaction model.Interaction) error {
-	panic("unimplemented")
+func (repo *DefaultInteractionRepo) Delete(interaction model.Interaction) error {
+	if interaction.ID() == "" {
+		return errors.New("interaction not found")
+	}
+	_, err := repo.db.Exec("DELETE FROM interactions WHERE id = ?", interaction.ID())
+	return err
 }
 
 // FindAll implements repository.InteractionRepository.
