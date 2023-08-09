@@ -1,6 +1,10 @@
 package interactions
 
-import "owl-blogs/domain/model"
+import (
+	"fmt"
+	"owl-blogs/domain/model"
+	"owl-blogs/render"
+)
 
 type Webmention struct {
 	model.InteractionBase
@@ -14,7 +18,11 @@ type WebmentionMetaData struct {
 }
 
 func (i *Webmention) Content() model.InteractionContent {
-	return model.InteractionContent(i.meta.Source)
+	str, err := render.RenderTemplateToString("interaction/Webmention", i)
+	if err != nil {
+		fmt.Println(err)
+	}
+	return model.InteractionContent(str)
 }
 
 func (i *Webmention) MetaData() interface{} {

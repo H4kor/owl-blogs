@@ -64,7 +64,7 @@ func App(db infra.Database) *web.WebApp {
 	return web.NewWebApp(
 		entryService, entryRegister, binaryService,
 		authorService, siteConfigRepo, configRegister,
-		webmentionService,
+		webmentionService, interactionRepo,
 	)
 
 }

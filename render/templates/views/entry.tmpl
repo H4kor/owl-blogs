@@ -39,6 +39,25 @@
 
 </div>
 
+{{if .Interactions}}
+<br>
+<br>
+<br>
+<hr>
+<h4>
+    Interactions
+</h4>
+<ul>
+    {{range .Interactions}}
+    <li>
+        {{ .Content }}
+    </li>
+    {{end}}
+</ul>
+{{end}}
+
+
+
 {{ if .LoggedIn }}
 <br>
 <br>

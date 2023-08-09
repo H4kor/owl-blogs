@@ -26,6 +26,9 @@ func (h *WebmentionHandler) Handle(c *fiber.Ctx) error {
 	target := c.FormValue("target")
 	source := c.FormValue("source")
 
+	println("target", target)
+	println("source", source)
+
 	if target == "" {
 		return c.Status(400).SendString("target is required")
 	}

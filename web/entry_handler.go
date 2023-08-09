@@ -10,16 +10,18 @@ import (
 )
 
 type EntryHandler struct {
-	configRepo repository.ConfigRepository
-	entrySvc   *app.EntryService
-	authorSvc  *app.AuthorService
-	registry   *app.EntryTypeRegistry
+	configRepo      repository.ConfigRepository
+	entrySvc        *app.EntryService
+	authorSvc       *app.AuthorService
+	registry        *app.EntryTypeRegistry
+	interactionRepo repository.InteractionRepository
 }
 
 type entryData struct {
-	Entry    model.Entry
-	Author   *model.Author
-	LoggedIn bool
+	Entry        model.Entry
+	Author       *model.Author
+	LoggedIn     bool
+	Interactions []model.Interaction
 }
 
 func NewEntryHandler(
@@ -27,12 +29,14 @@ func NewEntryHandler(
 	registry *app.EntryTypeRegistry,
 	authorService *app.AuthorService,
 	configRepo repository.ConfigRepository,
+	interactionRepo repository.InteractionRepository,
 ) *EntryHandler {
 	return &EntryHandler{
-		entrySvc:   entryService,
-		authorSvc:  authorService,
-		registry:   registry,
-		configRepo: configRepo,
+		entrySvc:        entryService,
+		authorSvc:       authorService,
+		registry:        registry,
+		configRepo:      configRepo,
+		interactionRepo: interactionRepo,
 	}
 }
 
@@ -58,14 +62,17 @@ func (h *EntryHandler) Handle(c *fiber.Ctx) error {
 		author = &model.Author{}
 	}
 
+	inters, _ := h.interactionRepo.FindAll(entry.ID())
+
 	return render.RenderTemplateWithBase(
 		c,
 		getSiteConfig(h.configRepo),
 		"views/entry",
 		entryData{
-			Entry:    entry,
-			Author:   author,
-			LoggedIn: loggedIn,
+			Entry:        entry,
+			Author:       author,
+			LoggedIn:     loggedIn,
+			Interactions: inters,
 		},
 	)
 }

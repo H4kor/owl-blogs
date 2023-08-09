@@ -109,7 +109,7 @@ func (s *WebmentionService) GetExistingWebmention(entryId string, source string,
 	}
 	for _, interaction := range inters {
 		if webm, ok := interaction.(*interactions.Webmention); ok {
-			m := webm.MetaData().(interactions.WebmentionMetaData)
+			m := webm.MetaData().(*interactions.WebmentionMetaData)
 			if m.Source == source && m.Target == target {
 				return webm, nil
 			}
@@ -149,7 +149,7 @@ func (s *WebmentionService) ProcessWebmention(source string, target string) erro
 			Target: target,
 			Title:  hEntry.Title,
 		}
-		webmention.SetMetaData(data)
+		webmention.SetMetaData(&data)
 		webmention.SetEntryID(entryId)
 		webmention.SetCreatedAt(time.Now())
 		err = s.InteractionRepository.Update(webmention)

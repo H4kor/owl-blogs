@@ -103,13 +103,38 @@ func (repo *DefaultInteractionRepo) FindAll(entryId string) ([]model.Interaction
 }
 
 // FindById implements repository.InteractionRepository.
-func (*DefaultInteractionRepo) FindById(id string) (model.Interaction, error) {
-	panic("unimplemented")
+func (repo *DefaultInteractionRepo) FindById(id string) (model.Interaction, error) {
+	data := sqlInteraction{}
+	err := repo.db.Get(&data, "SELECT * FROM interactions WHERE id = ?", id)
+	if err != nil {
+		return nil, err
+	}
+	if data.Id == "" {
+		return nil, errors.New("interaction not found")
+	}
+	return repo.sqlInteractionToInteraction(data)
 }
 
 // Update implements repository.InteractionRepository.
-func (*DefaultInteractionRepo) Update(interaction model.Interaction) error {
-	panic("unimplemented")
+func (repo *DefaultInteractionRepo) Update(interaction model.Interaction) error {
+	exInter, _ := repo.FindById(interaction.ID())
+	if exInter == nil {
+		return errors.New("interaction not found")
+	}
+
+	_, err := repo.typeRegistry.TypeName(interaction)
+	if err != nil {
+		return errors.New("interaction type not registered")
+	}
+
+	var metaDataJson []byte
+	if interaction.MetaData() != nil {
+		metaDataJson, _ = json.Marshal(interaction.MetaData())
+	}
+
+	_, err = repo.db.Exec("UPDATE interactions SET entry_id = ?, meta_data = ? WHERE id = ?", interaction.EntryID(), metaDataJson, interaction.ID())
+
+	return err
 }
 
 func (repo *DefaultInteractionRepo) sqlInteractionToInteraction(interaction sqlInteraction) (model.Interaction, error) {

@@ -35,13 +35,14 @@ func NewWebApp(
 	configRepo repository.ConfigRepository,
 	configRegister *app.ConfigRegister,
 	webmentionService *app.WebmentionService,
+	interactionRepo repository.InteractionRepository,
 ) *WebApp {
 	app := fiber.New()
 	app.Use(middleware.NewUserMiddleware(authorService).Handle)
 
 	indexHandler := NewIndexHandler(entryService, configRepo)
 	listHandler := NewListHandler(entryService, configRepo)
-	entryHandler := NewEntryHandler(entryService, typeRegistry, authorService, configRepo)
+	entryHandler := NewEntryHandler(entryService, typeRegistry, authorService, configRepo, interactionRepo)
 	mediaHandler := NewMediaHandler(binService)
 	rssHandler := NewRSSHandler(entryService, configRepo)
 	loginHandler := NewLoginHandler(authorService, configRepo)
