@@ -4,10 +4,10 @@ import "owl-blogs/domain/model"
 
 type Webmention struct {
 	model.InteractionBase
-	meta WebmentionInteractionMetaData
+	meta WebmentionMetaData
 }
 
-type WebmentionInteractionMetaData struct {
+type WebmentionMetaData struct {
 	Source string
 	Target string
 	Title  string
@@ -22,5 +22,5 @@ func (i *Webmention) MetaData() interface{} {
 }
 
 func (i *Webmention) SetMetaData(metaData interface{}) {
-	i.meta = *metaData.(*WebmentionInteractionMetaData)
+	i.meta = *metaData.(*WebmentionMetaData)
 }
