@@ -10,10 +10,17 @@ import (
 
 type EntryService struct {
 	EntryRepository repository.EntryRepository
+	CreationBus     *EntryCreationBus
 }
 
-func NewEntryService(entryRepository repository.EntryRepository) *EntryService {
-	return &EntryService{EntryRepository: entryRepository}
+func NewEntryService(
+	entryRepository repository.EntryRepository,
+	creationBus *EntryCreationBus,
+) *EntryService {
+	return &EntryService{
+		EntryRepository: entryRepository,
+		CreationBus:     creationBus,
+	}
 }
 
 func (s *EntryService) Create(entry model.Entry) error {
@@ -33,7 +40,12 @@ func (s *EntryService) Create(entry model.Entry) error {
 	}
 	entry.SetID(title)
 
-	return s.EntryRepository.Create(entry)
+	err := s.EntryRepository.Create(entry)
+	if err != nil {
+		return err
+	}
+	s.CreationBus.Notify(entry)
+	return nil
 }
 
 func (s *EntryService) Update(entry model.Entry) error {

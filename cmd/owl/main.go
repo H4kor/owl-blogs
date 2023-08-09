@@ -7,6 +7,7 @@ import (
 	entrytypes "owl-blogs/entry_types"
 	"owl-blogs/infra"
 	"owl-blogs/interactions"
+	"owl-blogs/plugings"
 	"owl-blogs/web"
 
 	"github.com/spf13/cobra"
@@ -52,8 +53,14 @@ func App(db infra.Database) *web.WebApp {
 	// Create External Services
 	httpClient := &infra.OwlHttpClient{}
 
+	// busses
+	entryCreationBus := app.NewEntryCreationBus()
+
+	// plugins
+	plugings.NewEcho(entryCreationBus)
+
 	// Create Services
-	entryService := app.NewEntryService(entryRepo)
+	entryService := app.NewEntryService(entryRepo, entryCreationBus)
 	binaryService := app.NewBinaryFileService(binRepo)
 	authorService := app.NewAuthorService(authorRepo, siteConfigRepo)
 	webmentionService := app.NewWebmentionService(
