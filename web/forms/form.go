@@ -61,6 +61,8 @@ func (s *FormField) ToWidget() Widget {
 		return &TextareaWidget{*s}
 	case "textlist":
 		return &TextListWidget{*s}
+	case "password":
+		return &PasswordWidget{*s}
 	default:
 		return &TextWidget{*s}
 	}

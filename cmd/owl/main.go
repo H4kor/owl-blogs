@@ -56,15 +56,18 @@ func App(db infra.Database) *web.WebApp {
 	// busses
 	entryCreationBus := app.NewEntryCreationBus()
 
-	// plugins
-	plugings.NewEcho(entryCreationBus)
-
 	// Create Services
 	entryService := app.NewEntryService(entryRepo, entryCreationBus)
 	binaryService := app.NewBinaryFileService(binRepo)
 	authorService := app.NewAuthorService(authorRepo, siteConfigRepo)
 	webmentionService := app.NewWebmentionService(
 		interactionRepo, entryRepo, httpClient,
+	)
+
+	// plugins
+	plugings.NewEcho(entryCreationBus)
+	plugings.RegisterInstagram(
+		siteConfigRepo, configRegister, binaryService, entryCreationBus,
 	)
 
 	// Create WebApp

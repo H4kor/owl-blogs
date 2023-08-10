@@ -26,6 +26,21 @@ func (s *TextWidget) ParseValue(value string, output reflect.Value) error {
 	return nil
 }
 
+type PasswordWidget struct {
+	FormField
+}
+
+func (s *PasswordWidget) Html() string {
+	html := ""
+	html += fmt.Sprintf("<input type=\"password\" name=\"%v\" value=\"%v\">\n", s.Name, s.Value.String())
+	return html
+}
+
+func (s *PasswordWidget) ParseValue(value string, output reflect.Value) error {
+	output.SetString(value)
+	return nil
+}
+
 type TextareaWidget struct {
 	FormField
 }
