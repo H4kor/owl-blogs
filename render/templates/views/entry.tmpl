@@ -18,9 +18,11 @@
         <small>
             <a class="u-url" href="">#</a>
             Published:
-            <time class="dt-published" datetime="{{.Entry.PublishedAt}}">
-                {{.Entry.PublishedAt}}
-            </time>
+            {{ if .Entry.PublishedAt }}
+                <time class="dt-published" datetime="{{.Entry.PublishedAt.Format "2006-01-02T15:04:05" }}">
+                    {{.Entry.PublishedAt.Format "2006-01-02" }}
+                </time>
+            {{ end }}
             {{ if .Author.Name }}
                 by
                 <a class="p-author h-card" href="{{.Author.FullUrl}}">

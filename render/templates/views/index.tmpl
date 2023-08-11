@@ -16,7 +16,11 @@
                 </a>
             </h3>
             <small style="font-size: 0.75em;">
-                <time class="dt-published" datetime="{{ .PublishedAt }}">{{ .PublishedAt }}</time>
+                {{ if .PublishedAt }}
+                    <time class="dt-published" datetime="{{.PublishedAt.Format "2006-01-02T15:04:05" }}">
+                        {{.PublishedAt.Format "2006-01-02" }}
+                    </time>
+                {{ end }}
             </small>
         </hgroup>
         {{ .Content }}
