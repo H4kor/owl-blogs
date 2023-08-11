@@ -54,20 +54,20 @@ func App(db infra.Database) *web.WebApp {
 	httpClient := &infra.OwlHttpClient{}
 
 	// busses
-	entryCreationBus := app.NewEntryCreationBus()
+	eventBus := app.NewEventBus()
 
 	// Create Services
-	entryService := app.NewEntryService(entryRepo, entryCreationBus)
+	entryService := app.NewEntryService(entryRepo, eventBus)
 	binaryService := app.NewBinaryFileService(binRepo)
 	authorService := app.NewAuthorService(authorRepo, siteConfigRepo)
 	webmentionService := app.NewWebmentionService(
-		interactionRepo, entryRepo, httpClient,
+		interactionRepo, entryRepo, httpClient, eventBus,
 	)
 
 	// plugins
-	plugings.NewEcho(entryCreationBus)
+	plugings.NewEcho(eventBus)
 	plugings.RegisterInstagram(
-		siteConfigRepo, configRegister, binaryService, entryCreationBus,
+		siteConfigRepo, configRegister, binaryService, eventBus,
 	)
 
 	// Create WebApp

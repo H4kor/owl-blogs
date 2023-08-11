@@ -15,15 +15,15 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// func constructResponse(html []byte) *http.Response {
-// 	url, _ := url.Parse("http://example.com/foo/bar")
-// 	return &http.Response{
-// 		Request: &http.Request{
-// 			URL: url,
-// 		},
-// 		Body: io.NopCloser(bytes.NewReader([]byte(html))),
-// 	}
-// }
+func constructResponse(html []byte) *http.Response {
+	url, _ := url.Parse("http://example.com/foo/bar")
+	return &http.Response{
+		Request: &http.Request{
+			URL: url,
+		},
+		Body: io.NopCloser(bytes.NewReader([]byte(html))),
+	}
+}
 
 type MockHttpClient struct {
 	PageContent string
@@ -56,9 +56,11 @@ func getWebmentionService() *app.WebmentionService {
 
 	interactionRepo := infra.NewInteractionRepo(db, interactionRegister)
 
+	bus := app.NewEventBus()
+
 	http := infra.OwlHttpClient{}
 	return app.NewWebmentionService(
-		interactionRepo, entryRepo, &http,
+		interactionRepo, entryRepo, &http, bus,
 	)
 }
 
@@ -67,18 +69,16 @@ func getWebmentionService() *app.WebmentionService {
 //
 
 func TestParseValidHEntry(t *testing.T) {
-	service := getWebmentionService()
 	html := []byte("<div class=\"h-entry\"><div class=\"p-name\">Foo</div></div>")
-	entry, err := service.ParseHEntry(&http.Response{Body: io.NopCloser(bytes.NewReader(html))})
+	entry, err := app.ParseHEntry(&http.Response{Body: io.NopCloser(bytes.NewReader(html))})
 
 	require.NoError(t, err)
 	require.Equal(t, entry.Title, "Foo")
 }
 
 func TestParseValidHEntryWithoutTitle(t *testing.T) {
-	service := getWebmentionService()
 	html := []byte("<div class=\"h-entry\"></div><div class=\"p-name\">Foo</div>")
-	entry, err := service.ParseHEntry(&http.Response{Body: io.NopCloser(bytes.NewReader(html))})
+	entry, err := app.ParseHEntry(&http.Response{Body: io.NopCloser(bytes.NewReader(html))})
 
 	require.NoError(t, err)
 	require.Equal(t, entry.Title, "")
@@ -108,77 +108,70 @@ func TestCreateNewWebmention(t *testing.T) {
 	require.Equal(t, meta.Title, "Foo")
 }
 
-// func TestGetWebmentionEndpointLink(t *testing.T) {
-// 	service := getWebmentionService()
-// 	html := []byte("<link rel=\"webmention\" href=\"http://example.com/webmention\" />")
-// 	endpoint, err := service.GetWebmentionEndpoint(constructResponse(html))
+func TestGetWebmentionEndpointLink(t *testing.T) {
+	html := []byte("<link rel=\"webmention\" href=\"http://example.com/webmention\" />")
+	endpoint, err := app.GetWebmentionEndpoint(constructResponse(html))
 
-// 	require.NoError(t, err)
+	require.NoError(t, err)
 
-// 	require.Equal(t, endpoint, "http://example.com/webmention")
-// }
+	require.Equal(t, endpoint, "http://example.com/webmention")
+}
 
-// func TestGetWebmentionEndpointLinkA(t *testing.T) {
-// 	service := getWebmentionService()
-// 	html := []byte("<a rel=\"webmention\" href=\"http://example.com/webmention\" />")
-// 	endpoint, err := service.GetWebmentionEndpoint(constructResponse(html))
+func TestGetWebmentionEndpointLinkA(t *testing.T) {
+	html := []byte("<a rel=\"webmention\" href=\"http://example.com/webmention\" />")
+	endpoint, err := app.GetWebmentionEndpoint(constructResponse(html))
 
-// 	require.NoError(t, err)
-// 	require.Equal(t, endpoint, "http://example.com/webmention")
-// }
+	require.NoError(t, err)
+	require.Equal(t, endpoint, "http://example.com/webmention")
+}
 
-// func TestGetWebmentionEndpointLinkAFakeWebmention(t *testing.T) {
-// 	service := getWebmentionService()
-// 	html := []byte("<a rel=\"not-webmention\" href=\"http://example.com/foo\" /><a rel=\"webmention\" href=\"http://example.com/webmention\" />")
-// 	endpoint, err := service.GetWebmentionEndpoint(constructResponse(html))
+func TestGetWebmentionEndpointLinkAFakeWebmention(t *testing.T) {
+	html := []byte("<a rel=\"not-webmention\" href=\"http://example.com/foo\" /><a rel=\"webmention\" href=\"http://example.com/webmention\" />")
+	endpoint, err := app.GetWebmentionEndpoint(constructResponse(html))
 
-// 	require.NoError(t, err)
-// 	require.Equal(t, endpoint, "http://example.com/webmention")
-// }
+	require.NoError(t, err)
+	require.Equal(t, endpoint, "http://example.com/webmention")
+}
 
-// func TestGetWebmentionEndpointLinkHeader(t *testing.T) {
-// 	service := getWebmentionService()
-// 	html := []byte("")
-// 	resp := constructResponse(html)
-// 	resp.Header = http.Header{"Link": []string{"<http://example.com/webmention>; rel=\"webmention\""}}
-// 	endpoint, err := service.GetWebmentionEndpoint(resp)
+func TestGetWebmentionEndpointLinkHeader(t *testing.T) {
+	html := []byte("")
+	resp := constructResponse(html)
+	resp.Header = http.Header{"Link": []string{"<http://example.com/webmention>; rel=\"webmention\""}}
+	endpoint, err := app.GetWebmentionEndpoint(resp)
 
-// 	require.NoError(t, err)
-// 	require.Equal(t, endpoint, "http://example.com/webmention")
-// }
+	require.NoError(t, err)
+	require.Equal(t, endpoint, "http://example.com/webmention")
+}
 
-// func TestGetWebmentionEndpointLinkHeaderCommas(t *testing.T) {
-// 	service := getWebmentionService()
-// 	html := []byte("")
-// 	resp := constructResponse(html)
-// 	resp.Header = http.Header{
-// 		"Link": []string{"<https://webmention.rocks/test/19/webmention/error>; rel=\"other\", <https://webmention.rocks/test/19/webmention>; rel=\"webmention\""},
-// 	}
-// 	endpoint, err := service.GetWebmentionEndpoint(resp)
+func TestGetWebmentionEndpointLinkHeaderCommas(t *testing.T) {
+	html := []byte("")
+	resp := constructResponse(html)
+	resp.Header = http.Header{
+		"Link": []string{"<https://webmention.rocks/test/19/webmention/error>; rel=\"other\", <https://webmention.rocks/test/19/webmention>; rel=\"webmention\""},
+	}
+	endpoint, err := app.GetWebmentionEndpoint(resp)
 
-// 	require.NoError(t, err)
-// 	require.Equal(t, endpoint, "https://webmention.rocks/test/19/webmention")
-// }
+	require.NoError(t, err)
+	require.Equal(t, endpoint, "https://webmention.rocks/test/19/webmention")
+}
 
-// func TestGetWebmentionEndpointRelativeLink(t *testing.T) {
-// 	service := getWebmentionService()
-// 	html := []byte("<link rel=\"webmention\" href=\"/webmention\" />")
-// 	endpoint, err := service.GetWebmentionEndpoint(constructResponse(html))
+func TestGetWebmentionEndpointRelativeLink(t *testing.T) {
+	html := []byte("<link rel=\"webmention\" href=\"/webmention\" />")
+	endpoint, err := app.GetWebmentionEndpoint(constructResponse(html))
 
-// 	require.NoError(t, err)
-// 	require.Equal(t, endpoint, "http://example.com/webmention")
-// }
+	require.NoError(t, err)
+	require.Equal(t, endpoint, "http://example.com/webmention")
+}
 
-// func TestGetWebmentionEndpointRelativeLinkInHeader(t *testing.T) {
-// 	service := getWebmentionService()
-// 	html := []byte("<link rel=\"webmention\" href=\"/webmention\" />")
-// 	resp := constructResponse(html)
-// 	resp.Header = http.Header{"Link": []string{"</webmention>; rel=\"webmention\""}}
-// 	endpoint, err := service.GetWebmentionEndpoint(resp)
+func TestGetWebmentionEndpointRelativeLinkInHeader(t *testing.T) {
+	html := []byte("<link rel=\"webmention\" href=\"/webmention\" />")
+	resp := constructResponse(html)
+	resp.Header = http.Header{"Link": []string{"</webmention>; rel=\"webmention\""}}
+	endpoint, err := app.GetWebmentionEndpoint(resp)
 
-// 	require.NoError(t, err)
-// 	require.Equal(t, endpoint, "http://example.com/webmention")
-// }
+	require.NoError(t, err)
+	require.Equal(t, endpoint, "http://example.com/webmention")
+}
 
 // func TestRealWorldWebmention(t *testing.T) {
 //  service := getWebmentionService()
@@ -212,7 +205,7 @@ func TestCreateNewWebmention(t *testing.T) {
 //
 // 		client := &owl.OwlHttpClient{}
 // 		html, _ := client.Get(link)
-// 		_, err := service.GetWebmentionEndpoint(html)
+// 		_, err := app.GetWebmentionEndpoint(html)
 
 // 		if err != nil {
 // 			t.Errorf("Unable to find webmention: %v for link %v", err, link)

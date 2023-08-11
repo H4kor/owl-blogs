@@ -18,7 +18,7 @@ type EventBus struct {
 	subscribers []Subscriber
 }
 
-func NewEntryCreationBus() *EventBus {
+func NewEventBus() *EventBus {
 	return &EventBus{subscribers: make([]Subscriber, 0)}
 }
 

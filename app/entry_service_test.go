@@ -14,7 +14,7 @@ func setupService() *app.EntryService {
 	register := app.NewEntryTypeRegistry()
 	register.Register(&test.MockEntry{})
 	repo := infra.NewEntryRepository(db, register)
-	service := app.NewEntryService(repo, app.NewEntryCreationBus())
+	service := app.NewEntryService(repo, app.NewEventBus())
 	return service
 }
 
