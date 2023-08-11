@@ -9,13 +9,13 @@ import (
 type Echo struct {
 }
 
-func NewEcho(bus *app.EntryCreationBus) *Echo {
+func NewEcho(bus *app.EventBus) *Echo {
 	echo := &Echo{}
 	bus.Subscribe(echo)
 	return echo
 }
 
-func (e *Echo) NotifyEntryCreation(entry model.Entry) {
+func (e *Echo) NotifyEntryCreated(entry model.Entry) {
 	fmt.Println("Entry Created:")
 	fmt.Println("\tID: ", entry.ID())
 	fmt.Println("\tTitle: ", entry.Title())

@@ -24,7 +24,7 @@ func RegisterInstagram(
 	configRepo repository.ConfigRepository,
 	configRegister *app.ConfigRegister,
 	binService *app.BinaryService,
-	bus *app.EntryCreationBus,
+	bus *app.EventBus,
 ) *Instagram {
 	configRegister.Register("instagram", &InstagramConfig{})
 	insta := &Instagram{
@@ -37,8 +37,8 @@ func RegisterInstagram(
 	return insta
 }
 
-// NotifyEntryCreation implements app.EntryCreationSubscriber.
-func (i *Instagram) NotifyEntryCreation(entry model.Entry) {
+// NotifyEntryCreated implements app.EntryCreationSubscriber.
+func (i *Instagram) NotifyEntryCreated(entry model.Entry) {
 
 	image, ok := entry.(*entrytypes.Image)
 	if !ok {

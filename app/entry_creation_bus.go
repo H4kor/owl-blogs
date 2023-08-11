@@ -2,24 +2,50 @@ package app
 
 import "owl-blogs/domain/model"
 
-type EntryCreationSubscriber interface {
-	NotifyEntryCreation(entry model.Entry)
+type Subscriber interface{}
+type EntryCreatedSubscriber interface {
+	NotifyEntryCreated(entry model.Entry)
 }
 
-type EntryCreationBus struct {
-	subscribers []EntryCreationSubscriber
+type EntryUpdatedSubscriber interface {
+	NotifyEntryUpdated(entry model.Entry)
+}
+type EntryDeletedSubscriber interface {
+	NotifyEntryDeleted(entry model.Entry)
 }
 
-func NewEntryCreationBus() *EntryCreationBus {
-	return &EntryCreationBus{subscribers: make([]EntryCreationSubscriber, 0)}
+type EventBus struct {
+	subscribers []Subscriber
 }
 
-func (b *EntryCreationBus) Subscribe(subscriber EntryCreationSubscriber) {
+func NewEntryCreationBus() *EventBus {
+	return &EventBus{subscribers: make([]Subscriber, 0)}
+}
+
+func (b *EventBus) Subscribe(subscriber Subscriber) {
 	b.subscribers = append(b.subscribers, subscriber)
 }
 
-func (b *EntryCreationBus) Notify(entry model.Entry) {
+func (b *EventBus) NotifyCreated(entry model.Entry) {
 	for _, subscriber := range b.subscribers {
-		subscriber.NotifyEntryCreation(entry)
+		if sub, ok := subscriber.(EntryCreatedSubscriber); ok {
+			go sub.NotifyEntryCreated(entry)
+		}
+	}
+}
+
+func (b *EventBus) NotifyUpdated(entry model.Entry) {
+	for _, subscriber := range b.subscribers {
+		if sub, ok := subscriber.(EntryUpdatedSubscriber); ok {
+			go sub.NotifyEntryUpdated(entry)
+		}
+	}
+}
+
+func (b *EventBus) NotifyDeleted(entry model.Entry) {
+	for _, subscriber := range b.subscribers {
+		if sub, ok := subscriber.(EntryDeletedSubscriber); ok {
+			go sub.NotifyEntryDeleted(entry)
+		}
 	}
 }

@@ -10,16 +10,16 @@ import (
 
 type EntryService struct {
 	EntryRepository repository.EntryRepository
-	CreationBus     *EntryCreationBus
+	Bus             *EventBus
 }
 
 func NewEntryService(
 	entryRepository repository.EntryRepository,
-	creationBus *EntryCreationBus,
+	bus *EventBus,
 ) *EntryService {
 	return &EntryService{
 		EntryRepository: entryRepository,
-		CreationBus:     creationBus,
+		Bus:             bus,
 	}
 }
 
@@ -44,16 +44,26 @@ func (s *EntryService) Create(entry model.Entry) error {
 	if err != nil {
 		return err
 	}
-	s.CreationBus.Notify(entry)
+	s.Bus.NotifyCreated(entry)
 	return nil
 }
 
 func (s *EntryService) Update(entry model.Entry) error {
-	return s.EntryRepository.Update(entry)
+	err := s.EntryRepository.Update(entry)
+	if err != nil {
+		return err
+	}
+	s.Bus.NotifyUpdated(entry)
+	return nil
 }
 
 func (s *EntryService) Delete(entry model.Entry) error {
-	return s.EntryRepository.Delete(entry)
+	err := s.EntryRepository.Delete(entry)
+	if err != nil {
+		return err
+	}
+	s.Bus.NotifyDeleted(entry)
+	return nil
 }
 
 func (s *EntryService) FindById(id string) (model.Entry, error) {
