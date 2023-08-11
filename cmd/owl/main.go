@@ -47,7 +47,7 @@ func App(db infra.Database) *web.WebApp {
 	entryRepo := infra.NewEntryRepository(db, entryRegister)
 	binRepo := infra.NewBinaryFileRepo(db)
 	authorRepo := infra.NewDefaultAuthorRepo(db)
-	siteConfigRepo := infra.NewConfigRepo(db)
+	configRepo := infra.NewConfigRepo(db)
 	interactionRepo := infra.NewInteractionRepo(db, interactionRegister)
 
 	// Create External Services
@@ -59,21 +59,21 @@ func App(db infra.Database) *web.WebApp {
 	// Create Services
 	entryService := app.NewEntryService(entryRepo, eventBus)
 	binaryService := app.NewBinaryFileService(binRepo)
-	authorService := app.NewAuthorService(authorRepo, siteConfigRepo)
+	authorService := app.NewAuthorService(authorRepo, configRepo)
 	webmentionService := app.NewWebmentionService(
-		interactionRepo, entryRepo, httpClient, eventBus,
+		configRepo, interactionRepo, entryRepo, httpClient, eventBus,
 	)
 
 	// plugins
 	plugings.NewEcho(eventBus)
 	plugings.RegisterInstagram(
-		siteConfigRepo, configRegister, binaryService, eventBus,
+		configRepo, configRegister, binaryService, eventBus,
 	)
 
 	// Create WebApp
 	return web.NewWebApp(
 		entryService, entryRegister, binaryService,
-		authorService, siteConfigRepo, configRegister,
+		authorService, configRepo, configRegister,
 		webmentionService, interactionRepo,
 	)
 

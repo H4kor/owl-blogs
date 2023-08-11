@@ -1,25 +1,32 @@
 package app
 
 import (
+	"fmt"
+	"net/url"
 	"owl-blogs/app/owlhttp"
 	"owl-blogs/app/repository"
+	"owl-blogs/config"
+	"owl-blogs/domain/model"
 	"owl-blogs/interactions"
 	"time"
 )
 
 type WebmentionService struct {
+	ConfigRepo            repository.ConfigRepository
 	InteractionRepository repository.InteractionRepository
 	EntryRepository       repository.EntryRepository
 	Http                  owlhttp.HttpClient
 }
 
 func NewWebmentionService(
+	configRepo repository.ConfigRepository,
 	interactionRepository repository.InteractionRepository,
 	entryRepository repository.EntryRepository,
 	http owlhttp.HttpClient,
 	bus *EventBus,
 ) *WebmentionService {
 	svc := &WebmentionService{
+		ConfigRepo:            configRepo,
 		InteractionRepository: interactionRepository,
 		EntryRepository:       entryRepository,
 		Http:                  http,
@@ -89,4 +96,58 @@ func (s *WebmentionService) ProcessWebmention(source string, target string) erro
 		err = s.InteractionRepository.Create(webmention)
 		return err
 	}
+}
+
+func (s *WebmentionService) ScanForLinks(entry model.Entry) ([]string, error) {
+	content := string(entry.Content())
+	return ParseLinksFromString(content)
+}
+
+func (s *WebmentionService) FullEntryUrl(entry model.Entry) string {
+	siteConfig := model.SiteConfig{}
+	s.ConfigRepo.Get(config.SITE_CONFIG, &siteConfig)
+
+	url, _ := url.JoinPath(
+		siteConfig.FullUrl,
+		fmt.Sprintf("/posts/%s/", entry.ID()),
+	)
+	return url
+}
+
+func (s *WebmentionService) SendWebmention(entry model.Entry) error {
+	links, err := s.ScanForLinks(entry)
+	if err != nil {
+		return err
+	}
+	for _, target := range links {
+		resp, err := s.Http.Get(target)
+		if err != nil {
+			continue
+		}
+		endpoint, err := GetWebmentionEndpoint(resp)
+		if err != nil {
+			continue
+		}
+		payload := url.Values{}
+		payload.Set("source", s.FullEntryUrl(entry))
+		payload.Set("target", target)
+		_, err = s.Http.PostForm(endpoint, payload)
+		if err != nil {
+			continue
+		}
+		println("Send webmention for target", target)
+	}
+	return nil
+}
+
+func (s *WebmentionService) NotifyEntryCreated(entry model.Entry) {
+	s.SendWebmention(entry)
+}
+
+func (s *WebmentionService) NotifyEntryUpdated(entry model.Entry) {
+	s.SendWebmention(entry)
+}
+
+func (s *WebmentionService) NotifyEntryDeleted(entry model.Entry) {
+	s.SendWebmention(entry)
 }
