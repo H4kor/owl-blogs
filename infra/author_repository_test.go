@@ -45,3 +45,19 @@ func TestAuthorRepoNoSideEffect(t *testing.T) {
 	require.Equal(t, author2.Name, "name2")
 	require.Equal(t, author2.PasswordHash, "password2")
 }
+
+func TestAuthorUpdate(t *testing.T) {
+	repo := setupAutherRepo()
+
+	author, err := repo.Create("name1", "password1")
+	require.NoError(t, err)
+
+	author.PasswordHash = "password2"
+	err = repo.Update(author)
+	require.NoError(t, err)
+
+	author, err = repo.FindByName("name1")
+	require.NoError(t, err)
+	require.Equal(t, author.PasswordHash, "password2")
+
+}

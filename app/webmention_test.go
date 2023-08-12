@@ -56,11 +56,13 @@ func getWebmentionService() *app.WebmentionService {
 
 	interactionRepo := infra.NewInteractionRepo(db, interactionRegister)
 
+	configRepo := infra.NewConfigRepo(db)
+
 	bus := app.NewEventBus()
 
 	http := infra.OwlHttpClient{}
 	return app.NewWebmentionService(
-		interactionRepo, entryRepo, &http, bus,
+		configRepo, interactionRepo, entryRepo, &http, bus,
 	)
 }
 

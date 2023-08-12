@@ -59,3 +59,12 @@ func (r *DefaultAuthorRepo) Create(name string, passwordHash string) (*model.Aut
 		PasswordHash: author.PasswordHash,
 	}, nil
 }
+
+func (r *DefaultAuthorRepo) Update(author *model.Author) error {
+	sqlA := sqlAuthor{
+		Name:         author.Name,
+		PasswordHash: author.PasswordHash,
+	}
+	_, err := r.db.NamedExec("UPDATE authors SET password_hash = :password_hash WHERE name = :name", sqlA)
+	return err
+}

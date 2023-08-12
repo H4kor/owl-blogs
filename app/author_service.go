@@ -36,6 +36,21 @@ func (s *AuthorService) Create(name string, password string) (*model.Author, err
 	return s.repo.Create(name, hash)
 }
 
+func (s *AuthorService) SetPassword(name string, password string) error {
+	hash, err := hashPassword(password)
+	if err != nil {
+		return err
+	}
+	author, err := s.repo.FindByName(name)
+	if err != nil {
+		return err
+	}
+	author.PasswordHash = hash
+	err = s.repo.Update(author)
+	return err
+
+}
+
 func (s *AuthorService) FindByName(name string) (*model.Author, error) {
 	return s.repo.FindByName(name)
 }

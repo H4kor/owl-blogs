@@ -27,6 +27,8 @@ type AuthorRepository interface {
 	// Create creates a new author
 	// It returns an error if the name is already taken
 	Create(name string, passwordHash string) (*model.Author, error)
+
+	Update(author *model.Author) error
 	// FindByName finds an author by name
 	// It returns an error if the author is not found
 	FindByName(name string) (*model.Author, error)
