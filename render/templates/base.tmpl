@@ -7,6 +7,7 @@
         <title>{{template "title" .Data}} - {{ .SiteConfig.Title }}</title>
         <meta property="og:title" content="{{template "title" .Data}}" />
         <link rel="webmention" href="/webmention/" />
+        <link rel="alternate" type="application/rss+xml" title="RSS" href="/index.xml">
         
         <link rel='stylesheet' href='/static/pico.min.css'>
         <style>
@@ -113,6 +114,7 @@
         <footer class="container">
             <nav>
                 <ul>
+                    <li><a target="_blank" href="/index.xml">RSS Feed</a></li>
                     {{ range $link := .SiteConfig.FooterMenu }}
                         {{ if $link.List }}
                             <li><a href="/lists/{{ $link.List }}">{{ $link.Title }}</a></li>
