@@ -1,7 +1,7 @@
 ##
 ## Build Container
 ##
-FROM golang:1.20-alpine as build
+FROM golang:1.21-alpine as build
 
 
 RUN apk add --no-cache --update git gcc g++
