@@ -1,6 +1,7 @@
 package web
 
 import (
+	"net/http"
 	"owl-blogs/app"
 	"owl-blogs/app/repository"
 	"owl-blogs/domain/model"
@@ -42,6 +43,11 @@ func NewEntryHandler(
 
 func (h *EntryHandler) Handle(c *fiber.Ctx) error {
 	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
+
+	url := c.OriginalURL()
+	if len(url) == 0 || url[len(url)-1] != '/' {
+		return c.Redirect(url+"/", http.StatusMovedPermanently)
+	}
 
 	loggedIn := c.Locals("author") != nil
 
