@@ -1,0 +1,16 @@
+.action-tile-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+} 
+
+.action-tile {
+    border: 1px solid var(--color-primary);
+    padding: 20px;
+    flex: 1 1 0px;
+    margin: 6px;
+    min-width: 20%;
+    text-align: center;
+    background: var(--color-primary);
+    border-radius: 4px;
+}

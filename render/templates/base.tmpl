@@ -10,9 +10,14 @@
         <link rel="alternate" type="application/rss+xml" title="RSS" href="/index.xml">
         
         <link rel='stylesheet' href='/static/pico.min.css'>
+        <link rel='stylesheet' href='/static/style.css'>
         <style>
+            :root {
+                --color-primary: {{.SiteConfig.HeaderColor}};
+            }
+
             header {
-                background-color: {{.SiteConfig.HeaderColor}};
+                background-color: var(--color-primary);
                 padding-bottom: 1rem !important;
             }
 

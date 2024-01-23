@@ -3,11 +3,11 @@
 {{define "main"}}
 <h2>Write</h2>
 
-<ul>
+<div class="action-tile-list">
     {{range .Types}}
-    <li><a href="/editor/new/{{.}}/">{{.}}</a></li>
+    <div class="action-tile"><a href="/editor/new/{{.}}/">{{.}}</a></div>
     {{end}}
-</ul>
+</div>
 
 <h2>Content</h2>
 <ul>
