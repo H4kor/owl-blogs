@@ -23,6 +23,7 @@ type SiteConfig struct {
 	Title              string
 	SubTitle           string
 	HeaderColor        string
+	PrimaryColor       string
 	AuthorName         string
 	Me                 []MeLinks
 	Lists              []EntryList

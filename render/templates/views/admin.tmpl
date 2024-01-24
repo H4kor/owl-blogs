@@ -1,31 +1,40 @@
 {{define "title"}}Admin{{end}}
 
 {{define "main"}}
-<h2>Write</h2>
+<h2 style="margin-bottom: 1rem;">Write</h2>
 
 <div class="action-tile-list">
     {{range .Types}}
-    <div class="action-tile"><a href="/editor/new/{{.}}/">{{.}}</a></div>
+    <a class="action-tile" href="/editor/new/{{.}}/">{{.}}</a>
     {{end}}
 </div>
+<br>
+<br>
 
-<h2>Content</h2>
-<ul>
-    <li><a href="/admin/binaries/">Files</a></li>
-    <li><a href="/admin/drafts/">Drafts</a></li>
-</ul>
+<h2 style="margin-bottom: 1rem;">Content</h2>
+<div class="action-tile-list">
+    <a class="action-tile" href="/admin/binaries/">Files</a>
+    <a class="action-tile" href="/admin/drafts/">Drafts</a>
+</div>
+<br>
+<br>
 
-<h2>Configurations</h2>
-<ul>
-    <li><a href="/site-config">Site Settings</a></li>
-    <li><a href="/site-config/me">Me Links</a></li>
-    <li><a href="/site-config/lists">Lists</a></li>
-    <li><a href="/site-config/menus">Menus</a></li>
-    <li>Modules</li>
-    <ul>
-        {{ range .Configs }}
-            <li><a href="/admin/config/{{.Name}}">{{.Name}}</a></li>
-        {{ end }}
-    </ul>
-</ul>
+<h2 style="margin-bottom: 1rem;">Configurations</h2>
+<div class="action-tile-list">
+    <a class="action-tile" href="/site-config">Site Settings</a>
+    <a class="action-tile" href="/site-config/me">Me Links</a>
+    <a class="action-tile" href="/site-config/lists">Lists</a>
+    <a class="action-tile" href="/site-config/menus">Menus</a>
+</div>
+<br>
+<br>
+
+<h3>Module Configuration</h3>
+<div class="action-tile-list">
+    {{ range .Configs }}
+        <a class="action-tile" href="/admin/config/{{.Name}}">{{.Name}}</a>
+    {{ end }}
+</div>
+<br>
+<br>
 {{end}}

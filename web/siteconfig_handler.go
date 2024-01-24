@@ -44,6 +44,7 @@ func (h *SiteConfigHandler) HandlePost(c *fiber.Ctx) error {
 	siteConfig.Title = c.FormValue("Title")
 	siteConfig.SubTitle = c.FormValue("SubTitle")
 	siteConfig.HeaderColor = c.FormValue("HeaderColor")
+	siteConfig.PrimaryColor = c.FormValue("PrimaryColor")
 	siteConfig.AuthorName = c.FormValue("AuthorName")
 	siteConfig.AvatarUrl = c.FormValue("AvatarUrl")
 	siteConfig.FullUrl = c.FormValue("FullUrl")
