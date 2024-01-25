@@ -18,3 +18,7 @@
 .action-tile:hover {
     background: var(--background-light);
 }
+
+.danger {
+    background-color: var(--del-color) !important;
+}

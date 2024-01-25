@@ -74,29 +74,33 @@
 <br>
 <br>
 <h3>Actions</h3>
+
+
 <div class="grid">
-    <a href="/editor/edit/{{.Entry.ID}}/" role="button" class="secondary outline">Edit</a>
+    <div style="margin-bottom:1em;">
+        <a style="width:100%;" href="/editor/edit/{{.Entry.ID}}/" role="button" class="">Edit</a>
+    </div>
+    <div>
+        <form method="post" action="/editor/unpublish/{{.Entry.ID}}/">
+            <input type="submit" class="secondary" value="Unpublish" />
+            <br>
+            <label for="confirm">
+                Confirm unpublishing
+                <input type="checkbox" name="confirm" id="confirm" required />
+            </label>
+        </form>
+    </div>
+    <div>
+    <form method="post" action="/editor/delete/{{.Entry.ID}}/">
+        <input type="submit" class="danger" value="Delete" />
+        <br>
+        <label for="confirm">
+            Confirm deletion
+            <input type="checkbox" name="confirm" id="confirm" required />
+        </label>
+    </form>
+    </div>
 </div>
-<br>
-<hr>
-<br>
-<form method="post" action="/editor/unpublish/{{.Entry.ID}}/" class="grid">
-    <label for="confirm">
-        Confirm unpublishing
-        <input type="checkbox" name="confirm" id="confirm" required />
-    </label>
-    <input type="submit" class="secondary outline" value="Unpublish" />
-</form>
-<br>
-<hr>
-<br>
-<form method="post" action="/editor/delete/{{.Entry.ID}}/" class="grid">
-    <label for="confirm">
-        Confirm deletion
-        <input type="checkbox" name="confirm" id="confirm" required />
-    </label>
-    <input type="submit" class="secondary outline" value="Delete" />
-</form>
 
 
 {{ end }}
