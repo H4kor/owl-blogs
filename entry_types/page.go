@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"owl-blogs/domain/model"
 	"owl-blogs/render"
+	"owl-blogs/web/forms"
 )
 
 type Page struct {
@@ -12,6 +13,8 @@ type Page struct {
 }
 
 type PageMetaData struct {
+	forms.DefaultForm
+
 	Title   string `owl:"inputType=text"`
 	Content string `owl:"inputType=text widget=textarea"`
 }
@@ -28,10 +31,10 @@ func (e *Page) Content() model.EntryContent {
 	return model.EntryContent(str)
 }
 
-func (e *Page) MetaData() interface{} {
+func (e *Page) MetaData() model.EntryMetaData {
 	return &e.meta
 }
 
-func (e *Page) SetMetaData(metaData interface{}) {
+func (e *Page) SetMetaData(metaData model.EntryMetaData) {
 	e.meta = *metaData.(*PageMetaData)
 }

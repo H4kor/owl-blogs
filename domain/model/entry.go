@@ -1,6 +1,8 @@
 package model
 
-import "time"
+import (
+	"time"
+)
 
 type EntryContent string
 
@@ -9,18 +11,20 @@ type Entry interface {
 	Content() EntryContent
 	PublishedAt() *time.Time
 	AuthorId() string
-	MetaData() interface{}
+	MetaData() EntryMetaData
 
 	// Optional: can return empty string
 	Title() string
 
 	SetID(id string)
 	SetPublishedAt(publishedAt *time.Time)
-	SetMetaData(metaData interface{})
+	SetMetaData(metaData EntryMetaData)
 	SetAuthorId(authorId string)
 }
 
 type EntryMetaData interface {
+	Form(binSvc BinaryStorageInterface) string
+	ParseFormData(data HttpFormData, binSvc BinaryStorageInterface) (EntryMetaData, error)
 }
 
 type EntryBase struct {

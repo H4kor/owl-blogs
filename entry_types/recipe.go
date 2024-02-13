@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"owl-blogs/domain/model"
 	"owl-blogs/render"
+	"owl-blogs/web/forms"
 )
 
 type Recipe struct {
@@ -12,6 +13,8 @@ type Recipe struct {
 }
 
 type RecipeMetaData struct {
+	forms.DefaultForm
+
 	Title       string   `owl:"inputType=text"`
 	Yield       string   `owl:"inputType=text"`
 	Duration    string   `owl:"inputType=text"`
@@ -31,10 +34,10 @@ func (e *Recipe) Content() model.EntryContent {
 	return model.EntryContent(str)
 }
 
-func (e *Recipe) MetaData() interface{} {
+func (e *Recipe) MetaData() model.EntryMetaData {
 	return &e.meta
 }
 
-func (e *Recipe) SetMetaData(metaData interface{}) {
+func (e *Recipe) SetMetaData(metaData model.EntryMetaData) {
 	e.meta = *metaData.(*RecipeMetaData)
 }

@@ -2,27 +2,27 @@ package forms
 
 import (
 	"fmt"
-	"mime/multipart"
-	"owl-blogs/app"
+	"owl-blogs/domain/model"
 	"reflect"
 	"strings"
 )
 
-type HttpFormData interface {
-	// FormFile returns the first file by key from a MultipartForm.
-	FormFile(key string) (*multipart.FileHeader, error)
-	// FormValue returns the first value by key from a MultipartForm.
-	// Search is performed in QueryArgs, PostArgs, MultipartForm and FormFile in this particular order.
-	// Defaults to the empty string "" if the form value doesn't exist.
-	// If a default value is given, it will return that value if the form value does not exist.
-	// Returned value is only valid within the handler. Do not store any references.
-	// Make copies or use the Immutable setting instead.
-	FormValue(key string, defaultValue ...string) string
+type DefaultForm struct{}
+
+func (meta *DefaultForm) Form(binSvc model.BinaryStorageInterface) string {
+	form := NewForm(meta, nil)
+	htmlForm, _ := form.HtmlForm()
+	return htmlForm
 }
 
-type Form struct {
-	data   interface{}
-	binSvc *app.BinaryService
+func (meta *DefaultForm) ParseFormData(data model.HttpFormData, binSvc model.BinaryStorageInterface) (model.EntryMetaData, error) {
+	form := NewForm(meta, binSvc)
+	return form.Parse(data)
+}
+
+type Form[T interface{}] struct {
+	data   T
+	binSvc model.BinaryStorageInterface
 }
 
 type FormFieldParams struct {
@@ -36,8 +36,8 @@ type FormField struct {
 	Params FormFieldParams
 }
 
-func NewForm(data interface{}, binaryService *app.BinaryService) *Form {
-	return &Form{
+func NewForm[T interface{}](data T, binaryService model.BinaryStorageInterface) *Form[T] {
+	return &Form[T]{
 		data:   data,
 		binSvc: binaryService,
 	}
@@ -63,8 +63,10 @@ func (s *FormField) ToWidget() Widget {
 		return &TextListWidget{*s}
 	case "password":
 		return &PasswordWidget{*s}
-	default:
+	case "text":
 		return &TextWidget{*s}
+	default:
+		return &OmitWidget{*s}
 	}
 }
 
@@ -118,7 +120,7 @@ func StructToFormFields(data interface{}) ([]FormField, error) {
 	return fields, nil
 }
 
-func (s *Form) HtmlForm() (string, error) {
+func (s *Form[T]) HtmlForm() (string, error) {
 	fields, err := StructToFormFields(s.data)
 	if err != nil {
 		return "", err
@@ -132,17 +134,19 @@ func (s *Form) HtmlForm() (string, error) {
 	return html, nil
 }
 
-func (s *Form) Parse(ctx HttpFormData) (interface{}, error) {
+func (s *Form[T]) Parse(ctx model.HttpFormData) (T, error) {
+	var empty T
+
 	if ctx == nil {
-		return nil, fmt.Errorf("nil context")
+		return empty, fmt.Errorf("nil context")
 	}
 	dataVal := reflect.ValueOf(s.data)
 	if dataVal.Kind() != reflect.Ptr {
-		return nil, fmt.Errorf("meta data is not a pointer")
+		return empty, fmt.Errorf("meta data is not a pointer")
 	}
 	fields, err := StructToFormFields(s.data)
 	if err != nil {
-		return nil, err
+		return empty, err
 	}
 	for _, field := range fields {
 		fieldName := field.Name
@@ -158,22 +162,22 @@ func (s *Form) Parse(ctx HttpFormData) (interface{}, error) {
 					}
 					continue
 				}
-				return nil, err
+				return empty, err
 			}
 			fileData, err := file.Open()
 			if err != nil {
-				return nil, err
+				return empty, err
 			}
 			defer fileData.Close()
 			fileBytes := make([]byte, file.Size)
 			_, err = fileData.Read(fileBytes)
 			if err != nil {
-				return nil, err
+				return empty, err
 			}
 
 			binaryFile, err := s.binSvc.Create(file.Filename, fileBytes)
 			if err != nil {
-				return nil, err
+				return empty, err
 			}
 
 			metaField := dataVal.Elem().FieldByName(fieldName)

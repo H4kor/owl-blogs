@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"owl-blogs/domain/model"
 	"owl-blogs/render"
+	"owl-blogs/web/forms"
 )
 
 type Bookmark struct {
@@ -12,6 +13,8 @@ type Bookmark struct {
 }
 
 type BookmarkMetaData struct {
+	forms.DefaultForm
+
 	Title   string `owl:"inputType=text"`
 	Url     string `owl:"inputType=text"`
 	Content string `owl:"inputType=text widget=textarea"`
@@ -29,10 +32,10 @@ func (e *Bookmark) Content() model.EntryContent {
 	return model.EntryContent(str)
 }
 
-func (e *Bookmark) MetaData() interface{} {
+func (e *Bookmark) MetaData() model.EntryMetaData {
 	return &e.meta
 }
 
-func (e *Bookmark) SetMetaData(metaData interface{}) {
+func (e *Bookmark) SetMetaData(metaData model.EntryMetaData) {
 	e.meta = *metaData.(*BookmarkMetaData)
 }

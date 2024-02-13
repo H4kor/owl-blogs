@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"owl-blogs/domain/model"
 	"owl-blogs/render"
+	"owl-blogs/web/forms"
 )
 
 type Note struct {
@@ -12,6 +13,8 @@ type Note struct {
 }
 
 type NoteMetaData struct {
+	forms.DefaultForm
+
 	Content string `owl:"inputType=text widget=textarea"`
 }
 
@@ -27,10 +30,10 @@ func (e *Note) Content() model.EntryContent {
 	return model.EntryContent(str)
 }
 
-func (e *Note) MetaData() interface{} {
+func (e *Note) MetaData() model.EntryMetaData {
 	return &e.meta
 }
 
-func (e *Note) SetMetaData(metaData interface{}) {
+func (e *Note) SetMetaData(metaData model.EntryMetaData) {
 	e.meta = *metaData.(*NoteMetaData)
 }

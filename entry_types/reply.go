@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"owl-blogs/domain/model"
 	"owl-blogs/render"
+	"owl-blogs/web/forms"
 )
 
 type Reply struct {
@@ -12,6 +13,8 @@ type Reply struct {
 }
 
 type ReplyMetaData struct {
+	forms.DefaultForm
+
 	Title   string `owl:"inputType=text"`
 	Url     string `owl:"inputType=text"`
 	Content string `owl:"inputType=text widget=textarea"`
@@ -29,10 +32,10 @@ func (e *Reply) Content() model.EntryContent {
 	return model.EntryContent(str)
 }
 
-func (e *Reply) MetaData() interface{} {
+func (e *Reply) MetaData() model.EntryMetaData {
 	return &e.meta
 }
 
-func (e *Reply) SetMetaData(metaData interface{}) {
+func (e *Reply) SetMetaData(metaData model.EntryMetaData) {
 	e.meta = *metaData.(*ReplyMetaData)
 }

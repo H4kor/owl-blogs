@@ -26,6 +26,19 @@ func (s *TextWidget) ParseValue(value string, output reflect.Value) error {
 	return nil
 }
 
+type OmitWidget struct {
+	FormField
+}
+
+func (s *OmitWidget) Html() string {
+	html := ""
+	return html
+}
+
+func (s *OmitWidget) ParseValue(value string, output reflect.Value) error {
+	return nil
+}
+
 type PasswordWidget struct {
 	FormField
 }
