@@ -103,6 +103,6 @@ func TestFormParse(t *testing.T) {
 	form := forms.NewForm(&MockData{}, binService)
 	data, err := form.Parse(NewMockFormData())
 	require.NoError(t, err)
-	require.NotZero(t, data.(*MockData).Image)
-	require.Equal(t, "Content", data.(*MockData).Content)
+	require.NotZero(t, data.Image)
+	require.Equal(t, "Content", data.Content)
 }

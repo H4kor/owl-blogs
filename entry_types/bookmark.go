@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"owl-blogs/domain/model"
 	"owl-blogs/render"
-	"owl-blogs/web/forms"
 )
 
 type Bookmark struct {
@@ -13,11 +12,24 @@ type Bookmark struct {
 }
 
 type BookmarkMetaData struct {
-	forms.DefaultForm
-
 	Title   string `owl:"inputType=text"`
 	Url     string `owl:"inputType=text"`
 	Content string `owl:"inputType=text widget=textarea"`
+}
+
+// Form implements model.EntryMetaData.
+func (meta *BookmarkMetaData) Form(binSvc model.BinaryStorageInterface) string {
+	f, _ := render.RenderTemplateToString("forms/Bookmark", meta)
+	return f
+}
+
+// ParseFormData implements model.EntryMetaData.
+func (*BookmarkMetaData) ParseFormData(data model.HttpFormData, binSvc model.BinaryStorageInterface) (model.EntryMetaData, error) {
+	return &BookmarkMetaData{
+		Title:   data.FormValue("title"),
+		Url:     data.FormValue("url"),
+		Content: data.FormValue("content"),
+	}, nil
 }
 
 func (e *Bookmark) Title() string {
