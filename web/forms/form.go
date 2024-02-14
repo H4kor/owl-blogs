@@ -7,19 +7,6 @@ import (
 	"strings"
 )
 
-type DefaultForm struct{}
-
-func (meta *DefaultForm) Form(binSvc model.BinaryStorageInterface) string {
-	form := NewForm(meta, nil)
-	htmlForm, _ := form.HtmlForm()
-	return htmlForm
-}
-
-func (meta *DefaultForm) ParseFormData(data model.HttpFormData, binSvc model.BinaryStorageInterface) (model.EntryMetaData, error) {
-	form := NewForm(meta, binSvc)
-	return form.Parse(data)
-}
-
 type Form[T interface{}] struct {
 	data   T
 	binSvc model.BinaryStorageInterface

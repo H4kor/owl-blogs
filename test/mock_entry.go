@@ -2,17 +2,24 @@ package test
 
 import (
 	"owl-blogs/domain/model"
-	"owl-blogs/web/forms"
 	"time"
 )
 
 type MockEntryMetaData struct {
-	forms.DefaultForm
-
 	Str    string
 	Number int
 	Date   time.Time
 	Title  string
+}
+
+// Form implements model.EntryMetaData.
+func (*MockEntryMetaData) Form(binSvc model.BinaryStorageInterface) string {
+	panic("unimplemented")
+}
+
+// ParseFormData implements model.EntryMetaData.
+func (*MockEntryMetaData) ParseFormData(data model.HttpFormData, binSvc model.BinaryStorageInterface) (model.EntryMetaData, error) {
+	panic("unimplemented")
 }
 
 type MockEntry struct {

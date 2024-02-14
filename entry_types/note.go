@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"owl-blogs/domain/model"
 	"owl-blogs/render"
-	"owl-blogs/web/forms"
 )
 
 type Note struct {
@@ -13,9 +12,20 @@ type Note struct {
 }
 
 type NoteMetaData struct {
-	forms.DefaultForm
-
 	Content string `owl:"inputType=text widget=textarea"`
+}
+
+// Form implements model.EntryMetaData.
+func (meta *NoteMetaData) Form(binSvc model.BinaryStorageInterface) string {
+	f, _ := render.RenderTemplateToString("forms/Note", meta)
+	return f
+}
+
+// ParseFormData implements model.EntryMetaData.
+func (*NoteMetaData) ParseFormData(data model.HttpFormData, binSvc model.BinaryStorageInterface) (model.EntryMetaData, error) {
+	return &NoteMetaData{
+		Content: data.FormValue("content"),
+	}, nil
 }
 
 func (e *Note) Title() string {
