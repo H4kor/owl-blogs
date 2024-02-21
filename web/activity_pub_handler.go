@@ -21,9 +21,9 @@ type ActivityPubServer struct {
 }
 
 type ActivityPubConfig struct {
-	PreferredUsername string `owl:"inputType=text"`
-	PublicKeyPem      string `owl:"inputType=text widget=textarea"`
-	PrivateKeyPem     string `owl:"inputType=text widget=textarea"`
+	PreferredUsername string
+	PublicKeyPem      string
+	PrivateKeyPem     string
 }
 
 // Form implements app.AppConfig.

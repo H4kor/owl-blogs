@@ -13,11 +13,11 @@ type Recipe struct {
 }
 
 type RecipeMetaData struct {
-	Title       string   `owl:"inputType=text"`
-	Yield       string   `owl:"inputType=text"`
-	Duration    string   `owl:"inputType=text"`
-	Ingredients []string `owl:"inputType=text widget=textlist"`
-	Content     string   `owl:"inputType=text widget=textarea"`
+	Title       string
+	Yield       string
+	Duration    string
+	Ingredients []string
+	Content     string
 }
 
 // Form implements model.EntryMetaData.

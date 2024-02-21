@@ -12,7 +12,7 @@ type Note struct {
 }
 
 type NoteMetaData struct {
-	Content string `owl:"inputType=text widget=textarea"`
+	Content string
 }
 
 // Form implements model.EntryMetaData.

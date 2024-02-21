@@ -12,9 +12,9 @@ type Reply struct {
 }
 
 type ReplyMetaData struct {
-	Title   string `owl:"inputType=text"`
-	Url     string `owl:"inputType=text"`
-	Content string `owl:"inputType=text widget=textarea"`
+	Title   string
+	Url     string
+	Content string
 }
 
 // Form implements model.EntryMetaData.

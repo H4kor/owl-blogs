@@ -12,8 +12,8 @@ type Article struct {
 }
 
 type ArticleMetaData struct {
-	Title   string `owl:"inputType=text"`
-	Content string `owl:"inputType=text widget=textarea"`
+	Title   string
+	Content string
 }
 
 // Form implements model.EntryMetaData.

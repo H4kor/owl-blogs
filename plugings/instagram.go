@@ -17,8 +17,8 @@ type Instagram struct {
 }
 
 type InstagramConfig struct {
-	User     string `owl:"widget=text"`
-	Password string `owl:"widget=password"`
+	User     string
+	Password string
 }
 
 // Form implements app.AppConfig.
