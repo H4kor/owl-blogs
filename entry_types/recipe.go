@@ -27,7 +27,7 @@ func (meta *RecipeMetaData) Form(binSvc model.BinaryStorageInterface) string {
 }
 
 // ParseFormData implements model.EntryMetaData.
-func (*RecipeMetaData) ParseFormData(data model.HttpFormData, binSvc model.BinaryStorageInterface) (model.EntryMetaData, error) {
+func (meta *RecipeMetaData) ParseFormData(data model.HttpFormData, binSvc model.BinaryStorageInterface) error {
 	ings := strings.Split(data.FormValue("ingredients"), "\n")
 	clean := make([]string, 0)
 	for _, ing := range ings {
@@ -35,13 +35,12 @@ func (*RecipeMetaData) ParseFormData(data model.HttpFormData, binSvc model.Binar
 			clean = append(clean, strings.TrimSpace(ing))
 		}
 	}
-	return &RecipeMetaData{
-		Title:       data.FormValue("title"),
-		Yield:       data.FormValue("yield"),
-		Duration:    data.FormValue("duration"),
-		Ingredients: clean,
-		Content:     data.FormValue("content"),
-	}, nil
+	meta.Title = data.FormValue("title")
+	meta.Yield = data.FormValue("yield")
+	meta.Duration = data.FormValue("duration")
+	meta.Ingredients = clean
+	meta.Content = data.FormValue("content")
+	return nil
 }
 
 func (e *Recipe) Title() string {

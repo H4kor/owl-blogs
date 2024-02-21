@@ -3,8 +3,7 @@ package app
 import "owl-blogs/domain/model"
 
 type AppConfig interface {
-	Form(binSvc model.BinaryStorageInterface) string
-	ParseFormData(data model.HttpFormData, binSvc model.BinaryStorageInterface) (AppConfig, error)
+	model.Formable
 }
 
 type ConfigRegister struct {

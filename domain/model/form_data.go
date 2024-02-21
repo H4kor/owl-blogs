@@ -2,6 +2,11 @@ package model
 
 import "mime/multipart"
 
+type Formable interface {
+	Form(binSvc BinaryStorageInterface) string
+	ParseFormData(data HttpFormData, binSvc BinaryStorageInterface) error
+}
+
 type HttpFormData interface {
 	// FormFile returns the first file by key from a MultipartForm.
 	FormFile(key string) (*multipart.FileHeader, error)

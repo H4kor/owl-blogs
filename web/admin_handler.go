@@ -92,12 +92,12 @@ func (h *adminHandler) HandleConfigPost(c *fiber.Ctx) error {
 		return c.SendStatus(404)
 	}
 
-	newConfig, err := config.ParseFormData(c, h.binSvc)
+	err := config.ParseFormData(c, h.binSvc)
 	if err != nil {
 		return err
 	}
 
-	h.configRepo.Update(configName, newConfig)
+	h.configRepo.Update(configName, config)
 
 	return c.Redirect("")
 

@@ -24,12 +24,11 @@ func (meta *BookmarkMetaData) Form(binSvc model.BinaryStorageInterface) string {
 }
 
 // ParseFormData implements model.EntryMetaData.
-func (*BookmarkMetaData) ParseFormData(data model.HttpFormData, binSvc model.BinaryStorageInterface) (model.EntryMetaData, error) {
-	return &BookmarkMetaData{
-		Title:   data.FormValue("title"),
-		Url:     data.FormValue("url"),
-		Content: data.FormValue("content"),
-	}, nil
+func (meta *BookmarkMetaData) ParseFormData(data model.HttpFormData, binSvc model.BinaryStorageInterface) error {
+	meta.Title = data.FormValue("title")
+	meta.Url = data.FormValue("url")
+	meta.Content = data.FormValue("content")
+	return nil
 }
 
 func (e *Bookmark) Title() string {

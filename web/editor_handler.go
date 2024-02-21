@@ -59,7 +59,8 @@ func (h *EditorHandler) HandlePostNew(c *fiber.Ctx) error {
 		return err
 	}
 
-	entryMeta, err := entry.MetaData().ParseFormData(c, h.binSvc)
+	entryMeta := entry.MetaData()
+	err = entryMeta.ParseFormData(c, h.binSvc)
 	if err != nil {
 		return err
 	}
@@ -106,7 +107,8 @@ func (h *EditorHandler) HandlePostEdit(c *fiber.Ctx) error {
 	}
 
 	// get form data
-	meta, err := entry.MetaData().ParseFormData(c, h.binSvc)
+	meta := entry.MetaData()
+	err = meta.ParseFormData(c, h.binSvc)
 	if err != nil {
 		return err
 	}

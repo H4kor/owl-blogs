@@ -33,12 +33,11 @@ func (cfg *ActivityPubConfig) Form(binSvc model.BinaryStorageInterface) string {
 }
 
 // ParseFormData implements app.AppConfig.
-func (*ActivityPubConfig) ParseFormData(data model.HttpFormData, binSvc model.BinaryStorageInterface) (app.AppConfig, error) {
-	return &ActivityPubConfig{
-		PreferredUsername: data.FormValue("PreferredUsername"),
-		PublicKeyPem:      data.FormValue("PublicKeyPem"),
-		PrivateKeyPem:     data.FormValue("PrivateKeyPem"),
-	}, nil
+func (cfg *ActivityPubConfig) ParseFormData(data model.HttpFormData, binSvc model.BinaryStorageInterface) error {
+	cfg.PreferredUsername = data.FormValue("PreferredUsername")
+	cfg.PublicKeyPem = data.FormValue("PublicKeyPem")
+	cfg.PrivateKeyPem = data.FormValue("PrivateKeyPem")
+	return nil
 }
 
 type WebfingerResponse struct {

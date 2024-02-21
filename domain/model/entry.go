@@ -23,8 +23,7 @@ type Entry interface {
 }
 
 type EntryMetaData interface {
-	Form(binSvc BinaryStorageInterface) string
-	ParseFormData(data HttpFormData, binSvc BinaryStorageInterface) (EntryMetaData, error)
+	Formable
 }
 
 type EntryBase struct {

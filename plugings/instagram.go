@@ -28,11 +28,10 @@ func (cfg *InstagramConfig) Form(binSvc model.BinaryStorageInterface) string {
 }
 
 // ParseFormData implements app.AppConfig.
-func (*InstagramConfig) ParseFormData(data model.HttpFormData, binSvc model.BinaryStorageInterface) (app.AppConfig, error) {
-	return &InstagramConfig{
-		User:     data.FormValue("User"),
-		Password: data.FormValue("Password"),
-	}, nil
+func (cfg *InstagramConfig) ParseFormData(data model.HttpFormData, binSvc model.BinaryStorageInterface) error {
+	cfg.User = data.FormValue("User")
+	cfg.Password = data.FormValue("Password")
+	return nil
 }
 
 func RegisterInstagram(

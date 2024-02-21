@@ -23,11 +23,10 @@ func (meta *PageMetaData) Form(binSvc model.BinaryStorageInterface) string {
 }
 
 // ParseFormData implements model.EntryMetaData.
-func (*PageMetaData) ParseFormData(data model.HttpFormData, binSvc model.BinaryStorageInterface) (model.EntryMetaData, error) {
-	return &PageMetaData{
-		Title:   data.FormValue("title"),
-		Content: data.FormValue("content"),
-	}, nil
+func (meta *PageMetaData) ParseFormData(data model.HttpFormData, binSvc model.BinaryStorageInterface) error {
+	meta.Title = data.FormValue("title")
+	meta.Content = data.FormValue("content")
+	return nil
 }
 
 func (e *Page) Title() string {

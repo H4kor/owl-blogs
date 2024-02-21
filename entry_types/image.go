@@ -24,35 +24,34 @@ func (meta *ImageMetaData) Form(binSvc model.BinaryStorageInterface) string {
 }
 
 // ParseFormData implements model.EntryMetaData.
-func (meta *ImageMetaData) ParseFormData(data model.HttpFormData, binSvc model.BinaryStorageInterface) (model.EntryMetaData, error) {
+func (meta *ImageMetaData) ParseFormData(data model.HttpFormData, binSvc model.BinaryStorageInterface) error {
 	file, err := data.FormFile("image")
 	var imgId = meta.ImageId
 	if err != nil && imgId == "" {
-		return nil, err
+		return err
 	} else if err == nil {
 		fileData, err := file.Open()
 		if err != nil {
-			return nil, err
+			return err
 		}
 		defer fileData.Close()
 
 		fileBytes := make([]byte, file.Size)
 		_, err = fileData.Read(fileBytes)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		bin, err := binSvc.Create(file.Filename, fileBytes)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		imgId = bin.Id
 	}
 
-	return &ImageMetaData{
-		ImageId: imgId,
-		Title:   data.FormValue("title"),
-		Content: data.FormValue("content"),
-	}, nil
+	meta.ImageId = imgId
+	meta.Title = data.FormValue("title")
+	meta.Content = data.FormValue("content")
+	return nil
 }
 
 func (e *Image) Title() string {

@@ -18,7 +18,7 @@ func (*MockEntryMetaData) Form(binSvc model.BinaryStorageInterface) string {
 }
 
 // ParseFormData implements model.EntryMetaData.
-func (*MockEntryMetaData) ParseFormData(data model.HttpFormData, binSvc model.BinaryStorageInterface) (model.EntryMetaData, error) {
+func (*MockEntryMetaData) ParseFormData(data model.HttpFormData, binSvc model.BinaryStorageInterface) error {
 	panic("unimplemented")
 }
 
