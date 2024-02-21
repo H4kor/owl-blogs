@@ -1,19 +1,26 @@
 package app
 
+import "owl-blogs/domain/model"
+
+type AppConfig interface {
+	Form(binSvc model.BinaryStorageInterface) string
+	ParseFormData(data model.HttpFormData, binSvc model.BinaryStorageInterface) (AppConfig, error)
+}
+
 type ConfigRegister struct {
-	configs map[string]interface{}
+	configs map[string]AppConfig
 }
 
 type RegisteredConfig struct {
 	Name   string
-	Config interface{}
+	Config AppConfig
 }
 
 func NewConfigRegister() *ConfigRegister {
-	return &ConfigRegister{configs: map[string]interface{}{}}
+	return &ConfigRegister{configs: map[string]AppConfig{}}
 }
 
-func (r *ConfigRegister) Register(name string, config interface{}) {
+func (r *ConfigRegister) Register(name string, config AppConfig) {
 	r.configs[name] = config
 }
 
@@ -28,6 +35,6 @@ func (r *ConfigRegister) Configs() []RegisteredConfig {
 	return configs
 }
 
-func (r *ConfigRegister) GetConfig(name string) interface{} {
+func (r *ConfigRegister) GetConfig(name string) AppConfig {
 	return r.configs[name]
 }

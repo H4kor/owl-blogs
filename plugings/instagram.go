@@ -6,6 +6,7 @@ import (
 	"owl-blogs/app/repository"
 	"owl-blogs/domain/model"
 	entrytypes "owl-blogs/entry_types"
+	"owl-blogs/render"
 
 	"github.com/Davincible/goinsta/v3"
 )
@@ -16,8 +17,22 @@ type Instagram struct {
 }
 
 type InstagramConfig struct {
-	User     string `owl:"widget=text"`
-	Password string `owl:"widget=password"`
+	User     string
+	Password string
+}
+
+// Form implements app.AppConfig.
+func (cfg *InstagramConfig) Form(binSvc model.BinaryStorageInterface) string {
+	f, _ := render.RenderTemplateToString("forms/InstagramConfig", cfg)
+	return f
+}
+
+// ParseFormData implements app.AppConfig.
+func (*InstagramConfig) ParseFormData(data model.HttpFormData, binSvc model.BinaryStorageInterface) (app.AppConfig, error) {
+	return &InstagramConfig{
+		User:     data.FormValue("User"),
+		Password: data.FormValue("Password"),
+	}, nil
 }
 
 func RegisterInstagram(

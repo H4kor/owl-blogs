@@ -12,8 +12,22 @@ type Page struct {
 }
 
 type PageMetaData struct {
-	Title   string `owl:"inputType=text"`
-	Content string `owl:"inputType=text widget=textarea"`
+	Title   string
+	Content string
+}
+
+// Form implements model.EntryMetaData.
+func (meta *PageMetaData) Form(binSvc model.BinaryStorageInterface) string {
+	f, _ := render.RenderTemplateToString("forms/Page", meta)
+	return f
+}
+
+// ParseFormData implements model.EntryMetaData.
+func (*PageMetaData) ParseFormData(data model.HttpFormData, binSvc model.BinaryStorageInterface) (model.EntryMetaData, error) {
+	return &PageMetaData{
+		Title:   data.FormValue("title"),
+		Content: data.FormValue("content"),
+	}, nil
 }
 
 func (e *Page) Title() string {
@@ -28,10 +42,10 @@ func (e *Page) Content() model.EntryContent {
 	return model.EntryContent(str)
 }
 
-func (e *Page) MetaData() interface{} {
+func (e *Page) MetaData() model.EntryMetaData {
 	return &e.meta
 }
 
-func (e *Page) SetMetaData(metaData interface{}) {
+func (e *Page) SetMetaData(metaData model.EntryMetaData) {
 	e.meta = *metaData.(*PageMetaData)
 }

@@ -77,9 +77,9 @@ func TestEditorFormPost(t *testing.T) {
 
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
-	part, _ := writer.CreateFormFile("ImageId", filepath.Base(file.Name()))
+	part, _ := writer.CreateFormFile("image", filepath.Base(file.Name()))
 	io.Copy(part, file)
-	part, _ = writer.CreateFormField("Content")
+	part, _ = writer.CreateFormField("content")
 	io.WriteString(part, "test content")
 	writer.Close()
 

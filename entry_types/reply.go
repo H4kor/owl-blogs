@@ -12,9 +12,24 @@ type Reply struct {
 }
 
 type ReplyMetaData struct {
-	Title   string `owl:"inputType=text"`
-	Url     string `owl:"inputType=text"`
-	Content string `owl:"inputType=text widget=textarea"`
+	Title   string
+	Url     string
+	Content string
+}
+
+// Form implements model.EntryMetaData.
+func (meta *ReplyMetaData) Form(binSvc model.BinaryStorageInterface) string {
+	f, _ := render.RenderTemplateToString("forms/Reply", meta)
+	return f
+}
+
+// ParseFormData implements model.EntryMetaData.
+func (*ReplyMetaData) ParseFormData(data model.HttpFormData, binSvc model.BinaryStorageInterface) (model.EntryMetaData, error) {
+	return &ReplyMetaData{
+		Title:   data.FormValue("title"),
+		Url:     data.FormValue("url"),
+		Content: data.FormValue("content"),
+	}, nil
 }
 
 func (e *Reply) Title() string {
@@ -29,10 +44,10 @@ func (e *Reply) Content() model.EntryContent {
 	return model.EntryContent(str)
 }
 
-func (e *Reply) MetaData() interface{} {
+func (e *Reply) MetaData() model.EntryMetaData {
 	return &e.meta
 }
 
-func (e *Reply) SetMetaData(metaData interface{}) {
+func (e *Reply) SetMetaData(metaData model.EntryMetaData) {
 	e.meta = *metaData.(*ReplyMetaData)
 }

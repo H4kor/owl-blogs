@@ -12,7 +12,20 @@ type Note struct {
 }
 
 type NoteMetaData struct {
-	Content string `owl:"inputType=text widget=textarea"`
+	Content string
+}
+
+// Form implements model.EntryMetaData.
+func (meta *NoteMetaData) Form(binSvc model.BinaryStorageInterface) string {
+	f, _ := render.RenderTemplateToString("forms/Note", meta)
+	return f
+}
+
+// ParseFormData implements model.EntryMetaData.
+func (*NoteMetaData) ParseFormData(data model.HttpFormData, binSvc model.BinaryStorageInterface) (model.EntryMetaData, error) {
+	return &NoteMetaData{
+		Content: data.FormValue("content"),
+	}, nil
 }
 
 func (e *Note) Title() string {
@@ -27,10 +40,10 @@ func (e *Note) Content() model.EntryContent {
 	return model.EntryContent(str)
 }
 
-func (e *Note) MetaData() interface{} {
+func (e *Note) MetaData() model.EntryMetaData {
 	return &e.meta
 }
 
-func (e *Note) SetMetaData(metaData interface{}) {
+func (e *Note) SetMetaData(metaData model.EntryMetaData) {
 	e.meta = *metaData.(*NoteMetaData)
 }

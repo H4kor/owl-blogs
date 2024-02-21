@@ -151,7 +151,7 @@ func (r *DefaultEntryRepo) sqlEntryToEntry(entry sqlEntry) (model.Entry, error) 
 	if err != nil {
 		return nil, errors.New("entry type not registered")
 	}
-	metaData := reflect.New(reflect.TypeOf(e.MetaData()).Elem()).Interface()
+	metaData := reflect.New(reflect.TypeOf(e.MetaData()).Elem()).Interface().(model.EntryMetaData)
 	json.Unmarshal([]byte(*entry.MetaData), metaData)
 	e.SetID(entry.Id)
 	e.SetPublishedAt(entry.PublishedAt)

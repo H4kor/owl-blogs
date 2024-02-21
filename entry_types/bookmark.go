@@ -12,9 +12,24 @@ type Bookmark struct {
 }
 
 type BookmarkMetaData struct {
-	Title   string `owl:"inputType=text"`
-	Url     string `owl:"inputType=text"`
-	Content string `owl:"inputType=text widget=textarea"`
+	Title   string
+	Url     string
+	Content string
+}
+
+// Form implements model.EntryMetaData.
+func (meta *BookmarkMetaData) Form(binSvc model.BinaryStorageInterface) string {
+	f, _ := render.RenderTemplateToString("forms/Bookmark", meta)
+	return f
+}
+
+// ParseFormData implements model.EntryMetaData.
+func (*BookmarkMetaData) ParseFormData(data model.HttpFormData, binSvc model.BinaryStorageInterface) (model.EntryMetaData, error) {
+	return &BookmarkMetaData{
+		Title:   data.FormValue("title"),
+		Url:     data.FormValue("url"),
+		Content: data.FormValue("content"),
+	}, nil
 }
 
 func (e *Bookmark) Title() string {
@@ -29,10 +44,10 @@ func (e *Bookmark) Content() model.EntryContent {
 	return model.EntryContent(str)
 }
 
-func (e *Bookmark) MetaData() interface{} {
+func (e *Bookmark) MetaData() model.EntryMetaData {
 	return &e.meta
 }
 
-func (e *Bookmark) SetMetaData(metaData interface{}) {
+func (e *Bookmark) SetMetaData(metaData model.EntryMetaData) {
 	e.meta = *metaData.(*BookmarkMetaData)
 }

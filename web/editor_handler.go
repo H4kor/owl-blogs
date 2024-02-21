@@ -5,7 +5,6 @@ import (
 	"owl-blogs/app/repository"
 	"owl-blogs/domain/model"
 	"owl-blogs/render"
-	"owl-blogs/web/forms"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -48,12 +47,7 @@ func (h *EditorHandler) HandleGetNew(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-
-	form := forms.NewForm(entryType.MetaData(), h.binSvc)
-	htmlForm, err := form.HtmlForm()
-	if err != nil {
-		return err
-	}
+	htmlForm := entryType.MetaData().Form(h.binSvc)
 	return render.RenderTemplateWithBase(c, getSiteConfig(h.configRepo), "views/editor", htmlForm)
 }
 
@@ -65,9 +59,7 @@ func (h *EditorHandler) HandlePostNew(c *fiber.Ctx) error {
 		return err
 	}
 
-	form := forms.NewForm(entry.MetaData(), h.binSvc)
-	// get form data
-	entryMeta, err := form.Parse(c)
+	entryMeta, err := entry.MetaData().ParseFormData(c, h.binSvc)
 	if err != nil {
 		return err
 	}
@@ -100,11 +92,7 @@ func (h *EditorHandler) HandleGetEdit(c *fiber.Ctx) error {
 		return err
 	}
 
-	form := forms.NewForm(entry.MetaData(), h.binSvc)
-	htmlForm, err := form.HtmlForm()
-	if err != nil {
-		return err
-	}
+	htmlForm := entry.MetaData().Form(h.binSvc)
 	return render.RenderTemplateWithBase(c, getSiteConfig(h.configRepo), "views/editor", htmlForm)
 }
 
@@ -117,9 +105,8 @@ func (h *EditorHandler) HandlePostEdit(c *fiber.Ctx) error {
 		return err
 	}
 
-	form := forms.NewForm(entry.MetaData(), h.binSvc)
 	// get form data
-	meta, err := form.Parse(c)
+	meta, err := entry.MetaData().ParseFormData(c, h.binSvc)
 	if err != nil {
 		return err
 	}
