@@ -69,6 +69,9 @@ func NewWebApp(
 	admin.Post("/binaries/delete", binaryManageHandler.HandleDelete)
 	admin.Post("/interactions/:id/delete/", adminInteractionHandler.HandleDelete)
 
+	adminApi := admin.Group("/api")
+	adminApi.Post("/binaries", binaryManageHandler.HandleUploadApi)
+
 	// Editor
 	editor := app.Group("/editor")
 	editor.Use(middleware.NewAuthMiddleware(authorService).Handle)

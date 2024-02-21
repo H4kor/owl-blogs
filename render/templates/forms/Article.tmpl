@@ -2,4 +2,68 @@
 <input type="text" name="title" value="{{.Title}}" />
 
 <label for="content">Content</label>
-<textarea name="content" rows="16">{{.Content}}</textarea>
+<textarea
+    id="contentField"
+    ondrop="dropHandler(event);"
+    ondragover="dragOverHandler(event);"
+    name="content"
+    rows="16"
+>{{.Content}}</textarea>
+
+<script>
+    const contentField = document.getElementById("contentField")
+
+    function processFile(file) {
+        console.log(`name = ${file.name}`);
+        console.log(`size = ${file.size}`);
+        console.log(`type = ${file.type}`);
+        console.log(file)
+
+        const formData = new FormData()
+        formData.append("file", file)
+
+        fetch(
+            "/admin/api/binaries",
+            {
+                method: "POST",
+                body: formData
+            }
+        ).then((resp) => {
+            return resp.json()
+        }).then(data => {
+            if (file.type.split("/")[0] == "image") {
+                contentField.value += `\n![](${data.location})`
+            } else {
+                contentField.value += `\n[${file.name}](${data.location})`
+            }
+        })
+
+    }
+
+    function dropHandler(ev) {
+        console.log("File(s) dropped");
+        ev.preventDefault();
+
+        if (ev.dataTransfer.items) {
+            // Use DataTransferItemList interface to access the file(s)
+            [...ev.dataTransfer.items].forEach((item, i) => {
+                // If dropped items aren't files, reject them
+                if (item.kind === "file") {
+                    const file = item.getAsFile();
+                    processFile(file)
+                }
+            });
+        } else {
+            // Use DataTransfer interface to access the file(s)
+            [...ev.dataTransfer.files].forEach((file, i) => {
+                processFile(file)
+            });
+        }
+    }
+
+    function dragOverHandler(ev) {
+        console.log("File(s) in drop zone");
+        ev.preventDefault();
+    }
+
+</script>

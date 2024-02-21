@@ -3,6 +3,7 @@ package web
 import (
 	"owl-blogs/app"
 	"owl-blogs/app/repository"
+	"owl-blogs/domain/model"
 	"owl-blogs/render"
 	"sort"
 	"strings"
@@ -46,29 +47,46 @@ func (h *BinaryManageHandler) Handle(c *fiber.Ctx) error {
 
 }
 
-func (h *BinaryManageHandler) HandleUpload(c *fiber.Ctx) error {
+func (h *BinaryManageHandler) saveFileUpload(c *fiber.Ctx) (*model.BinaryFile, error) {
 	file, err := c.FormFile("file")
 	if err != nil {
-		return err
+		return nil, err
 	}
 	reader, err := file.Open()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer reader.Close()
 
 	content := make([]byte, file.Size)
 	_, err = reader.Read(content)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	binary, err := h.service.Create(file.Filename, content)
 	if err != nil {
+		return nil, err
+	}
+	return binary, nil
+}
+
+func (h *BinaryManageHandler) HandleUpload(c *fiber.Ctx) error {
+	binary, err := h.saveFileUpload(c)
+	if err != nil {
 		return err
 	}
-
 	return c.Redirect("/media/" + binary.Id)
+}
+
+func (h *BinaryManageHandler) HandleUploadApi(c *fiber.Ctx) error {
+	binary, err := h.saveFileUpload(c)
+	if err != nil {
+		return err
+	}
+	return c.JSON(map[string]string{
+		"location": "/media/" + binary.Id,
+	})
 }
 
 func (h *BinaryManageHandler) HandleDelete(c *fiber.Ctx) error {
