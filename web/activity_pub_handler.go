@@ -6,6 +6,7 @@ import (
 	"owl-blogs/app/repository"
 	"owl-blogs/config"
 	"owl-blogs/domain/model"
+	"owl-blogs/render"
 
 	vocab "github.com/go-ap/activitypub"
 
@@ -23,6 +24,21 @@ type ActivityPubConfig struct {
 	PreferredUsername string `owl:"inputType=text"`
 	PublicKeyPem      string `owl:"inputType=text widget=textarea"`
 	PrivateKeyPem     string `owl:"inputType=text widget=textarea"`
+}
+
+// Form implements app.AppConfig.
+func (cfg *ActivityPubConfig) Form(binSvc model.BinaryStorageInterface) string {
+	f, _ := render.RenderTemplateToString("forms/ActivityPubConfig", cfg)
+	return f
+}
+
+// ParseFormData implements app.AppConfig.
+func (*ActivityPubConfig) ParseFormData(data model.HttpFormData, binSvc model.BinaryStorageInterface) (app.AppConfig, error) {
+	return &ActivityPubConfig{
+		PreferredUsername: data.FormValue("PreferredUsername"),
+		PublicKeyPem:      data.FormValue("PublicKeyPem"),
+		PrivateKeyPem:     data.FormValue("PrivateKeyPem"),
+	}, nil
 }
 
 type WebfingerResponse struct {

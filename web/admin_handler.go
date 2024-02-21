@@ -4,7 +4,6 @@ import (
 	"owl-blogs/app"
 	"owl-blogs/app/repository"
 	"owl-blogs/render"
-	"owl-blogs/web/forms"
 	"sort"
 
 	"github.com/gofiber/fiber/v2"
@@ -14,6 +13,7 @@ type adminHandler struct {
 	configRepo     repository.ConfigRepository
 	configRegister *app.ConfigRegister
 	typeRegistry   *app.EntryTypeRegistry
+	binSvc         *app.BinaryService
 }
 
 type adminContet struct {
@@ -75,8 +75,7 @@ func (h *adminHandler) HandleConfigGet(c *fiber.Ctx) error {
 	}
 	siteConfig := getSiteConfig(h.configRepo)
 
-	form := forms.NewForm(config, nil)
-	htmlForm, err := form.HtmlForm()
+	htmlForm := config.Form(h.binSvc)
 	if err != nil {
 		return err
 	}
@@ -93,9 +92,7 @@ func (h *adminHandler) HandleConfigPost(c *fiber.Ctx) error {
 		return c.SendStatus(404)
 	}
 
-	form := forms.NewForm(config, nil)
-
-	newConfig, err := form.Parse(c)
+	newConfig, err := config.ParseFormData(c, h.binSvc)
 	if err != nil {
 		return err
 	}
