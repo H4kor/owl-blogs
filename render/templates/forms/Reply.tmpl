@@ -5,4 +5,9 @@
 <input type="text" name="url" value="{{.Url}}" placeholder="https://..." />
 
 <label for="content">Content</label>
-<textarea name="content" rows="16">{{.Content}}</textarea></textarea>
+<textarea id="contentField" name="content" rows="16">{{.Content}}</textarea></textarea>
+
+<script src="/static/editor.js"></script>
+<script>
+    addFileDrop("contentField")
+</script>

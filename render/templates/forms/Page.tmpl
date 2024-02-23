@@ -2,4 +2,9 @@
 <input type="text" name="title" value="{{.Title}}" />
 
 <label for="content">Content</label>
-<textarea name="content" rows="16">{{.Content}}</textarea>
+<textarea id="contentField" name="content" rows="16">{{.Content}}</textarea>
+
+<script src="/static/editor.js"></script>
+<script>
+    addFileDrop("contentField")
+</script>
