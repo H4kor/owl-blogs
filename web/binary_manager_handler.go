@@ -26,7 +26,9 @@ func NewBinaryManageHandler(configRepo repository.ConfigRepository, service *app
 func (h *BinaryManageHandler) Handle(c *fiber.Ctx) error {
 	siteConfig := getSiteConfig(h.configRepo)
 
-	allIds, err := h.service.ListIds()
+	filter := c.Query("filter", "")
+
+	allIds, err := h.service.ListIds(filter)
 	sort.Slice(allIds, func(i, j int) bool {
 		return strings.ToLower(allIds[i]) < strings.ToLower(allIds[j])
 	})
@@ -43,6 +45,7 @@ func (h *BinaryManageHandler) Handle(c *fiber.Ctx) error {
 		"PrevPage":  pageData.page - 1,
 		"FirstPage": pageData.page == 1,
 		"LastPage":  pageData.lastPage,
+		"Filter":    filter,
 	})
 
 }

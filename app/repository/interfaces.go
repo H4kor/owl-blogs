@@ -19,7 +19,10 @@ type BinaryRepository interface {
 	Create(name string, data []byte, entry model.Entry) (*model.BinaryFile, error)
 	FindById(id string) (*model.BinaryFile, error)
 	FindByNameForEntry(name string, entry model.Entry) (*model.BinaryFile, error)
-	ListIds() ([]string, error)
+	// ListIds list all ids of binary files
+	// if filter is not empty, the list will be filter to all ids which include the filter filter substring
+	// ids and filters are compared in lower case
+	ListIds(filter string) ([]string, error)
 	Delete(binary *model.BinaryFile) error
 }
 

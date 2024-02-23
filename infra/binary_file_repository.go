@@ -101,9 +101,15 @@ func (repo *DefaultBinaryFileRepo) FindByNameForEntry(name string, entry model.E
 }
 
 // ListIds implements repository.BinaryRepository
-func (repo *DefaultBinaryFileRepo) ListIds() ([]string, error) {
+func (repo *DefaultBinaryFileRepo) ListIds(filter string) ([]string, error) {
+	filter = strings.TrimSpace(strings.ToLower(filter))
+	if filter == "" {
+		filter = "%"
+	} else {
+		filter = "%" + filter + "%"
+	}
 	var ids []string
-	err := repo.db.Select(&ids, "SELECT id FROM binary_files")
+	err := repo.db.Select(&ids, "SELECT id FROM binary_files WHERE LOWER(id) LIKE ?", filter)
 	if err != nil {
 		return nil, err
 	}

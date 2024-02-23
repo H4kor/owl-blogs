@@ -25,8 +25,11 @@ func (s *BinaryService) FindById(id string) (*model.BinaryFile, error) {
 	return s.repo.FindById(id)
 }
 
-func (s *BinaryService) ListIds() ([]string, error) {
-	return s.repo.ListIds()
+// ListIds list all ids of binary files
+// if filter is not empty, the list will be filter to all ids which include the filter filter substring
+// ids and filters are compared in lower case
+func (s *BinaryService) ListIds(filter string) ([]string, error) {
+	return s.repo.ListIds(filter)
 }
 
 func (s *BinaryService) Delete(binary *model.BinaryFile) error {
