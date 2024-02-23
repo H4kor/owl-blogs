@@ -8,20 +8,20 @@
 
 <h2>Files</h2>
 
+
+<h3>Upload File</h3>
 <form action="/admin/binaries/new" method="post" enctype="multipart/form-data">
-    <div>
-        <label for="file">File</label>
+    <fieldset role="group">
         <input type="file" name="file" id="file">
-    </div>
-    <div>
         <input type="submit" value="Upload">
-    </div>
+    </fieldset>
 </form>
 
 <hr>
 
+<h3>Files</h3>
 <form action="" method="get">
-    <fieldset role="group">
+    <fieldset role="search">
         <input type="filter" name="filter" id="filter" value="{{.Filter}}">
         <input type="submit" value="Search">
     </fieldset>
