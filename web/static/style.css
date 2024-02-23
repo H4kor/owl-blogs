@@ -20,7 +20,7 @@
 }
 
 .danger {
-    background-color: var(--del-color) !important;
+    background-color: var(--pico-del-color) !important;
 }
 
 .drop-file {
