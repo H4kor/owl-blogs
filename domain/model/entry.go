@@ -15,6 +15,7 @@ type Entry interface {
 
 	// Optional: can return empty string
 	Title() string
+	ImageUrl() string
 
 	SetID(id string)
 	SetPublishedAt(publishedAt *time.Time)
@@ -38,6 +39,10 @@ func (e *EntryBase) ID() string {
 
 func (e *EntryBase) PublishedAt() *time.Time {
 	return e.publishedAt
+}
+
+func (e *EntryBase) ImageUrl() string {
+	return ""
 }
 
 func (e *EntryBase) SetID(id string) {

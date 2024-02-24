@@ -58,6 +58,10 @@ func (e *Image) Title() string {
 	return e.meta.Title
 }
 
+func (e *Image) ImageUrl() string {
+	return "/media/" + e.meta.ImageId
+}
+
 func (e *Image) Content() model.EntryContent {
 	str, err := render.RenderTemplateToString("entry/Image", e)
 	if err != nil {

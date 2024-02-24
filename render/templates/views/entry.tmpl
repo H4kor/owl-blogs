@@ -1,5 +1,15 @@
 {{define "title"}}{{.Entry.Title}}{{end}}
 
+{{define "head"}}
+<meta property="og:url" content="{{ urljoin .SiteConfig.FullUrl "/posts/" .Data.Entry.ID  }}/" />
+<meta property="og:type" content="article" />
+{{ if .Data.Entry.ImageUrl}}
+<meta property="og:image" content="{{ urljoin .SiteConfig.FullUrl .Data.Entry.ImageUrl}}" />
+{{ end }}
+<meta property="og:article:published_time" content="{{.Data.Entry.PublishedAt.Format "2006-01-02T15:04:05" }}" />
+<meta property="og:article:section" content="" />
+{{end}}
+
 {{define "main"}}
 
 {{ if not .Entry.PublishedAt }}
@@ -16,7 +26,7 @@
             <h1 class="p-name">{{.Entry.Title}}</h1>
         {{end}}
         <small>
-            <a class="u-url" href="">#</a>
+            <a class="u-url" href="/posts/{{ .Entry.ID }}/">#</a>
             Published:
             {{ if .Entry.PublishedAt }}
                 <time class="dt-published" datetime="{{.Entry.PublishedAt.Format "2006-01-02T15:04:05" }}">

@@ -1,4 +1,5 @@
-{{define "title"}}Files{{end}}
+{{define "title"}}Interactions{{end}}
+{{define "head"}}{{end}}
 
 {{define "main"}}
 
@@ -21,7 +22,7 @@
                 <a href="/posts/{{ .EntryID }}">{{ .EntryID }}</a>
             </td>
             <td>
-                {{ .CreatedAt.Format "2006-01-02 15:04:05"  }}
+                {{ .CreatedAt.Format "2006-01-02 15:04"  }}
             </td>
         </tr>
     {{ end }}

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"embed"
 	"io"
+	"net/url"
 	"owl-blogs/domain/model"
 	"text/template"
 
@@ -28,6 +29,10 @@ var funcMap = template.FuncMap{
 			return ">>>could not render markdown<<<"
 		}
 		return html
+	},
+	"urljoin": func(elems ...string) string {
+		r, _ := url.JoinPath(elems[0], elems[1:]...)
+		return r
 	},
 }
 
