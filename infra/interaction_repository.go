@@ -89,7 +89,7 @@ func (repo *DefaultInteractionRepo) Delete(interaction model.Interaction) error 
 // FindAll implements repository.InteractionRepository.
 func (repo *DefaultInteractionRepo) FindAll(entryId string) ([]model.Interaction, error) {
 	data := []sqlInteraction{}
-	err := repo.db.Select(&data, "SELECT * FROM interactions WHERE entry_id = ?", entryId)
+	err := repo.db.Select(&data, "SELECT * FROM interactions WHERE entry_id = ? ORDER BY created_at DESC", entryId)
 	if err != nil {
 		return nil, err
 	}
@@ -155,4 +155,24 @@ func (repo *DefaultInteractionRepo) sqlInteractionToInteraction(interaction sqlI
 
 	return i, nil
 
+}
+
+// ListAllInteractions implements repository.InteractionRepository.
+func (repo *DefaultInteractionRepo) ListAllInteractions() ([]model.Interaction, error) {
+	data := []sqlInteraction{}
+	err := repo.db.Select(&data, "SELECT * FROM interactions ORDER BY created_at DESC")
+	if err != nil {
+		return nil, err
+	}
+
+	interactions := []model.Interaction{}
+	for _, d := range data {
+		i, err := repo.sqlInteractionToInteraction(d)
+		if err != nil {
+			return nil, err
+		}
+		interactions = append(interactions, i)
+	}
+
+	return interactions, nil
 }

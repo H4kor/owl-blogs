@@ -1,0 +1,51 @@
+{{define "title"}}Files{{end}}
+
+{{define "main"}}
+
+<a href="/admin">&larr; Back</a>
+<br>
+<br>
+
+<h2>Recent Interactions</h2>
+
+<table role="grid">
+    <thead>
+        <tr>
+            <th scope="col">Entry</th>
+            <th scope="col">Interaction</th>
+            <th scope="col">Created At</th>
+        </tr>
+    </thead>
+    {{ range .Interactions }}
+        <tr>
+            <td scope="row">
+                {{ .Interactions.EntryID }}
+            </td>
+            <td>
+                {{ .Interactions.Content }}
+            </td>
+            <td>
+                {{ .Interactions.CreatedAt }}
+            </td>
+        </tr>
+    {{ end }}
+</table>
+
+<hr>
+<nav class="row">
+    {{ if not .FirstPage }}
+        <div>
+            <a href="?page={{ .PrevPage }}">Prev</a>
+        </div>
+    {{ end }}
+    
+    <div>Page {{.Page}}</div>
+
+    {{ if not .LastPage }}
+        <div>
+            <a href="?page={{ .NextPage }}">Next</a>
+        </div>
+    {{ end }}
+</nav>
+
+{{end}}

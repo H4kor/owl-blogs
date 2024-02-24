@@ -48,4 +48,6 @@ type InteractionRepository interface {
 	Delete(interaction model.Interaction) error
 	FindById(id string) (model.Interaction, error)
 	FindAll(entryId string) ([]model.Interaction, error)
+	// ListAllInteractions lists all interactions, sorted by creation date (descending)
+	ListAllInteractions() ([]model.Interaction, error)
 }

@@ -68,6 +68,7 @@ func NewWebApp(
 	admin.Post("/binaries/new/", binaryManageHandler.HandleUpload)
 	admin.Post("/binaries/delete", binaryManageHandler.HandleDelete)
 	admin.Post("/interactions/:id/delete/", adminInteractionHandler.HandleDelete)
+	admin.Get("/interactions/", adminInteractionHandler.HandleGet)
 
 	adminApi := admin.Group("/api")
 	adminApi.Post("/binaries", binaryManageHandler.HandleUploadApi)
