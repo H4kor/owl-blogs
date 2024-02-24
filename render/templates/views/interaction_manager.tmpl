@@ -12,20 +12,16 @@
     <thead>
         <tr>
             <th scope="col">Entry</th>
-            <th scope="col">Interaction</th>
             <th scope="col">Created At</th>
         </tr>
     </thead>
     {{ range .Interactions }}
         <tr>
             <td scope="row">
-                {{ .Interactions.EntryID }}
+                <a href="/posts/{{ .EntryID }}">{{ .EntryID }}</a>
             </td>
             <td>
-                {{ .Interactions.Content }}
-            </td>
-            <td>
-                {{ .Interactions.CreatedAt }}
+                {{ .CreatedAt.Format "2006-01-02 15:04:05"  }}
             </td>
         </tr>
     {{ end }}

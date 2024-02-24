@@ -32,13 +32,13 @@ func (h *AdminInteractionHandler) HandleGet(c *fiber.Ctx) error {
 
 	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
 	return render.RenderTemplateWithBase(c, siteConfig, "views/interaction_manager", fiber.Map{
-		"Binaries":  pageData.items,
-		"Page":      pageData.page,
-		"NextPage":  pageData.page + 1,
-		"PrevPage":  pageData.page - 1,
-		"FirstPage": pageData.page == 1,
-		"LastPage":  pageData.lastPage,
-		"Filter":    filter,
+		"Interactions": pageData.items,
+		"Page":         pageData.page,
+		"NextPage":     pageData.page + 1,
+		"PrevPage":     pageData.page - 1,
+		"FirstPage":    pageData.page == 1,
+		"LastPage":     pageData.lastPage,
+		"Filter":       filter,
 	})
 
 }
