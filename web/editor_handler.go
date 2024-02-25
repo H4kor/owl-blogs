@@ -48,7 +48,7 @@ func (h *EditorHandler) HandleGetNew(c *fiber.Ctx) error {
 		return err
 	}
 	htmlForm := entryType.MetaData().Form(h.binSvc)
-	return render.RenderTemplateWithBase(c, getSiteConfig(h.configRepo), "views/editor", htmlForm)
+	return render.RenderTemplateWithBase(c, "views/editor", htmlForm)
 }
 
 func (h *EditorHandler) HandlePostNew(c *fiber.Ctx) error {
@@ -94,7 +94,7 @@ func (h *EditorHandler) HandleGetEdit(c *fiber.Ctx) error {
 	}
 
 	htmlForm := entry.MetaData().Form(h.binSvc)
-	return render.RenderTemplateWithBase(c, getSiteConfig(h.configRepo), "views/editor", htmlForm)
+	return render.RenderTemplateWithBase(c, "views/editor", htmlForm)
 }
 
 func (h *EditorHandler) HandlePostEdit(c *fiber.Ctx) error {

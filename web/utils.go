@@ -1,22 +1,10 @@
 package web
 
 import (
-	"owl-blogs/app/repository"
-	"owl-blogs/config"
-	"owl-blogs/domain/model"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 )
-
-func getSiteConfig(repo repository.ConfigRepository) model.SiteConfig {
-	siteConfig := model.SiteConfig{}
-	err := repo.Get(config.SITE_CONFIG, &siteConfig)
-	if err != nil {
-		panic(err)
-	}
-	return siteConfig
-}
 
 type paginationData[T any] struct {
 	items    []T

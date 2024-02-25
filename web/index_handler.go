@@ -2,7 +2,6 @@ package web
 
 import (
 	"owl-blogs/app"
-	"owl-blogs/app/repository"
 	"owl-blogs/domain/model"
 	"owl-blogs/render"
 	"sort"
@@ -12,17 +11,17 @@ import (
 )
 
 type IndexHandler struct {
-	configRepo repository.ConfigRepository
-	entrySvc   *app.EntryService
+	siteConfigService *app.SiteConfigService
+	entrySvc          *app.EntryService
 }
 
 func NewIndexHandler(
 	entryService *app.EntryService,
-	configRepo repository.ConfigRepository,
+	siteConfigService *app.SiteConfigService,
 ) *IndexHandler {
 	return &IndexHandler{
-		entrySvc:   entryService,
-		configRepo: configRepo,
+		entrySvc:          entryService,
+		siteConfigService: siteConfigService,
 	}
 }
 
@@ -38,7 +37,10 @@ type indexRenderData struct {
 func (h *IndexHandler) Handle(c *fiber.Ctx) error {
 	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
 
-	siteConfig := getSiteConfig(h.configRepo)
+	siteConfig, err := h.siteConfigService.GetSiteConfig()
+	if err != nil {
+		return err
+	}
 
 	entries, err := h.entrySvc.FindAllByType(&siteConfig.PrimaryListInclude, true, false)
 	if err != nil {
@@ -76,7 +78,7 @@ func (h *IndexHandler) Handle(c *fiber.Ctx) error {
 		return err
 	}
 
-	return render.RenderTemplateWithBase(c, siteConfig, "views/index", indexRenderData{
+	return render.RenderTemplateWithBase(c, "views/index", indexRenderData{
 		Entries:   entries,
 		Page:      pageNum,
 		NextPage:  pageNum + 1,

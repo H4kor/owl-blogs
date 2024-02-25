@@ -1,42 +1,37 @@
 package web
 
 import (
-	"owl-blogs/app/repository"
-	"owl-blogs/config"
-	"owl-blogs/domain/model"
+	"owl-blogs/app"
 	"owl-blogs/render"
 
 	"github.com/gofiber/fiber/v2"
 )
 
 type SiteConfigHandler struct {
-	siteConfigRepo repository.ConfigRepository
+	svc *app.SiteConfigService
 }
 
-func NewSiteConfigHandler(siteConfigRepo repository.ConfigRepository) *SiteConfigHandler {
+func NewSiteConfigHandler(svc *app.SiteConfigService) *SiteConfigHandler {
 	return &SiteConfigHandler{
-		siteConfigRepo: siteConfigRepo,
+		svc: svc,
 	}
 }
 
 func (h *SiteConfigHandler) HandleGet(c *fiber.Ctx) error {
 	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
 
-	siteConfig := model.SiteConfig{}
-	err := h.siteConfigRepo.Get(config.SITE_CONFIG, &siteConfig)
+	siteConfig, err := h.svc.GetSiteConfig()
 	if err != nil {
 		return err
 	}
 
-	return render.RenderTemplateWithBase(c, getSiteConfig(h.siteConfigRepo), "views/site_config", siteConfig)
+	return render.RenderTemplateWithBase(c, "views/site_config", siteConfig)
 }
 
 func (h *SiteConfigHandler) HandlePost(c *fiber.Ctx) error {
 	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
 
-	siteConfig := model.SiteConfig{}
-	err := h.siteConfigRepo.Get(config.SITE_CONFIG, &siteConfig)
-
+	siteConfig, err := h.svc.GetSiteConfig()
 	if err != nil {
 		return err
 	}
@@ -51,7 +46,7 @@ func (h *SiteConfigHandler) HandlePost(c *fiber.Ctx) error {
 	siteConfig.HtmlHeadExtra = c.FormValue("HtmlHeadExtra")
 	siteConfig.FooterExtra = c.FormValue("FooterExtra")
 
-	err = h.siteConfigRepo.Update(config.SITE_CONFIG, siteConfig)
+	err = h.svc.UpdateSiteConfig(siteConfig)
 	if err != nil {
 		return err
 	}

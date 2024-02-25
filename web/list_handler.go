@@ -2,7 +2,6 @@ package web
 
 import (
 	"owl-blogs/app"
-	"owl-blogs/app/repository"
 	"owl-blogs/domain/model"
 	"owl-blogs/render"
 	"sort"
@@ -12,17 +11,17 @@ import (
 )
 
 type ListHandler struct {
-	configRepo repository.ConfigRepository
-	entrySvc   *app.EntryService
+	siteConfigService *app.SiteConfigService
+	entrySvc          *app.EntryService
 }
 
 func NewListHandler(
 	entryService *app.EntryService,
-	configRepo repository.ConfigRepository,
+	siteConfigService *app.SiteConfigService,
 ) *ListHandler {
 	return &ListHandler{
-		entrySvc:   entryService,
-		configRepo: configRepo,
+		entrySvc:          entryService,
+		siteConfigService: siteConfigService,
 	}
 }
 
@@ -39,7 +38,10 @@ type listRenderData struct {
 func (h *ListHandler) Handle(c *fiber.Ctx) error {
 	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
 
-	siteConfig := getSiteConfig(h.configRepo)
+	siteConfig, err := h.siteConfigService.GetSiteConfig()
+	if err != nil {
+		return err
+	}
 	listId := c.Params("list")
 	list := model.EntryList{}
 	for _, l := range siteConfig.Lists {
@@ -87,7 +89,7 @@ func (h *ListHandler) Handle(c *fiber.Ctx) error {
 		return err
 	}
 
-	return render.RenderTemplateWithBase(c, siteConfig, "views/list", listRenderData{
+	return render.RenderTemplateWithBase(c, "views/list", listRenderData{
 		List:      list,
 		Entries:   entries,
 		Page:      pageNum,

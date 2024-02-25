@@ -1,8 +1,7 @@
 package web
 
 import (
-	"owl-blogs/app/repository"
-	"owl-blogs/config"
+	"owl-blogs/app"
 	"owl-blogs/domain/model"
 	"owl-blogs/render"
 	"strconv"
@@ -11,7 +10,7 @@ import (
 )
 
 type SiteConfigMenusHandler struct {
-	siteConfigRepo repository.ConfigRepository
+	siteConfigService *app.SiteConfigService
 }
 
 type siteConfigMenusTemplateData struct {
@@ -19,24 +18,23 @@ type siteConfigMenusTemplateData struct {
 	FooterMenu []model.MenuItem
 }
 
-func NewSiteConfigMenusHandler(siteConfigRepo repository.ConfigRepository) *SiteConfigMenusHandler {
+func NewSiteConfigMenusHandler(siteConfigService *app.SiteConfigService) *SiteConfigMenusHandler {
 	return &SiteConfigMenusHandler{
-		siteConfigRepo: siteConfigRepo,
+		siteConfigService: siteConfigService,
 	}
 }
 
 func (h *SiteConfigMenusHandler) HandleGet(c *fiber.Ctx) error {
 	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
 
-	siteConfig := model.SiteConfig{}
-	err := h.siteConfigRepo.Get(config.SITE_CONFIG, &siteConfig)
+	siteConfig, err := h.siteConfigService.GetSiteConfig()
 
 	if err != nil {
 		return err
 	}
 
 	return render.RenderTemplateWithBase(
-		c, getSiteConfig(h.siteConfigRepo), "views/site_config_menus", siteConfigMenusTemplateData{
+		c, "views/site_config_menus", siteConfigMenusTemplateData{
 			HeaderMenu: siteConfig.HeaderMenu,
 			FooterMenu: siteConfig.FooterMenu,
 		})
@@ -45,8 +43,7 @@ func (h *SiteConfigMenusHandler) HandleGet(c *fiber.Ctx) error {
 func (h *SiteConfigMenusHandler) HandleCreate(c *fiber.Ctx) error {
 	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
 
-	siteConfig := model.SiteConfig{}
-	err := h.siteConfigRepo.Get(config.SITE_CONFIG, &siteConfig)
+	siteConfig, err := h.siteConfigService.GetSiteConfig()
 
 	if err != nil {
 		return err
@@ -65,7 +62,7 @@ func (h *SiteConfigMenusHandler) HandleCreate(c *fiber.Ctx) error {
 		siteConfig.FooterMenu = append(siteConfig.FooterMenu, menuItem)
 	}
 
-	err = h.siteConfigRepo.Update(config.SITE_CONFIG, siteConfig)
+	err = h.siteConfigService.UpdateSiteConfig(siteConfig)
 	if err != nil {
 		return err
 	}
@@ -76,8 +73,7 @@ func (h *SiteConfigMenusHandler) HandleCreate(c *fiber.Ctx) error {
 func (h *SiteConfigMenusHandler) HandleDelete(c *fiber.Ctx) error {
 	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
 
-	siteConfig := model.SiteConfig{}
-	err := h.siteConfigRepo.Get(config.SITE_CONFIG, &siteConfig)
+	siteConfig, err := h.siteConfigService.GetSiteConfig()
 
 	if err != nil {
 		return err
@@ -95,7 +91,7 @@ func (h *SiteConfigMenusHandler) HandleDelete(c *fiber.Ctx) error {
 		siteConfig.FooterMenu = append(siteConfig.FooterMenu[:idx], siteConfig.FooterMenu[idx+1:]...)
 	}
 
-	err = h.siteConfigRepo.Update(config.SITE_CONFIG, siteConfig)
+	err = h.siteConfigService.UpdateSiteConfig(siteConfig)
 	if err != nil {
 		return err
 	}

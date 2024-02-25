@@ -26,7 +26,7 @@ func NewLoginHandler(
 
 func (h *LoginHandler) HandleGet(c *fiber.Ctx) error {
 	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
-	return render.RenderTemplateWithBase(c, getSiteConfig(h.configRepo), "views/login", nil)
+	return render.RenderTemplateWithBase(c, "views/login", nil)
 }
 
 func (h *LoginHandler) HandlePost(c *fiber.Ctx) error {

@@ -8,6 +8,7 @@ import (
 	"owl-blogs/infra"
 	"owl-blogs/interactions"
 	"owl-blogs/plugings"
+	"owl-blogs/render"
 	"owl-blogs/web"
 
 	"github.com/spf13/cobra"
@@ -57,12 +58,16 @@ func App(db infra.Database) *web.WebApp {
 	eventBus := app.NewEventBus()
 
 	// Create Services
+	siteConfigService := app.NewSiteConfigService(configRepo)
 	entryService := app.NewEntryService(entryRepo, eventBus)
 	binaryService := app.NewBinaryFileService(binRepo)
-	authorService := app.NewAuthorService(authorRepo, configRepo)
+	authorService := app.NewAuthorService(authorRepo, siteConfigService)
 	webmentionService := app.NewWebmentionService(
-		configRepo, interactionRepo, entryRepo, httpClient, eventBus,
+		siteConfigService, interactionRepo, entryRepo, httpClient, eventBus,
 	)
+
+	// setup render functions
+	render.SiteConfigService = siteConfigService
 
 	// plugins
 	plugings.NewEcho(eventBus)
@@ -74,7 +79,7 @@ func App(db infra.Database) *web.WebApp {
 	return web.NewWebApp(
 		entryService, entryRegister, binaryService,
 		authorService, configRepo, configRegister,
-		webmentionService, interactionRepo,
+		siteConfigService, webmentionService, interactionRepo,
 	)
 
 }

@@ -7,8 +7,6 @@ import (
 	"net/url"
 	"owl-blogs/app"
 	"owl-blogs/app/repository"
-	"owl-blogs/config"
-	"owl-blogs/domain/model"
 	"owl-blogs/web/middleware"
 
 	"github.com/gofiber/fiber/v2"
@@ -34,17 +32,18 @@ func NewWebApp(
 	authorService *app.AuthorService,
 	configRepo repository.ConfigRepository,
 	configRegister *app.ConfigRegister,
+	siteConfigService *app.SiteConfigService,
 	webmentionService *app.WebmentionService,
 	interactionRepo repository.InteractionRepository,
 ) *WebApp {
 	app := fiber.New()
 	app.Use(middleware.NewUserMiddleware(authorService).Handle)
 
-	indexHandler := NewIndexHandler(entryService, configRepo)
-	listHandler := NewListHandler(entryService, configRepo)
+	indexHandler := NewIndexHandler(entryService, siteConfigService)
+	listHandler := NewListHandler(entryService, siteConfigService)
 	entryHandler := NewEntryHandler(entryService, typeRegistry, authorService, configRepo, interactionRepo)
 	mediaHandler := NewMediaHandler(binService)
-	rssHandler := NewRSSHandler(entryService, configRepo)
+	rssHandler := NewRSSHandler(entryService, siteConfigService)
 	loginHandler := NewLoginHandler(authorService, configRepo)
 	editorHandler := NewEditorHandler(entryService, typeRegistry, binService, configRepo)
 	webmentionHandler := NewWebmentionHandler(webmentionService, configRepo)
@@ -55,7 +54,7 @@ func NewWebApp(
 
 	// admin
 	adminHandler := NewAdminHandler(configRepo, configRegister, typeRegistry)
-	draftHandler := NewDraftHandler(entryService, configRepo)
+	draftHandler := NewDraftHandler(entryService, siteConfigService)
 	binaryManageHandler := NewBinaryManageHandler(configRepo, binService)
 	adminInteractionHandler := NewAdminInteractionHandler(configRepo, interactionRepo)
 	admin := app.Group("/admin")
@@ -87,21 +86,21 @@ func NewWebApp(
 	siteConfig := app.Group("/site-config")
 	siteConfig.Use(middleware.NewAuthMiddleware(authorService).Handle)
 
-	siteConfigHandler := NewSiteConfigHandler(configRepo)
+	siteConfigHandler := NewSiteConfigHandler(siteConfigService)
 	siteConfig.Get("/", siteConfigHandler.HandleGet)
 	siteConfig.Post("/", siteConfigHandler.HandlePost)
 
-	siteConfigMeHandler := NewSiteConfigMeHandler(configRepo)
+	siteConfigMeHandler := NewSiteConfigMeHandler(siteConfigService)
 	siteConfig.Get("/me", siteConfigMeHandler.HandleGet)
 	siteConfig.Post("/me/create/", siteConfigMeHandler.HandleCreate)
 	siteConfig.Post("/me/delete/", siteConfigMeHandler.HandleDelete)
 
-	siteConfigListHandler := NewSiteConfigListHandler(configRepo, typeRegistry)
+	siteConfigListHandler := NewSiteConfigListHandler(siteConfigService, typeRegistry)
 	siteConfig.Get("/lists", siteConfigListHandler.HandleGet)
 	siteConfig.Post("/lists/create/", siteConfigListHandler.HandleCreate)
 	siteConfig.Post("/lists/delete/", siteConfigListHandler.HandleDelete)
 
-	siteConfigMenusHandler := NewSiteConfigMenusHandler(configRepo)
+	siteConfigMenusHandler := NewSiteConfigMenusHandler(siteConfigService)
 	siteConfig.Get("/menus", siteConfigMenusHandler.HandleGet)
 	siteConfig.Post("/menus/create/", siteConfigMenusHandler.HandleCreate)
 	siteConfig.Post("/menus/delete/", siteConfigMenusHandler.HandleDelete)
@@ -124,14 +123,13 @@ func NewWebApp(
 	app.Post("/webmention/", webmentionHandler.Handle)
 	// robots.txt
 	app.Get("/robots.txt", func(c *fiber.Ctx) error {
-		siteConfig := model.SiteConfig{}
-		configRepo.Get(config.SITE_CONFIG, &siteConfig)
+		siteConfig, _ := siteConfigService.GetSiteConfig()
 		sitemapUrl, _ := url.JoinPath(siteConfig.FullUrl, "/sitemap.xml")
 		c.Set("Content-Type", "text/plain")
 		return c.SendString(fmt.Sprintf("User-agent: GPTBot\nDisallow: /\n\nUser-agent: *\nAllow: /\n\nSitemap: %s\n", sitemapUrl))
 	})
 	// sitemap.xml
-	app.Get("/sitemap.xml", NewSiteMapHandler(entryService, configRepo).Handle)
+	app.Get("/sitemap.xml", NewSiteMapHandler(entryService, siteConfigService).Handle)
 
 	// ActivityPub
 	activityPubServer := NewActivityPubServer(configRepo, entryService)

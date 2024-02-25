@@ -24,8 +24,6 @@ func NewBinaryManageHandler(configRepo repository.ConfigRepository, service *app
 }
 
 func (h *BinaryManageHandler) Handle(c *fiber.Ctx) error {
-	siteConfig := getSiteConfig(h.configRepo)
-
 	filter := c.Query("filter", "")
 
 	allIds, err := h.service.ListIds(filter)
@@ -38,7 +36,7 @@ func (h *BinaryManageHandler) Handle(c *fiber.Ctx) error {
 	pageData := paginate(c, allIds, 50)
 
 	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
-	return render.RenderTemplateWithBase(c, siteConfig, "views/binary_manager", fiber.Map{
+	return render.RenderTemplateWithBase(c, "views/binary_manager", fiber.Map{
 		"Binaries":  pageData.items,
 		"Page":      pageData.page,
 		"NextPage":  pageData.page + 1,

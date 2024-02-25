@@ -72,7 +72,6 @@ func (h *EntryHandler) Handle(c *fiber.Ctx) error {
 
 	return render.RenderTemplateWithBase(
 		c,
-		getSiteConfig(h.configRepo),
 		"views/entry",
 		entryData{
 			Entry:        entry,

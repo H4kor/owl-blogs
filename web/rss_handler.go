@@ -5,7 +5,6 @@ import (
 	"encoding/xml"
 	"net/url"
 	"owl-blogs/app"
-	"owl-blogs/app/repository"
 	"owl-blogs/domain/model"
 	"sort"
 	"time"
@@ -104,18 +103,21 @@ func RenderRSSFeed(config model.SiteConfig, entries []model.Entry) (string, erro
 }
 
 type RSSHandler struct {
-	configRepo repository.ConfigRepository
-	entrySvc   *app.EntryService
+	siteConfigService *app.SiteConfigService
+	entrySvc          *app.EntryService
 }
 
-func NewRSSHandler(entryService *app.EntryService, configRepo repository.ConfigRepository) *RSSHandler {
-	return &RSSHandler{entrySvc: entryService, configRepo: configRepo}
+func NewRSSHandler(entryService *app.EntryService, siteConfigService *app.SiteConfigService) *RSSHandler {
+	return &RSSHandler{entrySvc: entryService, siteConfigService: siteConfigService}
 }
 
 func (h *RSSHandler) Handle(c *fiber.Ctx) error {
 	c.Set(fiber.HeaderContentType, fiber.MIMEApplicationXML)
 
-	siteConfig := getSiteConfig(h.configRepo)
+	siteConfig, err := h.siteConfigService.GetSiteConfig()
+	if err != nil {
+		return err
+	}
 
 	entries, err := h.entrySvc.FindAllByType(&siteConfig.PrimaryListInclude, true, false)
 	if err != nil {

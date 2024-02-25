@@ -36,7 +36,6 @@ func NewAdminHandler(
 func (h *adminHandler) Handle(c *fiber.Ctx) error {
 	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
 
-	siteConfig := getSiteConfig(h.configRepo)
 	configs := h.configRegister.Configs()
 
 	types := h.typeRegistry.Types()
@@ -53,8 +52,7 @@ func (h *adminHandler) Handle(c *fiber.Ctx) error {
 	})
 
 	return render.RenderTemplateWithBase(
-		c, siteConfig,
-		"views/admin", &adminContet{
+		c, "views/admin", &adminContet{
 			Configs: configs,
 			Types:   typeNames,
 		},
@@ -73,14 +71,13 @@ func (h *adminHandler) HandleConfigGet(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	siteConfig := getSiteConfig(h.configRepo)
 
 	htmlForm := config.Form(h.binSvc)
 	if err != nil {
 		return err
 	}
 
-	return render.RenderTemplateWithBase(c, siteConfig, "views/admin_config", htmlForm)
+	return render.RenderTemplateWithBase(c, "views/admin_config", htmlForm)
 }
 
 func (h *adminHandler) HandleConfigPost(c *fiber.Ctx) error {

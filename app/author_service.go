@@ -4,7 +4,6 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"owl-blogs/app/repository"
-	"owl-blogs/config"
 	"owl-blogs/domain/model"
 	"strings"
 
@@ -12,12 +11,12 @@ import (
 )
 
 type AuthorService struct {
-	repo           repository.AuthorRepository
-	siteConfigRepo repository.ConfigRepository
+	repo              repository.AuthorRepository
+	siteConfigService *SiteConfigService
 }
 
-func NewAuthorService(repo repository.AuthorRepository, siteConfigRepo repository.ConfigRepository) *AuthorService {
-	return &AuthorService{repo: repo, siteConfigRepo: siteConfigRepo}
+func NewAuthorService(repo repository.AuthorRepository, siteConfigService *SiteConfigService) *AuthorService {
+	return &AuthorService{repo: repo, siteConfigService: siteConfigService}
 }
 
 func hashPassword(password string) (string, error) {
@@ -65,14 +64,13 @@ func (s *AuthorService) Authenticate(name string, password string) bool {
 }
 
 func (s *AuthorService) getSecretKey() string {
-	siteConfig := model.SiteConfig{}
-	err := s.siteConfigRepo.Get(config.SITE_CONFIG, &siteConfig)
+	siteConfig, err := s.siteConfigService.GetSiteConfig()
 	if err != nil {
 		panic(err)
 	}
 	if siteConfig.Secret == "" {
 		siteConfig.Secret = RandStringRunes(64)
-		err = s.siteConfigRepo.Update(config.SITE_CONFIG, siteConfig)
+		err = s.siteConfigService.UpdateSiteConfig(siteConfig)
 		if err != nil {
 			panic(err)
 		}

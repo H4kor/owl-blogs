@@ -21,6 +21,7 @@ type TemplateData struct {
 
 //go:embed templates
 var templates embed.FS
+var SiteConfigService model.SiteConfigInterface
 
 var funcMap = template.FuncMap{
 	"markdown": func(text string) string {
@@ -45,10 +46,15 @@ func CreateTemplateWithBase(templateName string) (*template.Template, error) {
 	)
 }
 
-func RenderTemplateWithBase(w io.Writer, siteConfig model.SiteConfig, templateName string, data interface{}) error {
+func RenderTemplateWithBase(w io.Writer, templateName string, data interface{}) error {
 
 	t, err := CreateTemplateWithBase(templateName)
 
+	if err != nil {
+		return err
+	}
+
+	siteConfig, err := SiteConfigService.GetSiteConfig()
 	if err != nil {
 		return err
 	}

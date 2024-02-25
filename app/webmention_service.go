@@ -5,28 +5,27 @@ import (
 	"net/url"
 	"owl-blogs/app/owlhttp"
 	"owl-blogs/app/repository"
-	"owl-blogs/config"
 	"owl-blogs/domain/model"
 	"owl-blogs/interactions"
 	"time"
 )
 
 type WebmentionService struct {
-	ConfigRepo            repository.ConfigRepository
+	siteConfigService     *SiteConfigService
 	InteractionRepository repository.InteractionRepository
 	EntryRepository       repository.EntryRepository
 	Http                  owlhttp.HttpClient
 }
 
 func NewWebmentionService(
-	configRepo repository.ConfigRepository,
+	siteConfigService *SiteConfigService,
 	interactionRepository repository.InteractionRepository,
 	entryRepository repository.EntryRepository,
 	http owlhttp.HttpClient,
 	bus *EventBus,
 ) *WebmentionService {
 	svc := &WebmentionService{
-		ConfigRepo:            configRepo,
+		siteConfigService:     siteConfigService,
 		InteractionRepository: interactionRepository,
 		EntryRepository:       entryRepository,
 		Http:                  http,
@@ -104,8 +103,7 @@ func (s *WebmentionService) ScanForLinks(entry model.Entry) ([]string, error) {
 }
 
 func (s *WebmentionService) FullEntryUrl(entry model.Entry) string {
-	siteConfig := model.SiteConfig{}
-	s.ConfigRepo.Get(config.SITE_CONFIG, &siteConfig)
+	siteConfig, _ := s.siteConfigService.GetSiteConfig()
 
 	url, _ := url.JoinPath(
 		siteConfig.FullUrl,

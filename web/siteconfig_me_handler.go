@@ -1,8 +1,7 @@
 package web
 
 import (
-	"owl-blogs/app/repository"
-	"owl-blogs/config"
+	"owl-blogs/app"
 	"owl-blogs/domain/model"
 	"owl-blogs/render"
 	"strconv"
@@ -11,34 +10,31 @@ import (
 )
 
 type SiteConfigMeHandler struct {
-	siteConfigRepo repository.ConfigRepository
+	siteConfigService *app.SiteConfigService
 }
 
-func NewSiteConfigMeHandler(siteConfigRepo repository.ConfigRepository) *SiteConfigMeHandler {
+func NewSiteConfigMeHandler(siteConfigService *app.SiteConfigService) *SiteConfigMeHandler {
 	return &SiteConfigMeHandler{
-		siteConfigRepo: siteConfigRepo,
+		siteConfigService: siteConfigService,
 	}
 }
 
 func (h *SiteConfigMeHandler) HandleGet(c *fiber.Ctx) error {
 	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
 
-	siteConfig := model.SiteConfig{}
-	err := h.siteConfigRepo.Get(config.SITE_CONFIG, &siteConfig)
-
+	siteConfig, err := h.siteConfigService.GetSiteConfig()
 	if err != nil {
 		return err
 	}
 
 	return render.RenderTemplateWithBase(
-		c, getSiteConfig(h.siteConfigRepo), "views/site_config_me", siteConfig.Me)
+		c, "views/site_config_me", siteConfig.Me)
 }
 
 func (h *SiteConfigMeHandler) HandleCreate(c *fiber.Ctx) error {
 	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
 
-	siteConfig := model.SiteConfig{}
-	err := h.siteConfigRepo.Get(config.SITE_CONFIG, &siteConfig)
+	siteConfig, err := h.siteConfigService.GetSiteConfig()
 
 	if err != nil {
 		return err
@@ -49,7 +45,7 @@ func (h *SiteConfigMeHandler) HandleCreate(c *fiber.Ctx) error {
 		Url:  c.FormValue("Url"),
 	})
 
-	err = h.siteConfigRepo.Update(config.SITE_CONFIG, siteConfig)
+	err = h.siteConfigService.UpdateSiteConfig(siteConfig)
 	if err != nil {
 		return err
 	}
@@ -60,8 +56,7 @@ func (h *SiteConfigMeHandler) HandleCreate(c *fiber.Ctx) error {
 func (h *SiteConfigMeHandler) HandleDelete(c *fiber.Ctx) error {
 	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
 
-	siteConfig := model.SiteConfig{}
-	err := h.siteConfigRepo.Get(config.SITE_CONFIG, &siteConfig)
+	siteConfig, err := h.siteConfigService.GetSiteConfig()
 
 	if err != nil {
 		return err
@@ -73,7 +68,7 @@ func (h *SiteConfigMeHandler) HandleDelete(c *fiber.Ctx) error {
 	}
 	siteConfig.Me = append(siteConfig.Me[:idx], siteConfig.Me[idx+1:]...)
 
-	err = h.siteConfigRepo.Update(config.SITE_CONFIG, siteConfig)
+	err = h.siteConfigService.UpdateSiteConfig(siteConfig)
 	if err != nil {
 		return err
 	}

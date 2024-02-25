@@ -20,8 +20,6 @@ func NewAdminInteractionHandler(configRepo repository.ConfigRepository, interact
 }
 
 func (h *AdminInteractionHandler) HandleGet(c *fiber.Ctx) error {
-	siteConfig := getSiteConfig(h.configRepo)
-
 	filter := c.Query("filter", "")
 
 	interactions, err := h.interactionRepo.ListAllInteractions()
@@ -31,7 +29,7 @@ func (h *AdminInteractionHandler) HandleGet(c *fiber.Ctx) error {
 	pageData := paginate(c, interactions, 50)
 
 	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
-	return render.RenderTemplateWithBase(c, siteConfig, "views/interaction_manager", fiber.Map{
+	return render.RenderTemplateWithBase(c, "views/interaction_manager", fiber.Map{
 		"Interactions": pageData.items,
 		"Page":         pageData.page,
 		"NextPage":     pageData.page + 1,

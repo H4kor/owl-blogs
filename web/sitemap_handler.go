@@ -5,14 +5,13 @@ import (
 	"encoding/xml"
 	"net/url"
 	"owl-blogs/app"
-	"owl-blogs/app/repository"
 
 	"github.com/gofiber/fiber/v2"
 )
 
 type SiteMapHandler struct {
-	entryService *app.EntryService
-	configRepo   repository.ConfigRepository
+	entryService      *app.EntryService
+	siteConfigService *app.SiteConfigService
 }
 
 type Sitemap struct {
@@ -25,15 +24,18 @@ type SitemapUrl struct {
 	Loc string `xml:"loc"`
 }
 
-func NewSiteMapHandler(entryService *app.EntryService, configRepo repository.ConfigRepository) *SiteMapHandler {
-	return &SiteMapHandler{entryService: entryService, configRepo: configRepo}
+func NewSiteMapHandler(entryService *app.EntryService, siteConfigService *app.SiteConfigService) *SiteMapHandler {
+	return &SiteMapHandler{entryService: entryService, siteConfigService: siteConfigService}
 }
 
 // Handle handles GET /sitemap.xml
 func (h *SiteMapHandler) Handle(c *fiber.Ctx) error {
 	c.Set(fiber.HeaderContentType, fiber.MIMEApplicationXML)
 
-	siteConfig := getSiteConfig(h.configRepo)
+	siteConfig, err := h.siteConfigService.GetSiteConfig()
+	if err != nil {
+		return err
+	}
 	entries, err := h.entryService.FindAllByType(nil, true, false)
 	if err != nil {
 		return err
