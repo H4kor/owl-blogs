@@ -9,6 +9,7 @@ import (
 	"owl-blogs/render"
 
 	vocab "github.com/go-ap/activitypub"
+	"github.com/go-ap/jsonld"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -42,6 +43,7 @@ func (cfg *ActivityPubConfig) ParseFormData(data model.HttpFormData, binSvc mode
 
 type WebfingerResponse struct {
 	Subject string          `json:"subject"`
+	Aliases []string        `json:"aliases"`
 	Links   []WebfingerLink `json:"links"`
 }
 
@@ -64,8 +66,18 @@ func (s *ActivityPubServer) HandleWebfinger(ctx *fiber.Ctx) error {
 	s.configRepo.Get(ACT_PUB_CONF_NAME, &apConfig)
 	s.configRepo.Get(config.SITE_CONFIG, &siteConfig)
 
+	domain, err := url.Parse(siteConfig.FullUrl)
+	if err != nil {
+		return err
+	}
+
+	subject := ctx.Query("resource", "")
+	if subject != "acct:"+apConfig.PreferredUsername+"@"+domain.Host {
+		return ctx.Status(404).JSON(nil)
+	}
+
 	webfinger := WebfingerResponse{
-		Subject: ctx.Query("resource"),
+		Subject: subject,
 
 		Links: []WebfingerLink{
 			{
@@ -101,8 +113,10 @@ func (s *ActivityPubServer) HandleActor(ctx *fiber.Ctx) error {
 		Owner:        vocab.IRI(siteConfig.FullUrl + "/activitypub/actor"),
 		PublicKeyPem: apConfig.PublicKeyPem,
 	}
-
-	data, err := actor.MarshalJSON()
+	data, err := jsonld.WithContext(
+		jsonld.IRI(vocab.ActivityBaseURI),
+		jsonld.IRI(vocab.SecurityContextURI),
+	).Marshal(actor)
 	if err != nil {
 		return err
 	}
