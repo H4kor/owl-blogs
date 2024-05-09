@@ -36,7 +36,9 @@ func NewWebApp(
 	webmentionService *app.WebmentionService,
 	interactionRepo repository.InteractionRepository,
 ) *WebApp {
-	app := fiber.New()
+	app := fiber.New(fiber.Config{
+		BodyLimit: 50 * 1024 * 1024, // 50MB in bytes
+	})
 	app.Use(middleware.NewUserMiddleware(authorService).Handle)
 
 	indexHandler := NewIndexHandler(entryService, siteConfigService)
