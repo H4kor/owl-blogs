@@ -48,6 +48,10 @@ function addFileDrop(id) {
             textArea.classList.remove("drop-file-process")
         }).catch(err => {
             console.error(err);
+            textArea.classList.add("drop-file-error")
+            setTimeout(() => {
+                textArea.classList.remove("drop-file-error")
+            }, 2000)
         }).finally(() => {
             textArea.classList.remove("drop-file-process")
         })

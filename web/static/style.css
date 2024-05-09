@@ -50,3 +50,25 @@
     border-color: #5391ff;
     animation: border-pulsate 2s infinite;
 }
+
+
+@keyframes border-pulsate-error {
+    0% {
+        border-color: #ff3e3e;
+    }
+
+    50% {
+        border-color: rgba(0, 255, 255, 0);
+    }
+
+    100% {
+        border-color: #ff3e3e;
+    }
+}
+
+.drop-file-error {
+    border-style: solid;
+    border-width: 4px;
+    border-color: #ff3e3e;
+    animation: border-pulsate-error 1s 2;
+}
