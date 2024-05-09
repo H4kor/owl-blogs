@@ -30,7 +30,7 @@ func (c *testConfigRepo) Update(name string, result interface{}) error {
 func getAutherService() *app.AuthorService {
 	db := test.NewMockDb()
 	authorRepo := infra.NewDefaultAuthorRepo(db)
-	authorService := app.NewAuthorService(authorRepo, &testConfigRepo{})
+	authorService := app.NewAuthorService(authorRepo, app.NewSiteConfigService(&testConfigRepo{}))
 	return authorService
 
 }

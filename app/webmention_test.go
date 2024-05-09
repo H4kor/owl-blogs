@@ -62,7 +62,7 @@ func getWebmentionService() *app.WebmentionService {
 
 	http := infra.OwlHttpClient{}
 	return app.NewWebmentionService(
-		configRepo, interactionRepo, entryRepo, &http, bus,
+		app.NewSiteConfigService(configRepo), interactionRepo, entryRepo, &http, bus,
 	)
 }
 
