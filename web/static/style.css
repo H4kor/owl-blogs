@@ -65,6 +65,12 @@ input[type='submit'].secondary:focus {
     background-color: rgba(93, 107, 137, 0.25);
 }
 
+/* for checkboxes */
+label > input {
+    display: inherit;
+    width: initial;
+}
+
 /* from pico.css */
 mark {
     padding: 0.125rem 0.25rem;
@@ -126,6 +132,18 @@ pre {
     background-color: #eee;
     padding: 0.5rem;
     white-space: pre-wrap;
+}
+
+table {
+    width: 100%;
+}
+
+th {
+    border-bottom: solid #888 1px;
+}
+
+tr:nth-child(2n) {
+    background: #f0f0f1;
 }
 
 .header {
