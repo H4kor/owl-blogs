@@ -24,58 +24,6 @@
                 --background-light: color-mix(in srgb,var(--background),#fff 50%);
 
             }
-
-            [data-theme="light"],
-            :root:not([data-theme="dark"]) {
-                --pico-primary: {{.SiteConfig.PrimaryColor}};
-                --pico-primary-background: {{.SiteConfig.PrimaryColor}};
-                --pico-primary-hover: color-mix(in srgb,var(--primary),#000 20%);
-                --pico-primary-hover-background: color-mix(in srgb,var(--primary),#000 20%);
-                --pico-primary-focus: color-mix(in srgb,var(--primary),#fff 40%);
-                --pico-primary-underline: color-mix(in srgb,var(--primary),#fff 40%);
-                --pico-primary-inverse: #FFF;
-                --pico-background: {{.SiteConfig.HeaderColor}};
-                --pico-background-dark: color-mix(in srgb,var(--background),#000 50%);
-                --pico-background-light: color-mix(in srgb,var(--background),#fff 50%);
-            }
-
-
-            footer {
-                border-top: dashed 2px;
-                border-color: #ccc;
-            }
-
-            .avatar {
-                float: left;
-                margin-right: 1rem;
-                border-radius: 50%;
-            }
-
-            .photo-grid {
-                display: flex;
-                flex-wrap: wrap;
-                padding: 0 4px;
-            }
-
-            .photo-grid-item {
-                flex: 1 0 25%;
-                padding: 4px;
-            }
-
-            .photo-grid-item img {
-                width: 100%;
-                height: 100%;
-                aspect-ratio: 1 / 1 ;
-                object-fit: cover;
-            }
-            
-            main img {
-                max-width: 100%;
-                margin: auto;
-                text-align: center;
-                display: block;
-            }
-
         </style>
         {{ .SiteConfig.HtmlHeadExtra }}
     </head>
@@ -90,8 +38,15 @@
 
                 <div>
                     <h2><a class="p-name u-url" href="/">{{ .SiteConfig.Title }}</a></h2>
-                    <h3 class="p-note">{{ .SiteConfig.SubTitle }}</h3>
+                    <div class="p-note">{{ .SiteConfig.SubTitle }}</div>
                 </div>
+
+                <ul style="list-style: none;padding:0;flex-shrink: 0;">
+                    {{ range $me := .SiteConfig.Me }}
+                        <li><a href="{{$me.Url}}" rel="me">{{$me.Name}}</a>
+                        </li>
+                    {{ end }}
+                </ul>                
             </div>
             <div>
                 <nav>
