@@ -30,6 +30,7 @@ function addFileDrop(id) {
         const formData = new FormData()
         formData.append("file", file)
 
+        textArea.classList.add("drop-file-process")
         fetch(
             "/admin/api/binaries",
             {
@@ -44,6 +45,11 @@ function addFileDrop(id) {
             } else {
                 textArea.value += `\n[${file.name}](${data.location})`
             }
+            textArea.classList.remove("drop-file-process")
+        }).catch(err => {
+            console.error(err);
+        }).finally(() => {
+            textArea.classList.remove("drop-file-process")
         })
 
     }
