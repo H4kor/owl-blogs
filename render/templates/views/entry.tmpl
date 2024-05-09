@@ -22,28 +22,29 @@
 {{ end }}
 
 <div class="h-entry">
-    <hgroup>
-        {{if .Entry.Title}}
-            <h1 class="p-name">{{.Entry.Title}}</h1>
-        {{end}}
-        <small>
-            <a class="u-url" href="/posts/{{ .Entry.ID }}/">#</a>
-            Published:
-            {{ if .Entry.PublishedAt }}
-                <time class="dt-published" datetime="{{.Entry.PublishedAt.Format "2006-01-02T15:04:05" }}">
-                    {{.Entry.PublishedAt.Format "2006-01-02" }}
-                </time>
-            {{ end }}
-            {{ if .Author.Name }}
-                by
-                <a class="p-author h-card" href="{{.Author.FullUrl}}">
-                    {{ if .Author.AvatarUrl }}
-                        <img class="u-photo u-logo" style="height: 1em;" src="{{ .Author.AvatarUrl }}" alt="{{ .Author.Config.Title }}" />
-                    {{ end }}
-                    {{.Author.Name}}
-                </a>
-            {{ end }}
-        </small> 
+    {{if .Entry.Title}}
+        <h1 class="p-name entry-title">{{.Entry.Title}}</h1>
+    {{else}}
+        <div style="padding-top:4rem;"></div>
+    {{end}}
+    <div class="entry-meta">
+        <a class="u-url" href="/posts/{{ .Entry.ID }}/">#</a>
+        Published:
+        {{ if .Entry.PublishedAt }}
+            <time class="dt-published" datetime="{{.Entry.PublishedAt.Format "2006-01-02T15:04:05" }}">
+                {{.Entry.PublishedAt.Format "2006-01-02" }}
+            </time>
+        {{ end }}
+        {{ if .Author.Name }}
+            by
+            <a class="p-author h-card" href="{{.Author.FullUrl}}">
+                {{ if .Author.AvatarUrl }}
+                    <img class="u-photo u-logo" style="height: 1em;" src="{{ .Author.AvatarUrl }}" alt="{{ .Author.Config.Title }}" />
+                {{ end }}
+                {{.Author.Name}}
+            </a>
+        {{ end }}
+    </div> 
     </hgroup>
 
     <div class="e-content">

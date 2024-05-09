@@ -6,24 +6,23 @@
 <div class="h-feed">
 {{ range .Entries }}
     <div class="h-entry">
-        <hgroup>
-            <h3>
-                <a class="u-url" href="/posts/{{ .ID }}/">
-                    {{if .Title}}
-                        {{ .Title }}
-                    {{else}}
-                        #
-                    {{end}}
-                </a>
-            </h3>
-            <small style="font-size: 0.75em;">
-                {{ if .PublishedAt }}
-                    <time class="dt-published" datetime="{{.PublishedAt.Format "2006-01-02T15:04:05" }}">
-                        {{.PublishedAt.Format "2006-01-02" }}
-                    </time>
-                {{ end }}
-            </small>
-        </hgroup>
+        <h1 class="entry-title">
+            <a class="u-url" href="/posts/{{ .ID }}/">
+                {{if .Title}}
+                    {{ .Title }}
+                {{else}}
+                    #
+                {{end}}
+            </a>
+        </h1>
+        <div class="entry-meta">
+            Published:
+            {{ if .PublishedAt }}
+                <time class="dt-published" datetime="{{.PublishedAt.Format "2006-01-02T15:04:05" }}">
+                    {{.PublishedAt.Format "2006-01-02" }}
+                </time>
+            {{ end }}
+        </div> 
         {{ .Content }}
     </div>
     <hr>

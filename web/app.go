@@ -107,7 +107,6 @@ func NewWebApp(
 	siteConfig.Post("/menus/create/", siteConfigMenusHandler.HandleCreate)
 	siteConfig.Post("/menus/delete/", siteConfigMenusHandler.HandleDelete)
 
-	// app.Static("/static/*filepath", http.Dir(repo.StaticDir()))
 	app.Use("/static", filesystem.New(filesystem.Config{
 		Root:       http.FS(embedDirStatic),
 		PathPrefix: "static",
@@ -139,17 +138,6 @@ func NewWebApp(
 	app.Get("/.well-known/webfinger", activityPubServer.HandleWebfinger)
 	app.Route("/activitypub", activityPubServer.Router)
 
-	// Webmention
-	// app.Post("/webmention/", userWebmentionHandler(repo))
-	// Micropub
-	// app.Post("/micropub/", userMicropubHandler(repo))
-	// IndieAuth
-	// app.Get("/auth/", userAuthHandler(repo))
-	// app.Post("/auth/", userAuthProfileHandler(repo))
-	// app.Post("/auth/verify/", userAuthVerifyHandler(repo))
-	// app.Post("/auth/token/", userAuthTokenHandler(repo))
-	// app.Get("/.well-known/oauth-authorization-server", userAuthMetadataHandler(repo))
-	// app.NotFound = http.HandlerFunc(notFoundHandler(repo))
 	return &WebApp{
 		FiberApp:       app,
 		EntryService:   entryService,

@@ -12,7 +12,6 @@
         <link rel="webmention" href="/webmention/" />
         <link rel="alternate" type="application/rss+xml" title="RSS" href="/index.xml">
 
-        <link rel='stylesheet' href='/static/pico-2.min.css'>
         <link rel='stylesheet' href='/static/style.css'>        
         <style>
             :root {
@@ -41,11 +40,6 @@
             }
 
 
-            header {
-                background-color: var(--background);
-                padding-bottom: 1rem !important;
-            }
-
             footer {
                 border-top: dashed 2px;
                 border-color: #ccc;
@@ -57,23 +51,6 @@
                 border-radius: 50%;
             }
 
-            .header {
-                display: flex;
-                flex-flow: row wrap;
-                justify-content: space-between;
-                align-items: flex-start;
-            }
-
-            .header-title {
-                order: 0;
-            }
-
-            .header-profile {
-                order: 1;
-            }
-
-            hgroup h2 a { color: inherit; } 
-        
             .photo-grid {
                 display: flex;
                 flex-wrap: wrap;
@@ -93,7 +70,7 @@
             }
             
             main img {
-                max-height: 50vh;
+                max-width: 100%;
                 margin: auto;
                 text-align: center;
                 display: block;
@@ -104,25 +81,19 @@
     </head>
     <body>
         <header>
-            <div class="container header h-card">
-                <hgroup class="header-title">
+            <div class="header h-card">
+                {{ if .SiteConfig.AvatarUrl }}
+                    <div class="header-profile">
+                        <img class="u-photo u-logo avatar" src="{{ .SiteConfig.AvatarUrl }}" alt="{{ .SiteConfig.Title }}" width="100" height="100" />
+                    </div>
+                {{ end }}
+
+                <div>
                     <h2><a class="p-name u-url" href="/">{{ .SiteConfig.Title }}</a></h2>
                     <h3 class="p-note">{{ .SiteConfig.SubTitle }}</h3>
-                </hgroup>
-
-                <div class="header-profile">
-                    {{ if .SiteConfig.AvatarUrl }}
-                        <img class="u-photo u-logo avatar" src="{{ .SiteConfig.AvatarUrl }}" alt="{{ .SiteConfig.Title }}" width="100" height="100" />
-                    {{ end }}
-                    <div style="float: right; list-style: none;">
-                    {{ range $me := .SiteConfig.Me }}
-                        <li><a href="{{$me.Url}}" rel="me">{{$me.Name}}</a>
-                        </li>
-                    {{ end }}
-                    </div>
                 </div>
             </div>
-            <div class="container">
+            <div>
                 <nav>
                     <ul>
                         {{ range $link := .SiteConfig.HeaderMenu }}
@@ -138,10 +109,10 @@
                 </nav>
             </div>
         </header>
-        <main class="container">
+        <main>
             {{template "main" .Data}}
         </main>
-        <footer class="container">
+        <footer>
             <nav>
                 <ul>
                     <li><a target="_blank" href="/index.xml">RSS Feed</a></li>
