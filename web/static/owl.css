@@ -72,6 +72,20 @@
 
 /* Styling of main page elements */
 
+@media only screen and (max-width: 600px) {
+    main {
+        max-width: 100%;
+        padding-left: var(--s1);
+        padding-right: var(--s1);
+    }    
+}
+
+@media screen and (min-width: 600px) {
+    main {
+        max-width: var(--cw);
+    }
+}
+
 * {
     /* global properties*/
     font-family: var(--font);
@@ -92,7 +106,6 @@ html {
 
 main {
     flex: 1;
-    max-width: var(--cw);
     margin: 0 auto;
 }
 
@@ -139,6 +152,7 @@ pre {
     background-color: var(--primary-l4);
     padding: var(--s0);
     white-space: pre-wrap;
+    overflow-wrap: anywhere;
 }
 
 main img {
@@ -360,7 +374,6 @@ header {
 
 header img {
     max-height: var(--s5);
-    margin-right: var(--s1);
     margin-left: var(--s1);
 }
 
@@ -368,6 +381,7 @@ header>hgroup {
     flex: 1;
     min-width: calc(var(--cw) / 2);
     margin-right: var(--s5);
+    margin-left: var(--s1);
 }
 
 header>hgroup>h1 {
@@ -400,6 +414,7 @@ header>nav>ul {
     padding-top: var(--s1);
     padding-bottom: var(--s1);
     align-items: center;
+    flex-wrap: wrap;
 }
 
 header>nav>ul>li {
@@ -450,6 +465,7 @@ footer>nav>ul {
     padding-top: var(--s1);
     padding-bottom: var(--s1);
     align-items: center;
+    flex-wrap: wrap;
 }
 
 footer>nav>ul>li {
@@ -461,10 +477,10 @@ footer>nav>ul>li {
 
 }
 
-footer>nav>ul>li>a {
+footer a {
     color: var(--text-primary);
 }
 
-footer>nav>ul>li>a:hover {
+footer a:hover {
     color: var(--text-primary);
 }
