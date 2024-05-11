@@ -56,6 +56,11 @@
                             <li><a href="{{ $link.Url }}">{{ $link.Title }}</a></li>
                         {{ end }}
                     {{ end }}
+                    {{ range $me := .SiteConfig.Me }}
+                        <li><a href="{{$me.Url}}" rel="me">{{$me.Name}}</a>
+                        </li>
+                    {{ end }}
+
                     <li><a href="/admin/">Editor</a></li>
                 </ul>
             </nav>
