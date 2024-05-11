@@ -1,162 +1,3 @@
-body {
-    font-family: sans-serif;
-    max-width: 800px;
-    margin: 0 auto 0 auto;
-}
-
-header {
-    padding: 1rem;
-    background-color: var(--background);
-    /* background: linear-gradient(180deg, var(--background) 0%, rgba(255, 255, 255, 0) 100%); */
-
-    padding-bottom: 1rem !important;
-    margin-bottom: 2rem;
-}
-
-footer {
-    border-top: dashed 2px;
-    border-color: #ccc;
-    padding-bottom: 5rem;
-}
-
-label {
-    display: inline-block;
-    padding-bottom: 0.25rem;
-}
-
-input, textarea, a[role='button'] {
-    display: inline-block;
-    width: 100%;
-    vertical-align: middle;
-    margin-bottom: 0.75rem;
-    padding: 0.25rem;
-    box-sizing: border-box;
-}
-
-input[type='submit'], a[role='button'] {
-    background-color: var(--primary);
-    color: #fff;
-    border: none;
-    border-radius: 2px;
-    font-size: 1rem;
-    text-align: center;
-    height: 2rem;
-}
-
-input[type='submit']:hover, a[role='button']:hover {
-    background-color: var(--primary-hover);
-    color: #fff;
-}
-
-input[type='submit']:focus, a[role='button']:focus {
-    background-color: var(--primary-focus);
-    color: #fff;
-}
-
-input[type='submit'].secondary {
-    background-color: #5d6b89;
-}
-
-input[type='submit'].secondary:hover {
-    background-color: #48536b;
-}
-
-input[type='submit'].secondary:focus {
-    background-color: rgba(93, 107, 137, 0.25);
-}
-
-/* for checkboxes */
-label > input {
-    display: inherit;
-    width: initial;
-}
-
-/* from pico.css */
-mark {
-    padding: 0.125rem 0.25rem;
-    background-color: #fde7c0;
-    vertical-align: baseline;
-}
-
-main img {
-    max-width: 100%;
-    margin: auto;
-    text-align: center;
-    display: block;
-}
-
-
-a {
-    color: var(--primary);
-    text-decoration: none;
-}
-
-a:hover {
-    color: var(--primary-hover);
-}
-
-a:focus {
-    color: var(--primary-focus);
-}
-
-nav > ul {
-    list-style-type: none;
-    margin: 0;
-    padding-left: 0;
-    padding-top: 1rem;
-    padding-bottom: 1rem;
-}
-
-nav > ul > li {
-    float: left;
-    padding-right: 2rem;
-}
-
-hr {
-    margin: 3rem
-}
-h1 {
-    font-size: 1.5rem;
-}
-h2 {
-    font-size: 1.25rem;
-}
-h3 {
-    font-size: 1.125rem;
-}
-h4, h5, h6 {
-    font-size: 1.0rem;
-}
-
-pre {
-    background-color: #eee;
-    padding: 0.5rem;
-    white-space: pre-wrap;
-}
-
-table {
-    width: 100%;
-}
-
-th {
-    border-bottom: solid #888 1px;
-}
-
-tr:nth-child(2n) {
-    background: #f0f0f1;
-}
-
-.header {
-    display: flex;
-    flex-flow: row;
-}
-
-.header-profile {
-    padding-right: 0.5rem;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
 
 .row {
     display: flex;
@@ -194,18 +35,18 @@ nav.row {
 } 
 
 .action-tile {
-    border: 1px solid var(--background-dark);
+    border: 1px solid var(--primary-l1);
     padding: 20px;
     flex: 1 1 0px;
     margin: 6px;
     min-width: 20%;
     text-align: center;
-    background: var(--background);
+    background: var(--primary-l4);
     border-radius: 4px;
 }
 
 .action-tile:hover {
-    background: var(--background-light);
+    background: var(--primary-l3);
 }
 
 .danger {
@@ -260,28 +101,4 @@ nav.row {
     border-width: 4px;
     border-color: #ff3e3e;
     animation: border-pulsate-error 1s 2;
-}
-
-.avatar {
-    float: left;
-    margin-right: 1rem;
-    border-radius: 50%;
-}
-
-.photo-grid {
-    display: flex;
-    flex-wrap: wrap;
-    padding: 0 4px;
-}
-
-.photo-grid-item {
-    flex: 1 0 25%;
-    padding: 4px;
-}
-
-.photo-grid-item img {
-    width: 100%;
-    height: 100%;
-    aspect-ratio: 1 / 1;
-    object-fit: cover;
 }

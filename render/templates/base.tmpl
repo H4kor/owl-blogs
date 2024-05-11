@@ -12,57 +12,33 @@
         <link rel="webmention" href="/webmention/" />
         <link rel="alternate" type="application/rss+xml" title="RSS" href="/index.xml">
 
+        <link rel='stylesheet' href='/static/owl.css'>        
         <link rel='stylesheet' href='/static/style.css'>        
-        <style>
-            :root {
-                --primary: {{.SiteConfig.PrimaryColor}};
-                --primary-hover: color-mix(in srgb,var(--primary),#000 20%);
-                --primary-focus: color-mix(in srgb,var(--primary),#fff 40%);
-                --primary-inverse: #FFF;
-                --background: {{.SiteConfig.HeaderColor}};
-                --background-dark: color-mix(in srgb,var(--background),#000 50%);
-                --background-light: color-mix(in srgb,var(--background),#fff 50%);
-
-            }
-        </style>
         {{ .SiteConfig.HtmlHeadExtra }}
     </head>
     <body>
-        <header>
-            <div class="header h-card">
-                {{ if .SiteConfig.AvatarUrl }}
-                    <div class="header-profile">
-                        <img class="u-photo u-logo avatar" src="{{ .SiteConfig.AvatarUrl }}" alt="{{ .SiteConfig.Title }}" width="100" height="100" />
-                    </div>
-                {{ end }}
+        <header class="h-card">
+            {{ if .SiteConfig.AvatarUrl }}
+                <img class="u-photo u-logo avatar" src="{{ .SiteConfig.AvatarUrl }}" alt="{{ .SiteConfig.Title }}" />
+            {{ end }}
 
-                <div>
-                    <h2><a class="p-name u-url" href="/">{{ .SiteConfig.Title }}</a></h2>
-                    <div class="p-note">{{ .SiteConfig.SubTitle }}</div>
-                </div>
-
-                <ul style="list-style: none;padding:0;flex-shrink: 0;">
-                    {{ range $me := .SiteConfig.Me }}
-                        <li><a href="{{$me.Url}}" rel="me">{{$me.Name}}</a>
-                        </li>
-                    {{ end }}
-                </ul>                
-            </div>
-            <div>
-                <nav>
-                    <ul>
-                        {{ range $link := .SiteConfig.HeaderMenu }}
-                            {{ if $link.List }}
-                                <li><a href="/lists/{{ $link.List }}">{{ $link.Title }}</a></li>
-                            {{ else if $link.Post }}
-                                <li><a href="/posts/{{ $link.Post }}">{{ $link.Title }}</a></li>
-                            {{ else }}
-                                <li><a href="{{ $link.Url }}">{{ $link.Title }}</a></li>
-                            {{ end }}
+            <hgroup>
+                <h1><a class="p-name u-url" href="/">{{ .SiteConfig.Title }}</a></h1>
+                <p class="p-note">{{ .SiteConfig.SubTitle }}</p>
+            </hgroup>
+            <nav>
+                <ul>
+                    {{ range $link := .SiteConfig.HeaderMenu }}
+                        {{ if $link.List }}
+                            <li><a href="/lists/{{ $link.List }}">{{ $link.Title }}</a></li>
+                        {{ else if $link.Post }}
+                            <li><a href="/posts/{{ $link.Post }}">{{ $link.Title }}</a></li>
+                        {{ else }}
+                            <li><a href="{{ $link.Url }}">{{ $link.Title }}</a></li>
                         {{ end }}
-                    </ul>
-                </nav>
-            </div>
+                    {{ end }}
+                </ul>
+            </nav>
         </header>
         <main>
             {{template "main" .Data}}
@@ -80,16 +56,12 @@
                             <li><a href="{{ $link.Url }}">{{ $link.Title }}</a></li>
                         {{ end }}
                     {{ end }}
+                    <li><a href="/admin/">Editor</a></li>
                 </ul>
             </nav>
-            {{ .SiteConfig.FooterExtra}}
-            <small>
-                <nav>
-                    <ul>
-                        <li><a href="/admin/">Editor</a></li>
-                    </ul>
-                </nav>
-            </small>
+            <div>
+                {{ .SiteConfig.FooterExtra}}
+            </div>
         </footer>
     </body>
 </html>
