@@ -51,3 +51,9 @@ type InteractionRepository interface {
 	// ListAllInteractions lists all interactions, sorted by creation date (descending)
 	ListAllInteractions() ([]model.Interaction, error)
 }
+
+type FollowerRepository interface {
+	Add(follower string) error
+	Remove(follower string) error
+	All() ([]string, error)
+}
