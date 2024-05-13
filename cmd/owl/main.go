@@ -50,6 +50,7 @@ func App(db infra.Database) *web.WebApp {
 	authorRepo := infra.NewDefaultAuthorRepo(db)
 	configRepo := infra.NewConfigRepo(db)
 	interactionRepo := infra.NewInteractionRepo(db, interactionRegister)
+	followersRepo := infra.NewFollowerRepository(db)
 
 	// Create External Services
 	httpClient := &infra.OwlHttpClient{}
@@ -65,6 +66,7 @@ func App(db infra.Database) *web.WebApp {
 	webmentionService := app.NewWebmentionService(
 		siteConfigService, interactionRepo, entryRepo, httpClient, eventBus,
 	)
+	apService := app.NewActivityPubService(followersRepo, configRepo)
 
 	// setup render functions
 	render.SiteConfigService = siteConfigService
@@ -80,6 +82,7 @@ func App(db infra.Database) *web.WebApp {
 		entryService, entryRegister, binaryService,
 		authorService, configRepo, configRegister,
 		siteConfigService, webmentionService, interactionRepo,
+		apService,
 	)
 
 }

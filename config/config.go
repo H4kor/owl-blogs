@@ -3,7 +3,8 @@ package config
 import "os"
 
 const (
-	SITE_CONFIG = "site_config"
+	SITE_CONFIG       = "site_config"
+	ACT_PUB_CONF_NAME = "activity_pub"
 )
 
 type Config interface {

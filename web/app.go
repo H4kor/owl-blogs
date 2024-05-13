@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"owl-blogs/app"
 	"owl-blogs/app/repository"
+	"owl-blogs/config"
 	"owl-blogs/web/middleware"
 
 	"github.com/gofiber/fiber/v2"
@@ -35,11 +36,12 @@ func NewWebApp(
 	siteConfigService *app.SiteConfigService,
 	webmentionService *app.WebmentionService,
 	interactionRepo repository.InteractionRepository,
+	apService *app.ActivityPubService,
 ) *WebApp {
-	app := fiber.New(fiber.Config{
+	fiberApp := fiber.New(fiber.Config{
 		BodyLimit: 50 * 1024 * 1024, // 50MB in bytes
 	})
-	app.Use(middleware.NewUserMiddleware(authorService).Handle)
+	fiberApp.Use(middleware.NewUserMiddleware(authorService).Handle)
 
 	indexHandler := NewIndexHandler(entryService, siteConfigService)
 	listHandler := NewListHandler(entryService, siteConfigService)
@@ -51,15 +53,15 @@ func NewWebApp(
 	webmentionHandler := NewWebmentionHandler(webmentionService, configRepo)
 
 	// Login
-	app.Get("/auth/login", loginHandler.HandleGet)
-	app.Post("/auth/login", loginHandler.HandlePost)
+	fiberApp.Get("/auth/login", loginHandler.HandleGet)
+	fiberApp.Post("/auth/login", loginHandler.HandlePost)
 
 	// admin
 	adminHandler := NewAdminHandler(configRepo, configRegister, typeRegistry)
 	draftHandler := NewDraftHandler(entryService, siteConfigService)
 	binaryManageHandler := NewBinaryManageHandler(configRepo, binService)
 	adminInteractionHandler := NewAdminInteractionHandler(configRepo, interactionRepo)
-	admin := app.Group("/admin")
+	admin := fiberApp.Group("/admin")
 	admin.Use(middleware.NewAuthMiddleware(authorService).Handle)
 	admin.Get("/", adminHandler.Handle)
 	admin.Get("/drafts/", draftHandler.Handle)
@@ -75,7 +77,7 @@ func NewWebApp(
 	adminApi.Post("/binaries", binaryManageHandler.HandleUploadApi)
 
 	// Editor
-	editor := app.Group("/editor")
+	editor := fiberApp.Group("/editor")
 	editor.Use(middleware.NewAuthMiddleware(authorService).Handle)
 	editor.Get("/new/:editor/", editorHandler.HandleGetNew)
 	editor.Post("/new/:editor/", editorHandler.HandlePostNew)
@@ -85,7 +87,7 @@ func NewWebApp(
 	editor.Post("/unpublish/:id/", editorHandler.HandlePostUnpublish)
 
 	// SiteConfig
-	siteConfig := app.Group("/site-config")
+	siteConfig := fiberApp.Group("/site-config")
 	siteConfig.Use(middleware.NewAuthMiddleware(authorService).Handle)
 
 	siteConfigHandler := NewSiteConfigHandler(siteConfigService)
@@ -107,39 +109,39 @@ func NewWebApp(
 	siteConfig.Post("/menus/create/", siteConfigMenusHandler.HandleCreate)
 	siteConfig.Post("/menus/delete/", siteConfigMenusHandler.HandleDelete)
 
-	app.Use("/static", filesystem.New(filesystem.Config{
+	fiberApp.Use("/static", filesystem.New(filesystem.Config{
 		Root:       http.FS(embedDirStatic),
 		PathPrefix: "static",
 		Browse:     false,
 	}))
-	app.Get("/", indexHandler.Handle)
-	app.Get("/lists/:list/", listHandler.Handle)
+	fiberApp.Get("/", indexHandler.Handle)
+	fiberApp.Get("/lists/:list/", listHandler.Handle)
 	// Media
-	app.Get("/media/+", mediaHandler.Handle)
+	fiberApp.Get("/media/+", mediaHandler.Handle)
 	// RSS
-	app.Get("/index.xml", rssHandler.Handle)
+	fiberApp.Get("/index.xml", rssHandler.Handle)
 	// Posts
-	app.Get("/posts/:post/", entryHandler.Handle)
+	fiberApp.Get("/posts/:post/", entryHandler.Handle)
 	// Webmention
-	app.Post("/webmention/", webmentionHandler.Handle)
+	fiberApp.Post("/webmention/", webmentionHandler.Handle)
 	// robots.txt
-	app.Get("/robots.txt", func(c *fiber.Ctx) error {
+	fiberApp.Get("/robots.txt", func(c *fiber.Ctx) error {
 		siteConfig, _ := siteConfigService.GetSiteConfig()
 		sitemapUrl, _ := url.JoinPath(siteConfig.FullUrl, "/sitemap.xml")
 		c.Set("Content-Type", "text/plain")
 		return c.SendString(fmt.Sprintf("User-agent: GPTBot\nDisallow: /\n\nUser-agent: *\nAllow: /\n\nSitemap: %s\n", sitemapUrl))
 	})
 	// sitemap.xml
-	app.Get("/sitemap.xml", NewSiteMapHandler(entryService, siteConfigService).Handle)
+	fiberApp.Get("/sitemap.xml", NewSiteMapHandler(entryService, siteConfigService).Handle)
 
 	// ActivityPub
-	activityPubServer := NewActivityPubServer(configRepo, entryService)
-	configRegister.Register(ACT_PUB_CONF_NAME, &ActivityPubConfig{})
-	app.Get("/.well-known/webfinger", activityPubServer.HandleWebfinger)
-	app.Route("/activitypub", activityPubServer.Router)
+	activityPubServer := NewActivityPubServer(configRepo, entryService, apService)
+	configRegister.Register(config.ACT_PUB_CONF_NAME, &app.ActivityPubConfig{})
+	fiberApp.Get("/.well-known/webfinger", activityPubServer.HandleWebfinger)
+	fiberApp.Route("/activitypub", activityPubServer.Router)
 
 	return &WebApp{
-		FiberApp:       app,
+		FiberApp:       fiberApp,
 		EntryService:   entryService,
 		Registry:       typeRegistry,
 		BinaryService:  binService,

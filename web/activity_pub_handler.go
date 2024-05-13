@@ -1,44 +1,26 @@
 package web
 
 import (
+	"errors"
+	"log/slog"
+	"net/http"
 	"net/url"
 	"owl-blogs/app"
 	"owl-blogs/app/repository"
 	"owl-blogs/config"
 	"owl-blogs/domain/model"
-	"owl-blogs/render"
 
 	vocab "github.com/go-ap/activitypub"
 	"github.com/go-ap/jsonld"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/adaptor"
 )
-
-const ACT_PUB_CONF_NAME = "activity_pub"
 
 type ActivityPubServer struct {
 	configRepo   repository.ConfigRepository
+	apService    *app.ActivityPubService
 	entryService *app.EntryService
-}
-
-type ActivityPubConfig struct {
-	PreferredUsername string
-	PublicKeyPem      string
-	PrivateKeyPem     string
-}
-
-// Form implements app.AppConfig.
-func (cfg *ActivityPubConfig) Form(binSvc model.BinaryStorageInterface) string {
-	f, _ := render.RenderTemplateToString("forms/ActivityPubConfig", cfg)
-	return f
-}
-
-// ParseFormData implements app.AppConfig.
-func (cfg *ActivityPubConfig) ParseFormData(data model.HttpFormData, binSvc model.BinaryStorageInterface) error {
-	cfg.PreferredUsername = data.FormValue("PreferredUsername")
-	cfg.PublicKeyPem = data.FormValue("PublicKeyPem")
-	cfg.PrivateKeyPem = data.FormValue("PrivateKeyPem")
-	return nil
 }
 
 type WebfingerResponse struct {
@@ -53,17 +35,18 @@ type WebfingerLink struct {
 	Href string `json:"href"`
 }
 
-func NewActivityPubServer(configRepo repository.ConfigRepository, entryService *app.EntryService) *ActivityPubServer {
+func NewActivityPubServer(configRepo repository.ConfigRepository, entryService *app.EntryService, apService *app.ActivityPubService) *ActivityPubServer {
 	return &ActivityPubServer{
 		configRepo:   configRepo,
 		entryService: entryService,
+		apService:    apService,
 	}
 }
 
 func (s *ActivityPubServer) HandleWebfinger(ctx *fiber.Ctx) error {
 	siteConfig := model.SiteConfig{}
-	apConfig := ActivityPubConfig{}
-	s.configRepo.Get(ACT_PUB_CONF_NAME, &apConfig)
+	apConfig := app.ActivityPubConfig{}
+	s.configRepo.Get(config.ACT_PUB_CONF_NAME, &apConfig)
 	s.configRepo.Get(config.SITE_CONFIG, &siteConfig)
 
 	domain, err := url.Parse(siteConfig.FullUrl)
@@ -95,12 +78,14 @@ func (s *ActivityPubServer) HandleWebfinger(ctx *fiber.Ctx) error {
 func (s *ActivityPubServer) Router(router fiber.Router) {
 	router.Get("/actor", s.HandleActor)
 	router.Get("/outbox", s.HandleOutbox)
+	router.Get("/inbox", s.HandleInbox)
+	router.Get("/followers", s.HandleFollowers)
 }
 
 func (s *ActivityPubServer) HandleActor(ctx *fiber.Ctx) error {
 	siteConfig := model.SiteConfig{}
-	apConfig := ActivityPubConfig{}
-	s.configRepo.Get(ACT_PUB_CONF_NAME, &apConfig)
+	apConfig := app.ActivityPubConfig{}
+	s.configRepo.Get(config.ACT_PUB_CONF_NAME, &apConfig)
 	s.configRepo.Get(config.SITE_CONFIG, &siteConfig)
 
 	actor := vocab.PersonNew(vocab.IRI(siteConfig.FullUrl + "/activitypub/actor"))
@@ -126,8 +111,8 @@ func (s *ActivityPubServer) HandleActor(ctx *fiber.Ctx) error {
 
 func (s *ActivityPubServer) HandleOutbox(ctx *fiber.Ctx) error {
 	siteConfig := model.SiteConfig{}
-	apConfig := ActivityPubConfig{}
-	s.configRepo.Get(ACT_PUB_CONF_NAME, &apConfig)
+	apConfig := app.ActivityPubConfig{}
+	s.configRepo.Get(config.ACT_PUB_CONF_NAME, &apConfig)
 	s.configRepo.Get(config.SITE_CONFIG, &siteConfig)
 
 	entries, err := s.entryService.FindAllByType(nil, true, false)
@@ -157,5 +142,86 @@ func (s *ActivityPubServer) HandleOutbox(ctx *fiber.Ctx) error {
 	}
 	ctx.Set("Content-Type", "application/activity+json")
 	return ctx.Send(data)
+}
 
+func (s *ActivityPubServer) processFollow(r *http.Request, act *vocab.Activity) error {
+	follower := act.Actor.GetID().String()
+	err := s.apService.VerifySignature(r, follower)
+	if err != nil {
+		return err
+	}
+	err = s.apService.AddFollower(follower)
+	if err != nil {
+		return err
+	}
+
+	// go acpub.Accept(gameName, act)
+
+	return nil
+}
+
+func (s *ActivityPubServer) processUndo(act *vocab.Activity) error {
+	return nil
+}
+
+func (s *ActivityPubServer) HandleInbox(ctx *fiber.Ctx) error {
+	siteConfig := model.SiteConfig{}
+	apConfig := app.ActivityPubConfig{}
+	s.configRepo.Get(config.ACT_PUB_CONF_NAME, &apConfig)
+	s.configRepo.Get(config.SITE_CONFIG, &siteConfig)
+
+	body := ctx.Request().Body()
+	data, err := vocab.UnmarshalJSON(body)
+	if err != nil {
+		return err
+	}
+
+	err = vocab.OnActivity(data, func(act *vocab.Activity) error {
+		slog.Info("activity retrieved", "activity", act, "type", act.Type)
+
+		r, err := adaptor.ConvertRequest(ctx, true)
+		if err != nil {
+			return err
+		}
+
+		if act.Type == vocab.FollowType {
+			return s.processFollow(r, act)
+		}
+
+		if act.Type == vocab.UndoType {
+			slog.Info("processing undo")
+			return s.processUndo(act)
+		}
+		return errors.New("only follow and undo actions supported")
+	})
+	return err
+
+}
+
+func (s *ActivityPubServer) HandleFollowers(ctx *fiber.Ctx) error {
+	siteConfig := model.SiteConfig{}
+	apConfig := app.ActivityPubConfig{}
+	s.configRepo.Get(config.ACT_PUB_CONF_NAME, &apConfig)
+	s.configRepo.Get(config.SITE_CONFIG, &siteConfig)
+
+	fs, err := s.apService.AllFollowers()
+	if err != nil {
+		return err
+	}
+
+	followers := vocab.Collection{}
+	for _, f := range fs {
+		followers.Append(vocab.IRI(f))
+	}
+	followers.TotalItems = uint(len(fs))
+	followers.ID = vocab.IRI(siteConfig.FullUrl + "/activitypub/followers")
+	data, err := jsonld.WithContext(
+		jsonld.IRI(vocab.ActivityBaseURI),
+	).Marshal(followers)
+
+	if err != nil {
+		return err
+	}
+	ctx.Set("Content-Type", "application/activity+json")
+	return ctx.Send(data)
 }
