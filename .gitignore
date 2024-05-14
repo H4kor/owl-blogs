@@ -28,3 +28,6 @@ users/
 
 *.db
 tmp/
+
+venv/
+*.pyc

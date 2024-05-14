@@ -6,9 +6,6 @@ import (
 	"net/http"
 	"net/url"
 	"owl-blogs/app"
-	"owl-blogs/app/repository"
-	"owl-blogs/config"
-	"owl-blogs/domain/model"
 
 	vocab "github.com/go-ap/activitypub"
 	"github.com/go-ap/jsonld"
@@ -18,9 +15,9 @@ import (
 )
 
 type ActivityPubServer struct {
-	configRepo   repository.ConfigRepository
-	apService    *app.ActivityPubService
-	entryService *app.EntryService
+	siteConfigService *app.SiteConfigService
+	apService         *app.ActivityPubService
+	entryService      *app.EntryService
 }
 
 type WebfingerResponse struct {
@@ -35,19 +32,17 @@ type WebfingerLink struct {
 	Href string `json:"href"`
 }
 
-func NewActivityPubServer(configRepo repository.ConfigRepository, entryService *app.EntryService, apService *app.ActivityPubService) *ActivityPubServer {
+func NewActivityPubServer(siteConfigService *app.SiteConfigService, entryService *app.EntryService, apService *app.ActivityPubService) *ActivityPubServer {
 	return &ActivityPubServer{
-		configRepo:   configRepo,
-		entryService: entryService,
-		apService:    apService,
+		siteConfigService: siteConfigService,
+		entryService:      entryService,
+		apService:         apService,
 	}
 }
 
 func (s *ActivityPubServer) HandleWebfinger(ctx *fiber.Ctx) error {
-	siteConfig := model.SiteConfig{}
-	apConfig := app.ActivityPubConfig{}
-	s.configRepo.Get(config.ACT_PUB_CONF_NAME, &apConfig)
-	s.configRepo.Get(config.SITE_CONFIG, &siteConfig)
+	siteConfig, _ := s.siteConfigService.GetSiteConfig()
+	apConfig, _ := s.apService.GetApConfig()
 
 	domain, err := url.Parse(siteConfig.FullUrl)
 	if err != nil {
@@ -55,7 +50,9 @@ func (s *ActivityPubServer) HandleWebfinger(ctx *fiber.Ctx) error {
 	}
 
 	subject := ctx.Query("resource", "")
-	if subject != "acct:"+apConfig.PreferredUsername+"@"+domain.Host {
+	blogSubject := "acct:" + apConfig.PreferredUsername + "@" + domain.Host
+	slog.Info("webfinger request", "for", subject, "required", blogSubject)
+	if subject != blogSubject {
 		return ctx.Status(404).JSON(nil)
 	}
 
@@ -83,10 +80,8 @@ func (s *ActivityPubServer) Router(router fiber.Router) {
 }
 
 func (s *ActivityPubServer) HandleActor(ctx *fiber.Ctx) error {
-	siteConfig := model.SiteConfig{}
-	apConfig := app.ActivityPubConfig{}
-	s.configRepo.Get(config.ACT_PUB_CONF_NAME, &apConfig)
-	s.configRepo.Get(config.SITE_CONFIG, &siteConfig)
+	siteConfig, _ := s.siteConfigService.GetSiteConfig()
+	apConfig, _ := s.apService.GetApConfig()
 
 	actor := vocab.PersonNew(vocab.IRI(siteConfig.FullUrl + "/activitypub/actor"))
 	actor.PreferredUsername = vocab.NaturalLanguageValues{{Value: vocab.Content(apConfig.PreferredUsername)}}
@@ -110,10 +105,8 @@ func (s *ActivityPubServer) HandleActor(ctx *fiber.Ctx) error {
 }
 
 func (s *ActivityPubServer) HandleOutbox(ctx *fiber.Ctx) error {
-	siteConfig := model.SiteConfig{}
-	apConfig := app.ActivityPubConfig{}
-	s.configRepo.Get(config.ACT_PUB_CONF_NAME, &apConfig)
-	s.configRepo.Get(config.SITE_CONFIG, &siteConfig)
+	siteConfig, _ := s.siteConfigService.GetSiteConfig()
+	// apConfig, _ := s.apService.GetApConfig()
 
 	entries, err := s.entryService.FindAllByType(nil, true, false)
 	if err != nil {
@@ -165,10 +158,8 @@ func (s *ActivityPubServer) processUndo(act *vocab.Activity) error {
 }
 
 func (s *ActivityPubServer) HandleInbox(ctx *fiber.Ctx) error {
-	siteConfig := model.SiteConfig{}
-	apConfig := app.ActivityPubConfig{}
-	s.configRepo.Get(config.ACT_PUB_CONF_NAME, &apConfig)
-	s.configRepo.Get(config.SITE_CONFIG, &siteConfig)
+	// siteConfig, _ := s.siteConfigService.GetSiteConfig()
+	// apConfig, _ := s.apService.GetApConfig()
 
 	body := ctx.Request().Body()
 	data, err := vocab.UnmarshalJSON(body)
@@ -199,10 +190,8 @@ func (s *ActivityPubServer) HandleInbox(ctx *fiber.Ctx) error {
 }
 
 func (s *ActivityPubServer) HandleFollowers(ctx *fiber.Ctx) error {
-	siteConfig := model.SiteConfig{}
-	apConfig := app.ActivityPubConfig{}
-	s.configRepo.Get(config.ACT_PUB_CONF_NAME, &apConfig)
-	s.configRepo.Get(config.SITE_CONFIG, &siteConfig)
+	siteConfig, _ := s.siteConfigService.GetSiteConfig()
+	// apConfig, _ := s.apService.GetApConfig()
 
 	fs, err := s.apService.AllFollowers()
 	if err != nil {

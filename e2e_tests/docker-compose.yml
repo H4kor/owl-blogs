@@ -1,0 +1,24 @@
+services:
+  web:
+    build:
+      context: ../
+      dockerfile: Dockerfile.test
+    volumes:
+      - ../app:/go/owl/app
+      - ../assets:/go/owl/assets
+      - ../cmd:/go/owl/cmd
+      - ../config:/go/owl/config
+      - ../domain:/go/owl/domain
+      - ../entry_types:/go/owl/entry_types
+      - ../importer:/go/owl/importer
+      - ../infra:/go/owl/infra
+      - ../interactions:/go/owl/interactions
+      - ../plugings:/go/owl/plugings
+      - ../render:/go/owl/render
+      - ../web:/go/owl/web
+    ports:
+      - "3000:3000"
+  mock_masto:
+    build: mock_masto
+    ports:
+      - 8000:8000

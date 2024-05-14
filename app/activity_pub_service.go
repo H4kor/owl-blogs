@@ -1,6 +1,7 @@
 package app
 
 import (
+	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
@@ -12,6 +13,7 @@ import (
 	"owl-blogs/config"
 	"owl-blogs/domain/model"
 	"owl-blogs/render"
+	"reflect"
 	"time"
 
 	vocab "github.com/go-ap/activitypub"
@@ -54,6 +56,46 @@ func NewActivityPubService(followersRepo repository.FollowerRepository, configRe
 		followersRepo: followersRepo,
 		configRepo:    configRepo,
 	}
+}
+
+func (svc *ActivityPubService) defaultConfig() ActivityPubConfig {
+	privKey, _ := rsa.GenerateKey(rand.Reader, 2048)
+	pubKey := privKey.Public().(*rsa.PublicKey)
+
+	pubKeyPem := pem.EncodeToMemory(
+		&pem.Block{
+			Type:  "RSA PUBLIC KEY",
+			Bytes: x509.MarshalPKCS1PublicKey(pubKey),
+		},
+	)
+
+	privKeyPrm := pem.EncodeToMemory(
+		&pem.Block{
+			Type:  "RSA PRIVATE KEY",
+			Bytes: x509.MarshalPKCS1PrivateKey(privKey),
+		},
+	)
+
+	return ActivityPubConfig{
+		PreferredUsername: "blog",
+		PublicKeyPem:      string(pubKeyPem),
+		PrivateKeyPem:     string(privKeyPrm),
+	}
+}
+
+func (svc *ActivityPubService) GetApConfig() (ActivityPubConfig, error) {
+	apConfig := ActivityPubConfig{}
+	err := svc.configRepo.Get(config.ACT_PUB_CONF_NAME, &apConfig)
+	if err != nil {
+		println("ERROR IN ACTIVITY PUB CONFIG")
+		return ActivityPubConfig{}, err
+	}
+	if reflect.ValueOf(apConfig).IsZero() {
+		cfg := svc.defaultConfig()
+		svc.configRepo.Update(config.ACT_PUB_CONF_NAME, cfg)
+		return cfg, nil
+	}
+	return apConfig, nil
 }
 
 func (s *ActivityPubService) AddFollower(follower string) error {

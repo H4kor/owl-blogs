@@ -135,7 +135,7 @@ func NewWebApp(
 	fiberApp.Get("/sitemap.xml", NewSiteMapHandler(entryService, siteConfigService).Handle)
 
 	// ActivityPub
-	activityPubServer := NewActivityPubServer(configRepo, entryService, apService)
+	activityPubServer := NewActivityPubServer(siteConfigService, entryService, apService)
 	configRegister.Register(config.ACT_PUB_CONF_NAME, &app.ActivityPubConfig{})
 	fiberApp.Get("/.well-known/webfinger", activityPubServer.HandleWebfinger)
 	fiberApp.Route("/activitypub", activityPubServer.Router)
