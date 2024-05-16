@@ -149,7 +149,7 @@ func (s *ActivityPubServer) processFollow(r *http.Request, act *vocab.Activity) 
 		return err
 	}
 
-	// go acpub.Accept(gameName, act)
+	go s.apService.Accept(act)
 
 	return nil
 }

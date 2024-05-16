@@ -1,7 +1,13 @@
+from contextlib import contextmanager
 from datetime import datetime, timezone
 import json
+from time import sleep
 from urllib.parse import urlparse
-
+import requests, base64, hashlib
+from urllib.parse import urlparse
+from cryptography.hazmat.primitives.serialization import load_pem_private_key
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import padding
 
 ACCT_NAME = "acct:blog@localhost:3000"
 
@@ -36,49 +42,23 @@ K98rXSX3VvY4w48AznvPMKVLqesFjcvwnBdvk/NqXod20CMSpOEVj6W/nGoTBQt2
 
 
 def ensure_follow(client, inbox_url, actor_url):
-    resp = client.post(
+    req = sign(
+        "POST",
         inbox_url,
-        json={
+        {
             "@context": "https://www.w3.org/ns/activitystreams",
-            "id": "https://mock_masto/d0b5768b-a15b-4ed6-bc84-84c7e2b57588",
+            "id": "http://mock_masto:8000/d0b5768b-a15b-4ed6-bc84-84c7e2b57588",
             "type": "Follow",
             "actor": "http://mock_masto:8000/users/h4kor",
             "object": actor_url,
         },
-        headers={"Content-Type": "application/activity+json"},
     )
+    resp = requests.Session().send(req)
+
     assert resp.status_code == 200
 
 
-def get_gmt_now() -> str:
-    return datetime.now(datetime.UTC).strftime("%a, %d %b %Y %H:%M:%S GMT")
-
-
-from http_message_signatures import (
-    HTTPMessageSigner,
-    HTTPMessageVerifier,
-    HTTPSignatureKeyResolver,
-    algorithms,
-)
-import requests, base64, hashlib, http_sfv
-
-
-class MyHTTPSignatureKeyResolver(HTTPSignatureKeyResolver):
-    keys = {"my-key": b"top-secret-key"}
-
-    def resolve_public_key(self, key_id: str):
-        return self.keys[key_id]
-
-    def resolve_private_key(self, key_id: str):
-        return priv_key
-        # return PRIV_KEY_PEM
-
-
 def sign(method, url, data):
-    from urllib.parse import urlparse
-    from cryptography.hazmat.primitives.serialization import load_pem_private_key
-    from cryptography.hazmat.primitives import hashes
-    from cryptography.hazmat.primitives.asymmetric import padding
 
     priv_key = load_pem_private_key(PRIV_KEY_PEM.encode(), None)
     body = json.dumps(data).encode()
@@ -103,6 +83,20 @@ date: {date}""".encode()
     request.headers["Host"] = host
     request.headers["Date"] = date
     request.headers["Signature"] = (
-        f'keyId="http://mock_masto/users/h4kor#main-key",headers="(request-target) host date",signature="{sig_str}"'
+        f'keyId="http://mock_masto:8000/users/h4kor#main-key",headers="(request-target) host date",signature="{sig_str}"'
     )
     return request
+
+
+@contextmanager
+def msg_inc(n):
+    resp = requests.get("http://localhost:8000/msgs")
+    data = resp.json()
+    msgs = len(data)
+    yield
+    sleep(0.2)
+    resp = requests.get("http://localhost:8000/msgs")
+    data = resp.json()
+    assert msgs + n == len(
+        data
+    ), f"prev: {msgs}, now: {len(data)}, expected: {msgs + n}"

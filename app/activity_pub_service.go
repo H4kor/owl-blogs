@@ -1,10 +1,12 @@
 package app
 
 import (
+	"bytes"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
+	"errors"
 	"io"
 	"log/slog"
 	"net/http"
@@ -17,6 +19,7 @@ import (
 	"time"
 
 	vocab "github.com/go-ap/activitypub"
+	"github.com/go-ap/jsonld"
 	"github.com/go-fed/httpsig"
 )
 
@@ -42,7 +45,10 @@ func (cfg *ActivityPubConfig) ParseFormData(data model.HttpFormData, binSvc mode
 
 func (cfg *ActivityPubConfig) PrivateKey() *rsa.PrivateKey {
 	block, _ := pem.Decode([]byte(cfg.PrivateKeyPem))
-	privKey, _ := x509.ParsePKCS1PrivateKey(block.Bytes)
+	privKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	if err != nil {
+		slog.Error("error x509.ParsePKCS1PrivateKey", "err", err)
+	}
 	return privKey
 }
 
@@ -131,7 +137,13 @@ func (s *ActivityPubService) sign(privateKey *rsa.PrivateKey, pubKeyId string, b
 	return err
 }
 
-func (s *ActivityPubService) GetActor(reqUrl string, fromGame string) (vocab.Actor, error) {
+func (s *ActivityPubService) GetActor(reqUrl string) (vocab.Actor, error) {
+
+	siteConfig := model.SiteConfig{}
+	apConfig := ActivityPubConfig{}
+	s.configRepo.Get(config.ACT_PUB_CONF_NAME, &apConfig)
+	s.configRepo.Get(config.SITE_CONFIG, &siteConfig)
+
 	c := http.Client{}
 
 	parsedUrl, err := url.Parse(reqUrl)
@@ -144,11 +156,6 @@ func (s *ActivityPubService) GetActor(reqUrl string, fromGame string) (vocab.Act
 	req.Header.Set("Accept", "application/ld+json")
 	req.Header.Set("Date", time.Now().Format(http.TimeFormat))
 	req.Header.Set("Host", parsedUrl.Host)
-
-	siteConfig := model.SiteConfig{}
-	apConfig := ActivityPubConfig{}
-	s.configRepo.Get(config.ACT_PUB_CONF_NAME, &apConfig)
-	s.configRepo.Get(config.SITE_CONFIG, &siteConfig)
 
 	err = s.sign(apConfig.PrivateKey(), siteConfig.FullUrl+"/activitypub/actor#main-key", nil, req)
 	if err != nil {
@@ -188,7 +195,9 @@ func (s *ActivityPubService) VerifySignature(r *http.Request, sender string) err
 	s.configRepo.Get(config.ACT_PUB_CONF_NAME, &apConfig)
 	s.configRepo.Get(config.SITE_CONFIG, &siteConfig)
 
-	actor, err := s.GetActor(sender, siteConfig.FullUrl+"/activitypub/actor")
+	slog.Info("verifying for", "sender", sender, "retriever", siteConfig.FullUrl+"/activitypub/actor")
+
+	actor, err := s.GetActor(sender)
 	// actor does not have a pub key -> don't verify
 	if actor.PublicKey.PublicKeyPem == "" {
 		return nil
@@ -212,4 +221,68 @@ func (s *ActivityPubService) VerifySignature(r *http.Request, sender string) err
 		return err
 	}
 	return verifier.Verify(pubKey, httpsig.RSA_SHA256)
+}
+
+func (s *ActivityPubService) Accept(act *vocab.Activity) error {
+	actor, err := s.GetActor(act.Actor.GetID().String())
+	if err != nil {
+		return err
+	}
+
+	accept := vocab.AcceptNew(vocab.IRI("TODO"), act)
+	data, err := jsonld.WithContext(
+		jsonld.IRI(vocab.ActivityBaseURI),
+	).Marshal(accept)
+
+	if err != nil {
+		slog.Error("marshalling error", "err", err)
+		return err
+	}
+
+	return s.sendObject(actor, data)
+}
+
+func (s *ActivityPubService) sendObject(to vocab.Actor, data []byte) error {
+	siteConfig := model.SiteConfig{}
+	apConfig := ActivityPubConfig{}
+	s.configRepo.Get(config.ACT_PUB_CONF_NAME, &apConfig)
+	s.configRepo.Get(config.SITE_CONFIG, &siteConfig)
+
+	if to.Inbox == nil {
+		slog.Error("actor has no inbox", "actor", to)
+		return errors.New("actor has no inbox")
+	}
+
+	actorUrl, err := url.Parse(to.Inbox.GetID().String())
+	if err != nil {
+		slog.Error("parse error", "err", err)
+		return err
+	}
+
+	c := http.Client{}
+	req, _ := http.NewRequest("POST", to.Inbox.GetID().String(), bytes.NewReader(data))
+	req.Header.Set("Accept", "application/ld+json")
+	req.Header.Set("Date", time.Now().Format(http.TimeFormat))
+	req.Header.Set("Host", actorUrl.Host)
+	err = s.sign(apConfig.PrivateKey(), siteConfig.FullUrl+"/activitypub/actor#main-key", data, req)
+	if err != nil {
+		slog.Error("Signing error", "err", err)
+		return err
+	}
+	resp, err := c.Do(req)
+	if err != nil {
+		slog.Error("Sending error", "url", req.URL, "err", err)
+		return err
+	}
+	slog.Info("Request", "host", resp.Request.Header)
+
+	if resp.StatusCode > 299 {
+		body, _ := io.ReadAll(resp.Body)
+		slog.Error("Error sending Note", "method", resp.Request.Method, "url", resp.Request.URL, "status", resp.Status, "body", string(body))
+		return err
+	}
+	body, _ := io.ReadAll(resp.Body)
+	slog.Info("Sent Body", "body", string(data))
+	slog.Info("Retrieved", "status", resp.Status, "body", string(body))
+	return nil
 }

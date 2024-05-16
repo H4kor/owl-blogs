@@ -52,23 +52,23 @@ def webfinger():
         {
             "subject": "acct:h4kor@mock_masto",
             "aliases": [
-                "http://mock_masto/@h4kor",
-                "http://mock_masto/users/h4kor",
+                "http://mock_masto:8000/@h4kor",
+                "http://mock_masto:8000/users/h4kor",
             ],
             "links": [
                 {
                     "rel": "http://webfinger.net/rel/profile-page",
                     "type": "text/html",
-                    "href": "http://mock_masto/@h4kor",
+                    "href": "http://mock_masto:8000/@h4kor",
                 },
                 {
                     "rel": "self",
                     "type": "application/activity+json",
-                    "href": "http://mock_masto/users/h4kor",
+                    "href": "http://mock_masto:8000/users/h4kor",
                 },
                 {
                     "rel": "http://ostatus.org/schema/1.0/subscribe",
-                    "template": "http://mock_masto/authorize_interaction?uri={uri}",
+                    "template": "http://mock_masto:8000/authorize_interaction?uri={uri}",
                 },
                 {
                     "rel": "http://webfinger.net/rel/avatar",
@@ -120,53 +120,53 @@ def actor():
                     "focalPoint": {"@container": "@list", "@id": "toot:focalPoint"},
                 },
             ],
-            "id": "http://mock_masto/users/h4kor",
+            "id": "http://mock_masto:8000/users/h4kor",
             "type": "Person",
-            "following": "http://mock_masto/users/h4kor/following",
-            "followers": "http://mock_masto/users/h4kor/followers",
-            "inbox": "http://mock_masto/users/h4kor/inbox",
-            "outbox": "http://mock_masto/users/h4kor/outbox",
-            "featured": "http://mock_masto/users/h4kor/collections/featured",
-            "featuredTags": "http://mock_masto/users/h4kor/collections/tags",
+            "following": "http://mock_masto:8000/users/h4kor/following",
+            "followers": "http://mock_masto:8000/users/h4kor/followers",
+            "inbox": "http://mock_masto:8000/users/h4kor/inbox",
+            "outbox": "http://mock_masto:8000/users/h4kor/outbox",
+            "featured": "http://mock_masto:8000/users/h4kor/collections/featured",
+            "featuredTags": "http://mock_masto:8000/users/h4kor/collections/tags",
             "preferredUsername": "h4kor",
             "name": "Niko",
-            "summary": '<p>Teaching computers to do things with arguable efficiency.</p><p>he/him</p><p><a href="http://mock_masto/tags/vegan" class="mention hashtag" rel="tag">#<span>vegan</span></a> <a href="http://mock_masto/tags/cooking" class="mention hashtag" rel="tag">#<span>cooking</span></a> <a href="http://mock_masto/tags/programming" class="mention hashtag" rel="tag">#<span>programming</span></a> <a href="http://mock_masto/tags/politics" class="mention hashtag" rel="tag">#<span>politics</span></a> <a href="http://mock_masto/tags/climate" class="mention hashtag" rel="tag">#<span>climate</span></a></p>',
-            "url": "http://mock_masto/@h4kor",
+            "summary": '<p>Teaching computers to do things with arguable efficiency.</p><p>he/him</p><p><a href="http://mock_masto:8000/tags/vegan" class="mention hashtag" rel="tag">#<span>vegan</span></a> <a href="http://mock_masto:8000/tags/cooking" class="mention hashtag" rel="tag">#<span>cooking</span></a> <a href="http://mock_masto:8000/tags/programming" class="mention hashtag" rel="tag">#<span>programming</span></a> <a href="http://mock_masto:8000/tags/politics" class="mention hashtag" rel="tag">#<span>politics</span></a> <a href="http://mock_masto:8000/tags/climate" class="mention hashtag" rel="tag">#<span>climate</span></a></p>',
+            "url": "http://mock_masto:8000/@h4kor",
             "manuallyApprovesFollowers": False,
             "discoverable": True,
             "indexable": False,
             "published": "2018-08-16T00:00:00Z",
             "memorial": False,
-            "devices": "http://mock_masto/users/h4kor/collections/devices",
+            "devices": "http://mock_masto:8000/users/h4kor/collections/devices",
             "publicKey": {
-                "id": "http://mock_masto/users/h4kor#main-key",
-                "owner": "http://mock_masto/users/h4kor",
+                "id": "http://mock_masto:8000/users/h4kor#main-key",
+                "owner": "http://mock_masto:8000/users/h4kor",
                 "publicKeyPem": PUB_KEY_PEM,
             },
             "tag": [
                 {
                     "type": "Hashtag",
-                    "href": "http://mock_masto/tags/politics",
+                    "href": "http://mock_masto:8000/tags/politics",
                     "name": "#politics",
                 },
                 {
                     "type": "Hashtag",
-                    "href": "http://mock_masto/tags/climate",
+                    "href": "http://mock_masto:8000/tags/climate",
                     "name": "#climate",
                 },
                 {
                     "type": "Hashtag",
-                    "href": "http://mock_masto/tags/vegan",
+                    "href": "http://mock_masto:8000/tags/vegan",
                     "name": "#vegan",
                 },
                 {
                     "type": "Hashtag",
-                    "href": "http://mock_masto/tags/programming",
+                    "href": "http://mock_masto:8000/tags/programming",
                     "name": "#programming",
                 },
                 {
                     "type": "Hashtag",
-                    "href": "http://mock_masto/tags/cooking",
+                    "href": "http://mock_masto:8000/tags/cooking",
                     "name": "#cooking",
                 },
             ],
@@ -188,7 +188,7 @@ def actor():
                     "value": '<a href="http://git.libove.org/h4kor/owl-blogs" target="_blank" rel="nofollow noopener noreferrer me" translate="no"><span class="invisible">http://</span><span class="">git.libove.org/h4kor/owl-blogs</span><span class="invisible"></span></a>',
                 },
             ],
-            "endpoints": {"sharedInbox": "http://mock_masto/inbox"},
+            "endpoints": {"sharedInbox": "http://mock_masto:8000/inbox"},
             "icon": {
                 "type": "Image",
                 "mediaType": "image/png",
@@ -198,11 +198,16 @@ def actor():
     )
 
 
-@app.route("/users/h4kor/inbox")
+@app.route("/users/h4kor/inbox", methods=["POST"])
 def inbox():
     if request.method == "POST":
-        INBOX.append(request.get_json())
+        INBOX.append(json.loads(request.get_data()))
     return ""
+
+
+@app.route("/msgs")
+def msgs():
+    return json.dumps(INBOX)
 
 
 if __name__ == "__main__":
