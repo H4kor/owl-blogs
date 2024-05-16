@@ -28,22 +28,22 @@ def actor_url(client):
 
 
 @pytest.fixture
-def actor(client):
+def actor(client, actor_url):
     resp = client.get(actor_url, headers={"Content-Type": "application/activity+json"})
     assert resp.status_code == 200
     return resp.json()
 
 
 @pytest.fixture
-def inbox(actor):
+def inbox_url(actor):
     return actor["inbox"]
 
 
 @pytest.fixture
-def outbox(actor):
+def outbox_url(actor):
     return actor["outbox"]
 
 
 @pytest.fixture
-def followers(actor):
+def followers_url(actor):
     return actor["followers"]

@@ -150,7 +150,7 @@ func (s *ActivityPubService) GetActor(reqUrl string, fromGame string) (vocab.Act
 	s.configRepo.Get(config.ACT_PUB_CONF_NAME, &apConfig)
 	s.configRepo.Get(config.SITE_CONFIG, &siteConfig)
 
-	err = s.sign(apConfig.PrivateKey(), siteConfig.FullUrl+"/games/"+fromGame+"#main-key", nil, req)
+	err = s.sign(apConfig.PrivateKey(), siteConfig.FullUrl+"/activitypub/actor#main-key", nil, req)
 	if err != nil {
 		slog.Error("Signing error", "err", err)
 		return vocab.Actor{}, err
@@ -158,6 +158,7 @@ func (s *ActivityPubService) GetActor(reqUrl string, fromGame string) (vocab.Act
 
 	resp, err := c.Do(req)
 	if err != nil {
+		slog.Error("failed to retrieve sender actor", "err", err, "url", reqUrl)
 		return vocab.Actor{}, err
 	}
 
@@ -194,17 +195,20 @@ func (s *ActivityPubService) VerifySignature(r *http.Request, sender string) err
 	}
 
 	if err != nil {
+		slog.Error("unable to retrieve actor for sig verification", "sender", sender)
 		return err
 	}
 	block, _ := pem.Decode([]byte(actor.PublicKey.PublicKeyPem))
 	pubKey, err := x509.ParsePKIXPublicKey(block.Bytes)
 	if err != nil {
+		slog.Error("unable to decode pub key pem", "pubKeyPem", actor.PublicKey.PublicKeyPem)
 		return err
 	}
 	slog.Info("retrieved pub key of sender", "actor", actor, "pubKey", pubKey)
 
 	verifier, err := httpsig.NewVerifier(r)
 	if err != nil {
+		slog.Error("invalid signature", "err", err)
 		return err
 	}
 	return verifier.Verify(pubKey, httpsig.RSA_SHA256)

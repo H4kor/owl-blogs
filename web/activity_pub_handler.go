@@ -75,7 +75,7 @@ func (s *ActivityPubServer) HandleWebfinger(ctx *fiber.Ctx) error {
 func (s *ActivityPubServer) Router(router fiber.Router) {
 	router.Get("/actor", s.HandleActor)
 	router.Get("/outbox", s.HandleOutbox)
-	router.Get("/inbox", s.HandleInbox)
+	router.Post("/inbox", s.HandleInbox)
 	router.Get("/followers", s.HandleFollowers)
 }
 
@@ -141,6 +141,7 @@ func (s *ActivityPubServer) processFollow(r *http.Request, act *vocab.Activity) 
 	follower := act.Actor.GetID().String()
 	err := s.apService.VerifySignature(r, follower)
 	if err != nil {
+		slog.Error("wrong signature", "err", err)
 		return err
 	}
 	err = s.apService.AddFollower(follower)
@@ -153,7 +154,20 @@ func (s *ActivityPubServer) processFollow(r *http.Request, act *vocab.Activity) 
 	return nil
 }
 
-func (s *ActivityPubServer) processUndo(act *vocab.Activity) error {
+func (s *ActivityPubServer) processUndo(r *http.Request, act *vocab.Activity) error {
+	follower := act.Actor.GetID().String()
+	err := s.apService.VerifySignature(r, follower)
+	if err != nil {
+		slog.Error("wrong signature", "err", err)
+		return err
+	}
+	err = s.apService.RemoveFollower(follower)
+	if err != nil {
+		return err
+	}
+
+	// go acpub.Accept(gameName, act)
+
 	return nil
 }
 
@@ -164,6 +178,7 @@ func (s *ActivityPubServer) HandleInbox(ctx *fiber.Ctx) error {
 	body := ctx.Request().Body()
 	data, err := vocab.UnmarshalJSON(body)
 	if err != nil {
+		slog.Error("failed to parse request body", "body", body, "err", err)
 		return err
 	}
 
@@ -181,7 +196,7 @@ func (s *ActivityPubServer) HandleInbox(ctx *fiber.Ctx) error {
 
 		if act.Type == vocab.UndoType {
 			slog.Info("processing undo")
-			return s.processUndo(act)
+			return s.processUndo(r, act)
 		}
 		return errors.New("only follow and undo actions supported")
 	})

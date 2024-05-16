@@ -82,6 +82,7 @@ def webfinger():
 
 @app.route("/users/h4kor")
 def actor():
+    print("request to actor")
     return json.dumps(
         {
             "@context": [
