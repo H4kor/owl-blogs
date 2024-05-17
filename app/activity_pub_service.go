@@ -15,6 +15,7 @@ import (
 	"owl-blogs/config"
 	"owl-blogs/domain/model"
 	entrytypes "owl-blogs/entry_types"
+	"owl-blogs/interactions"
 	"owl-blogs/render"
 	"reflect"
 	"time"
@@ -54,21 +55,27 @@ func (cfg *ActivityPubConfig) PrivateKey() *rsa.PrivateKey {
 }
 
 type ActivityPubService struct {
-	followersRepo     repository.FollowerRepository
-	configRepo        repository.ConfigRepository
-	siteConfigServcie *SiteConfigService
+	followersRepo         repository.FollowerRepository
+	configRepo            repository.ConfigRepository
+	interactionRepository repository.InteractionRepository
+	entryService          *EntryService
+	siteConfigServcie     *SiteConfigService
 }
 
 func NewActivityPubService(
 	followersRepo repository.FollowerRepository,
 	configRepo repository.ConfigRepository,
+	interactionRepository repository.InteractionRepository,
+	entryService *EntryService,
 	siteConfigServcie *SiteConfigService,
 	bus *EventBus,
 ) *ActivityPubService {
 	service := &ActivityPubService{
-		followersRepo:     followersRepo,
-		configRepo:        configRepo,
-		siteConfigServcie: siteConfigServcie,
+		followersRepo:         followersRepo,
+		configRepo:            configRepo,
+		interactionRepository: interactionRepository,
+		entryService:          entryService,
+		siteConfigServcie:     siteConfigServcie,
 	}
 
 	bus.Subscribe(service)
@@ -275,6 +282,51 @@ func (s *ActivityPubService) Accept(act *vocab.Activity) error {
 	return s.sendObject(actor, data)
 }
 
+func (s *ActivityPubService) AddLike(sender string, liked string, likeId string) error {
+	entry, err := s.entryService.FindByUrl(liked)
+	if err != nil {
+		return err
+	}
+
+	actor, err := s.GetActor(sender)
+	if err != nil {
+		return err
+	}
+
+	var like *interactions.Like
+	interaction, err := s.interactionRepository.FindById(likeId)
+	if err != nil {
+		interaction = &interactions.Like{}
+	}
+	like, ok := interaction.(*interactions.Like)
+	if !ok {
+		return errors.New("existing interaction with same id is not a like")
+	}
+	existing := like.ID() != ""
+
+	likeMeta := interactions.LikeMetaData{
+		SenderUrl:  sender,
+		SenderName: actor.Name.String(),
+	}
+	like.SetID(likeId)
+	like.SetMetaData(&likeMeta)
+	like.SetEntryID(entry.ID())
+	like.SetCreatedAt(time.Now())
+	if !existing {
+		return s.interactionRepository.Create(like)
+	} else {
+		return s.interactionRepository.Update(like)
+	}
+}
+
+func (s *ActivityPubService) RemoveLike(id string) error {
+	interaction, err := s.interactionRepository.FindById(id)
+	if err != nil {
+		interaction = &interactions.Like{}
+	}
+	return s.interactionRepository.Delete(interaction)
+}
+
 func (s *ActivityPubService) sendObject(to vocab.Actor, data []byte) error {
 	siteConfig := model.SiteConfig{}
 	apConfig := ActivityPubConfig{}
@@ -325,10 +377,11 @@ func (s *ActivityPubService) sendObject(to vocab.Actor, data []byte) error {
  */
 
 func (svc *ActivityPubService) NotifyEntryCreated(entry model.Entry) {
+	slog.Info("Processing Entry Create for ActivityPub")
 	// limit to notes for now
 	noteEntry, ok := entry.(*entrytypes.Note)
 	if !ok {
-		slog.Info("not an image")
+		slog.Info("not a note")
 		return
 	}
 

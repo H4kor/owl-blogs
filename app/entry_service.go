@@ -1,6 +1,7 @@
 package app
 
 import (
+	"errors"
 	"fmt"
 	"owl-blogs/app/repository"
 	"owl-blogs/domain/model"
@@ -9,17 +10,20 @@ import (
 )
 
 type EntryService struct {
-	EntryRepository repository.EntryRepository
-	Bus             *EventBus
+	EntryRepository   repository.EntryRepository
+	siteConfigServcie *SiteConfigService
+	Bus               *EventBus
 }
 
 func NewEntryService(
 	entryRepository repository.EntryRepository,
+	siteConfigServcie *SiteConfigService,
 	bus *EventBus,
 ) *EntryService {
 	return &EntryService{
-		EntryRepository: entryRepository,
-		Bus:             bus,
+		EntryRepository:   entryRepository,
+		siteConfigServcie: siteConfigServcie,
+		Bus:               bus,
 	}
 }
 
@@ -68,6 +72,19 @@ func (s *EntryService) Delete(entry model.Entry) error {
 
 func (s *EntryService) FindById(id string) (model.Entry, error) {
 	return s.EntryRepository.FindById(id)
+}
+
+func (s *EntryService) FindByUrl(url string) (model.Entry, error) {
+	cfg, _ := s.siteConfigServcie.GetSiteConfig()
+	if !strings.HasPrefix(url, cfg.FullUrl) {
+		return nil, errors.New("url does not belong to blog")
+	}
+	if strings.HasSuffix(url, "/") {
+		url = url[:len(url)-1]
+	}
+	parts := strings.Split(url, "/")
+	id := parts[len(parts)-1]
+	return s.FindById(id)
 }
 
 func (s *EntryService) filterEntries(entries []model.Entry, published bool, drafts bool) []model.Entry {

@@ -41,6 +41,7 @@ func App(db infra.Database) *web.WebApp {
 
 	interactionRegister := app.NewInteractionTypeRegistry()
 	interactionRegister.Register(&interactions.Webmention{})
+	interactionRegister.Register(&interactions.Like{})
 
 	configRegister := app.NewConfigRegister()
 
@@ -60,13 +61,17 @@ func App(db infra.Database) *web.WebApp {
 
 	// Create Services
 	siteConfigService := app.NewSiteConfigService(configRepo)
-	entryService := app.NewEntryService(entryRepo, eventBus)
+	entryService := app.NewEntryService(entryRepo, siteConfigService, eventBus)
 	binaryService := app.NewBinaryFileService(binRepo)
 	authorService := app.NewAuthorService(authorRepo, siteConfigService)
 	webmentionService := app.NewWebmentionService(
 		siteConfigService, interactionRepo, entryRepo, httpClient, eventBus,
 	)
-	apService := app.NewActivityPubService(followersRepo, configRepo, siteConfigService, eventBus)
+	apService := app.NewActivityPubService(
+		followersRepo, configRepo, interactionRepo,
+		entryService, siteConfigService,
+		eventBus,
+	)
 
 	// setup render functions
 	render.SiteConfigService = siteConfigService

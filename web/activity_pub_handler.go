@@ -160,26 +160,51 @@ func (s *ActivityPubServer) processFollow(r *http.Request, act *vocab.Activity) 
 }
 
 func (s *ActivityPubServer) processUndo(r *http.Request, act *vocab.Activity) error {
-	follower := act.Actor.GetID().String()
-	err := s.apService.VerifySignature(r, follower)
+	sender := act.Actor.GetID().String()
+	err := s.apService.VerifySignature(r, sender)
+
+	return vocab.OnObject(act.Object, func(o *vocab.Object) error {
+		if o.Type == vocab.FollowType {
+			if err != nil {
+				slog.Error("wrong signature", "err", err)
+				return err
+			}
+			err = s.apService.RemoveFollower(sender)
+			if err != nil {
+				return err
+			}
+			go s.apService.Accept(act)
+			return nil
+		}
+		if o.Type == vocab.LikeType {
+			return s.apService.RemoveLike(o.ID.String())
+		}
+		slog.Warn("unsupporeted object type for undo", "object", o)
+		return errors.New("unsupporeted object type")
+	})
+
+}
+
+func (s *ActivityPubServer) processLike(r *http.Request, act *vocab.Activity) error {
+	sender := act.Actor.GetID().String()
+	liked := act.Object.GetID().String()
+	err := s.apService.VerifySignature(r, sender)
 	if err != nil {
 		slog.Error("wrong signature", "err", err)
 		return err
 	}
-	err = s.apService.RemoveFollower(follower)
+
+	err = s.apService.AddLike(sender, liked, act.ID.String())
 	if err != nil {
+		slog.Error("error saving like", "err", err)
 		return err
 	}
 
 	go s.apService.Accept(act)
-
 	return nil
 }
 
 func (s *ActivityPubServer) HandleInbox(ctx *fiber.Ctx) error {
-	// siteConfig, _ := s.siteConfigService.GetSiteConfig()
-	// apConfig, _ := s.apService.GetApConfig()
-
 	body := ctx.Request().Body()
 	data, err := vocab.UnmarshalJSON(body)
 	if err != nil {
@@ -198,11 +223,15 @@ func (s *ActivityPubServer) HandleInbox(ctx *fiber.Ctx) error {
 		if act.Type == vocab.FollowType {
 			return s.processFollow(r, act)
 		}
-
 		if act.Type == vocab.UndoType {
-			slog.Info("processing undo")
 			return s.processUndo(r, act)
 		}
+		if act.Type == vocab.LikeType {
+			return s.processLike(r, act)
+		}
+
+		slog.Warn("Unsupported action", "body", body)
+
 		return errors.New("only follow and undo actions supported")
 	})
 	return err
