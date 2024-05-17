@@ -171,7 +171,7 @@ func (s *ActivityPubServer) processUndo(r *http.Request, act *vocab.Activity) er
 		return err
 	}
 
-	// go acpub.Accept(gameName, act)
+	go s.apService.Accept(act)
 
 	return nil
 }

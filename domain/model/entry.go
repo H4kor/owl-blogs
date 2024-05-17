@@ -1,6 +1,7 @@
 package model
 
 import (
+	"net/url"
 	"time"
 )
 
@@ -21,6 +22,8 @@ type Entry interface {
 	SetPublishedAt(publishedAt *time.Time)
 	SetMetaData(metaData EntryMetaData)
 	SetAuthorId(authorId string)
+
+	FullUrl(cfg SiteConfig) string
 }
 
 type EntryMetaData interface {
@@ -59,4 +62,9 @@ func (e *EntryBase) AuthorId() string {
 
 func (e *EntryBase) SetAuthorId(authorId string) {
 	e.authorId = authorId
+}
+
+func (e *EntryBase) FullUrl(cfg SiteConfig) string {
+	u, _ := url.JoinPath(cfg.FullUrl, "/posts/", e.ID(), "/")
+	return u
 }

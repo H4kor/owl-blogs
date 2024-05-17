@@ -14,6 +14,7 @@ import (
 	"owl-blogs/app/repository"
 	"owl-blogs/config"
 	"owl-blogs/domain/model"
+	entrytypes "owl-blogs/entry_types"
 	"owl-blogs/render"
 	"reflect"
 	"time"
@@ -62,12 +63,17 @@ func NewActivityPubService(
 	followersRepo repository.FollowerRepository,
 	configRepo repository.ConfigRepository,
 	siteConfigServcie *SiteConfigService,
+	bus *EventBus,
 ) *ActivityPubService {
-	return &ActivityPubService{
+	service := &ActivityPubService{
 		followersRepo:     followersRepo,
 		configRepo:        configRepo,
 		siteConfigServcie: siteConfigServcie,
 	}
+
+	bus.Subscribe(service)
+
+	return service
 }
 
 func (svc *ActivityPubService) defaultConfig() ActivityPubConfig {
@@ -312,4 +318,70 @@ func (s *ActivityPubService) sendObject(to vocab.Actor, data []byte) error {
 	slog.Info("Sent Body", "body", string(data))
 	slog.Info("Retrieved", "status", resp.Status, "body", string(body))
 	return nil
+}
+
+/*
+ * Notifiers
+ */
+
+func (svc *ActivityPubService) NotifyEntryCreated(entry model.Entry) {
+	// limit to notes for now
+	noteEntry, ok := entry.(*entrytypes.Note)
+	if !ok {
+		slog.Info("not an image")
+		return
+	}
+
+	siteCfg, _ := svc.siteConfigServcie.GetSiteConfig()
+	followers, err := svc.AllFollowers()
+	if err != nil {
+		slog.Error("Cannot retrieve followers")
+	}
+
+	note := vocab.Note{
+		ID:   vocab.ID(noteEntry.FullUrl(siteCfg)),
+		Type: "Note",
+		To: vocab.ItemCollection{
+			vocab.PublicNS,
+			vocab.IRI(svc.FollowersUrl()),
+		},
+		Published:    *noteEntry.PublishedAt(),
+		AttributedTo: vocab.ID(svc.ActorUrl()),
+		Content: vocab.NaturalLanguageValues{
+			{Value: vocab.Content(noteEntry.Content())},
+		},
+	}
+
+	create := vocab.CreateNew(vocab.IRI(noteEntry.FullUrl(siteCfg)), note)
+	create.Actor = note.AttributedTo
+	create.To = note.To
+	create.Published = note.Published
+	data, err := jsonld.WithContext(
+		jsonld.IRI(vocab.ActivityBaseURI),
+		jsonld.Context{
+			jsonld.ContextElement{
+				Term: "toot",
+				IRI:  jsonld.IRI("http://joinmastodon.org/ns#"),
+			},
+		},
+	).Marshal(create)
+	if err != nil {
+		slog.Error("marshalling error", "err", err)
+	}
+
+	for _, follower := range followers {
+		actor, err := svc.GetActor(follower)
+		if err != nil {
+			slog.Error("Unable to retrieve follower actor", "err", err)
+		}
+		svc.sendObject(actor, data)
+	}
+}
+
+func (svc *ActivityPubService) NotifyEntryUpdated(entry model.Entry) {
+
+}
+
+func (svc *ActivityPubService) NotifyEntryDeleted(entry model.Entry) {
+
 }
