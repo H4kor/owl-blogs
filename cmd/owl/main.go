@@ -66,7 +66,7 @@ func App(db infra.Database) *web.WebApp {
 	webmentionService := app.NewWebmentionService(
 		siteConfigService, interactionRepo, entryRepo, httpClient, eventBus,
 	)
-	apService := app.NewActivityPubService(followersRepo, configRepo)
+	apService := app.NewActivityPubService(followersRepo, configRepo, siteConfigService)
 
 	// setup render functions
 	render.SiteConfigService = siteConfigService

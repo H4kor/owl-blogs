@@ -53,14 +53,20 @@ func (cfg *ActivityPubConfig) PrivateKey() *rsa.PrivateKey {
 }
 
 type ActivityPubService struct {
-	followersRepo repository.FollowerRepository
-	configRepo    repository.ConfigRepository
+	followersRepo     repository.FollowerRepository
+	configRepo        repository.ConfigRepository
+	siteConfigServcie *SiteConfigService
 }
 
-func NewActivityPubService(followersRepo repository.FollowerRepository, configRepo repository.ConfigRepository) *ActivityPubService {
+func NewActivityPubService(
+	followersRepo repository.FollowerRepository,
+	configRepo repository.ConfigRepository,
+	siteConfigServcie *SiteConfigService,
+) *ActivityPubService {
 	return &ActivityPubService{
-		followersRepo: followersRepo,
-		configRepo:    configRepo,
+		followersRepo:     followersRepo,
+		configRepo:        configRepo,
+		siteConfigServcie: siteConfigServcie,
 	}
 }
 
@@ -102,6 +108,27 @@ func (svc *ActivityPubService) GetApConfig() (ActivityPubConfig, error) {
 		return cfg, nil
 	}
 	return apConfig, nil
+}
+
+func (svc *ActivityPubService) ActorUrl() string {
+	cfg, _ := svc.siteConfigServcie.GetSiteConfig()
+	return cfg.FullUrl
+}
+func (svc *ActivityPubService) MainKeyUri() string {
+	cfg, _ := svc.siteConfigServcie.GetSiteConfig()
+	return cfg.FullUrl + "#main-key"
+}
+func (svc *ActivityPubService) InboxUrl() string {
+	cfg, _ := svc.siteConfigServcie.GetSiteConfig()
+	return cfg.FullUrl + "/activitypub/inbox"
+}
+func (svc *ActivityPubService) OutboxUrl() string {
+	cfg, _ := svc.siteConfigServcie.GetSiteConfig()
+	return cfg.FullUrl + "/activitypub/outbox"
+}
+func (svc *ActivityPubService) FollowersUrl() string {
+	cfg, _ := svc.siteConfigServcie.GetSiteConfig()
+	return cfg.FullUrl + "/activitypub/followers"
 }
 
 func (s *ActivityPubService) AddFollower(follower string) error {
@@ -157,7 +184,7 @@ func (s *ActivityPubService) GetActor(reqUrl string) (vocab.Actor, error) {
 	req.Header.Set("Date", time.Now().Format(http.TimeFormat))
 	req.Header.Set("Host", parsedUrl.Host)
 
-	err = s.sign(apConfig.PrivateKey(), siteConfig.FullUrl+"/activitypub/actor#main-key", nil, req)
+	err = s.sign(apConfig.PrivateKey(), s.MainKeyUri(), nil, req)
 	if err != nil {
 		slog.Error("Signing error", "err", err)
 		return vocab.Actor{}, err
@@ -195,7 +222,7 @@ func (s *ActivityPubService) VerifySignature(r *http.Request, sender string) err
 	s.configRepo.Get(config.ACT_PUB_CONF_NAME, &apConfig)
 	s.configRepo.Get(config.SITE_CONFIG, &siteConfig)
 
-	slog.Info("verifying for", "sender", sender, "retriever", siteConfig.FullUrl+"/activitypub/actor")
+	slog.Info("verifying for", "sender", sender, "retriever", s.ActorUrl())
 
 	actor, err := s.GetActor(sender)
 	// actor does not have a pub key -> don't verify
@@ -264,7 +291,7 @@ func (s *ActivityPubService) sendObject(to vocab.Actor, data []byte) error {
 	req.Header.Set("Accept", "application/ld+json")
 	req.Header.Set("Date", time.Now().Format(http.TimeFormat))
 	req.Header.Set("Host", actorUrl.Host)
-	err = s.sign(apConfig.PrivateKey(), siteConfig.FullUrl+"/activitypub/actor#main-key", data, req)
+	err = s.sign(apConfig.PrivateKey(), s.MainKeyUri(), data, req)
 	if err != nil {
 		slog.Error("Signing error", "err", err)
 		return err

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"owl-blogs/app"
+	"strings"
 
 	vocab "github.com/go-ap/activitypub"
 	"github.com/go-ap/jsonld"
@@ -63,7 +64,7 @@ func (s *ActivityPubServer) HandleWebfinger(ctx *fiber.Ctx) error {
 			{
 				Rel:  "self",
 				Type: "application/activity+json",
-				Href: siteConfig.FullUrl + "/activitypub/actor",
+				Href: s.apService.ActorUrl(),
 			},
 		},
 	}
@@ -73,24 +74,28 @@ func (s *ActivityPubServer) HandleWebfinger(ctx *fiber.Ctx) error {
 }
 
 func (s *ActivityPubServer) Router(router fiber.Router) {
-	router.Get("/actor", s.HandleActor)
+	// router.Get("/actor", s.HandleActor)
 	router.Get("/outbox", s.HandleOutbox)
 	router.Post("/inbox", s.HandleInbox)
 	router.Get("/followers", s.HandleFollowers)
 }
 
 func (s *ActivityPubServer) HandleActor(ctx *fiber.Ctx) error {
-	siteConfig, _ := s.siteConfigService.GetSiteConfig()
+	accepts := strings.Contains(string(ctx.Request().Header.Peek("Accept")), "application/activity+json")
+	req_content := strings.Contains(string(ctx.Request().Header.Peek("Content-Type")), "application/activity+json")
+	if !accepts && !req_content {
+		return ctx.Next()
+	}
 	apConfig, _ := s.apService.GetApConfig()
 
-	actor := vocab.PersonNew(vocab.IRI(siteConfig.FullUrl + "/activitypub/actor"))
+	actor := vocab.PersonNew(vocab.IRI(s.apService.ActorUrl()))
 	actor.PreferredUsername = vocab.NaturalLanguageValues{{Value: vocab.Content(apConfig.PreferredUsername)}}
-	actor.Inbox = vocab.IRI(siteConfig.FullUrl + "/activitypub/inbox")
-	actor.Outbox = vocab.IRI(siteConfig.FullUrl + "/activitypub/outbox")
-	actor.Followers = vocab.IRI(siteConfig.FullUrl + "/activitypub/followers")
+	actor.Inbox = vocab.IRI(s.apService.InboxUrl())
+	actor.Outbox = vocab.IRI(s.apService.OutboxUrl())
+	actor.Followers = vocab.IRI(s.apService.FollowersUrl())
 	actor.PublicKey = vocab.PublicKey{
-		ID:           vocab.ID(siteConfig.FullUrl + "/activitypub/actor#main-key"),
-		Owner:        vocab.IRI(siteConfig.FullUrl + "/activitypub/actor"),
+		ID:           vocab.IRI(s.apService.MainKeyUri()),
+		Owner:        vocab.IRI(s.apService.ActorUrl()),
 		PublicKeyPem: apConfig.PublicKeyPem,
 	}
 	data, err := jsonld.WithContext(
@@ -125,7 +130,7 @@ func (s *ActivityPubServer) HandleOutbox(ctx *fiber.Ctx) error {
 		})
 	}
 
-	outbox := vocab.OrderedCollectionNew(vocab.IRI(siteConfig.FullUrl + "/activitypub/outbox"))
+	outbox := vocab.OrderedCollectionNew(vocab.IRI(s.apService.OutboxUrl()))
 	outbox.TotalItems = uint(len(items))
 	outbox.OrderedItems = items
 
@@ -205,9 +210,6 @@ func (s *ActivityPubServer) HandleInbox(ctx *fiber.Ctx) error {
 }
 
 func (s *ActivityPubServer) HandleFollowers(ctx *fiber.Ctx) error {
-	siteConfig, _ := s.siteConfigService.GetSiteConfig()
-	// apConfig, _ := s.apService.GetApConfig()
-
 	fs, err := s.apService.AllFollowers()
 	if err != nil {
 		return err
@@ -218,7 +220,7 @@ func (s *ActivityPubServer) HandleFollowers(ctx *fiber.Ctx) error {
 		followers.Append(vocab.IRI(f))
 	}
 	followers.TotalItems = uint(len(fs))
-	followers.ID = vocab.IRI(siteConfig.FullUrl + "/activitypub/followers")
+	followers.ID = vocab.IRI(s.apService.FollowersUrl())
 	data, err := jsonld.WithContext(
 		jsonld.IRI(vocab.ActivityBaseURI),
 	).Marshal(followers)

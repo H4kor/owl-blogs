@@ -109,12 +109,15 @@ func NewWebApp(
 	siteConfig.Post("/menus/create/", siteConfigMenusHandler.HandleCreate)
 	siteConfig.Post("/menus/delete/", siteConfigMenusHandler.HandleDelete)
 
+	activityPubServer := NewActivityPubServer(siteConfigService, entryService, apService)
+	configRegister.Register(config.ACT_PUB_CONF_NAME, &app.ActivityPubConfig{})
+
 	fiberApp.Use("/static", filesystem.New(filesystem.Config{
 		Root:       http.FS(embedDirStatic),
 		PathPrefix: "static",
 		Browse:     false,
 	}))
-	fiberApp.Get("/", indexHandler.Handle)
+	fiberApp.Get("/", activityPubServer.HandleActor, indexHandler.Handle)
 	fiberApp.Get("/lists/:list/", listHandler.Handle)
 	// Media
 	fiberApp.Get("/media/+", mediaHandler.Handle)
@@ -135,8 +138,6 @@ func NewWebApp(
 	fiberApp.Get("/sitemap.xml", NewSiteMapHandler(entryService, siteConfigService).Handle)
 
 	// ActivityPub
-	activityPubServer := NewActivityPubServer(siteConfigService, entryService, apService)
-	configRegister.Register(config.ACT_PUB_CONF_NAME, &app.ActivityPubConfig{})
 	fiberApp.Get("/.well-known/webfinger", activityPubServer.HandleWebfinger)
 	fiberApp.Route("/activitypub", activityPubServer.Router)
 
