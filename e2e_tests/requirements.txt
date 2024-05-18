@@ -1,11 +1,17 @@
 certifi==2024.2.2
+cffi==1.16.0
 charset-normalizer==3.3.2
+cryptography==42.0.7
 exceptiongroup==1.2.1
+http-message-signatures==0.5.0
+http_sfv==0.9.9
 idna==3.7
 iniconfig==2.0.0
 packaging==24.0
 pluggy==1.5.0
+pycparser==2.22
 pytest==8.2.0
 requests==2.31.0
 tomli==2.0.1
+typing_extensions==4.11.0
 urllib3==2.2.1
