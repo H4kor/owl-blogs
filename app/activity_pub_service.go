@@ -18,6 +18,9 @@ import (
 	"owl-blogs/interactions"
 	"owl-blogs/render"
 	"reflect"
+	"regexp"
+	"strconv"
+	"strings"
 	"time"
 
 	vocab "github.com/go-ap/activitypub"
@@ -142,6 +145,15 @@ func (svc *ActivityPubService) OutboxUrl() string {
 func (svc *ActivityPubService) FollowersUrl() string {
 	cfg, _ := svc.siteConfigServcie.GetSiteConfig()
 	return cfg.FullUrl + "/activitypub/followers"
+}
+func (svc *ActivityPubService) AcccepId() string {
+	cfg, _ := svc.siteConfigServcie.GetSiteConfig()
+	return cfg.FullUrl + "#accept-" + strconv.FormatInt(time.Now().UnixNano(), 16)
+}
+
+func (svc *ActivityPubService) HashtagId(hashtag string) string {
+	cfg, _ := svc.siteConfigServcie.GetSiteConfig()
+	return cfg.FullUrl + "/tags/" + strings.ReplaceAll(hashtag, "#", "")
 }
 
 func (s *ActivityPubService) AddFollower(follower string) error {
@@ -269,7 +281,7 @@ func (s *ActivityPubService) Accept(act *vocab.Activity) error {
 		return err
 	}
 
-	accept := vocab.AcceptNew(vocab.IRI("TODO"), act)
+	accept := vocab.AcceptNew(vocab.IRI(s.AcccepId()), act)
 	data, err := jsonld.WithContext(
 		jsonld.IRI(vocab.ActivityBaseURI),
 	).Marshal(accept)
@@ -323,6 +335,51 @@ func (s *ActivityPubService) RemoveLike(id string) error {
 	interaction, err := s.interactionRepository.FindById(id)
 	if err != nil {
 		interaction = &interactions.Like{}
+	}
+	return s.interactionRepository.Delete(interaction)
+}
+
+func (s *ActivityPubService) AddRepost(sender string, reposted string, respostId string) error {
+	entry, err := s.entryService.FindByUrl(reposted)
+	if err != nil {
+		return err
+	}
+
+	actor, err := s.GetActor(sender)
+	if err != nil {
+		return err
+	}
+
+	var repost *interactions.Repost
+	interaction, err := s.interactionRepository.FindById(respostId)
+	if err != nil {
+		interaction = &interactions.Repost{}
+	}
+	repost, ok := interaction.(*interactions.Repost)
+	if !ok {
+		return errors.New("existing interaction with same id is not a like")
+	}
+	existing := repost.ID() != ""
+
+	repostMeta := interactions.RepostMetaData{
+		SenderUrl:  sender,
+		SenderName: actor.Name.String(),
+	}
+	repost.SetID(respostId)
+	repost.SetMetaData(&repostMeta)
+	repost.SetEntryID(entry.ID())
+	repost.SetCreatedAt(time.Now())
+	if !existing {
+		return s.interactionRepository.Create(repost)
+	} else {
+		return s.interactionRepository.Update(repost)
+	}
+}
+
+func (s *ActivityPubService) RemoveRepost(id string) error {
+	interaction, err := s.interactionRepository.FindById(id)
+	if err != nil {
+		interaction = &interactions.Repost{}
 	}
 	return s.interactionRepository.Delete(interaction)
 }
@@ -391,6 +448,18 @@ func (svc *ActivityPubService) NotifyEntryCreated(entry model.Entry) {
 		slog.Error("Cannot retrieve followers")
 	}
 
+	content := noteEntry.Content()
+
+	r := regexp.MustCompile("#[a-z0-9_]+")
+	matches := r.FindAllString(string(content), -1)
+	tags := vocab.ItemCollection{}
+	for _, hashtag := range matches {
+		tags.Append(vocab.Object{
+			ID:   vocab.ID(svc.HashtagId(hashtag)),
+			Name: vocab.NaturalLanguageValues{{Value: vocab.Content(hashtag)}},
+		})
+	}
+
 	note := vocab.Note{
 		ID:   vocab.ID(noteEntry.FullUrl(siteCfg)),
 		Type: "Note",
@@ -401,8 +470,9 @@ func (svc *ActivityPubService) NotifyEntryCreated(entry model.Entry) {
 		Published:    *noteEntry.PublishedAt(),
 		AttributedTo: vocab.ID(svc.ActorUrl()),
 		Content: vocab.NaturalLanguageValues{
-			{Value: vocab.Content(noteEntry.Content())},
+			{Value: vocab.Content(content)},
 		},
+		Tag: tags,
 	}
 
 	create := vocab.CreateNew(vocab.IRI(noteEntry.FullUrl(siteCfg)), note)
@@ -436,5 +506,42 @@ func (svc *ActivityPubService) NotifyEntryUpdated(entry model.Entry) {
 }
 
 func (svc *ActivityPubService) NotifyEntryDeleted(entry model.Entry) {
+	slog.Info("Processing Entry Delete for ActivityPub")
+	// limit to notes for now
+	noteEntry, ok := entry.(*entrytypes.Note)
+	if !ok {
+		slog.Info("not a note")
+		return
+	}
+
+	siteCfg, _ := svc.siteConfigServcie.GetSiteConfig()
+	followers, err := svc.AllFollowers()
+	if err != nil {
+		slog.Error("Cannot retrieve followers")
+	}
+
+	note := vocab.Note{
+		ID:   vocab.ID(noteEntry.FullUrl(siteCfg)),
+		Type: "Note",
+	}
+
+	delete := vocab.DeleteNew(vocab.IRI(noteEntry.FullUrl(siteCfg)), note)
+	delete.Actor = note.AttributedTo
+	delete.To = note.To
+	delete.Published = time.Now()
+	data, err := jsonld.WithContext(
+		jsonld.IRI(vocab.ActivityBaseURI),
+	).Marshal(delete)
+	if err != nil {
+		slog.Error("marshalling error", "err", err)
+	}
+
+	for _, follower := range followers {
+		actor, err := svc.GetActor(follower)
+		if err != nil {
+			slog.Error("Unable to retrieve follower actor", "err", err)
+		}
+		svc.sendObject(actor, data)
+	}
 
 }

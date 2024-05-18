@@ -179,6 +179,9 @@ func (s *ActivityPubServer) processUndo(r *http.Request, act *vocab.Activity) er
 		if o.Type == vocab.LikeType {
 			return s.apService.RemoveLike(o.ID.String())
 		}
+		if o.Type == vocab.AnnounceType {
+			return s.apService.RemoveRepost(o.ID.String())
+		}
 		slog.Warn("unsupporeted object type for undo", "object", o)
 		return errors.New("unsupporeted object type")
 	})
@@ -204,6 +207,32 @@ func (s *ActivityPubServer) processLike(r *http.Request, act *vocab.Activity) er
 	return nil
 }
 
+func (s *ActivityPubServer) processAnnounce(r *http.Request, act *vocab.Activity) error {
+	sender := act.Actor.GetID().String()
+	liked := act.Object.GetID().String()
+	err := s.apService.VerifySignature(r, sender)
+	if err != nil {
+		slog.Error("wrong signature", "err", err)
+		return err
+	}
+
+	err = s.apService.AddRepost(sender, liked, act.ID.String())
+	if err != nil {
+		slog.Error("error saving like", "err", err)
+		return err
+	}
+
+	go s.apService.Accept(act)
+	return nil
+}
+
+func (s *ActivityPubServer) processDelete(r *http.Request, act *vocab.Activity) error {
+	return vocab.OnObject(act.Object, func(o *vocab.Object) error {
+		slog.Warn("Not processing delete", "action", act, "object", o)
+		return nil
+	})
+}
+
 func (s *ActivityPubServer) HandleInbox(ctx *fiber.Ctx) error {
 	body := ctx.Request().Body()
 	data, err := vocab.UnmarshalJSON(body)
@@ -226,8 +255,14 @@ func (s *ActivityPubServer) HandleInbox(ctx *fiber.Ctx) error {
 		if act.Type == vocab.UndoType {
 			return s.processUndo(r, act)
 		}
+		if act.Type == vocab.DeleteType {
+			return s.processDelete(r, act)
+		}
 		if act.Type == vocab.LikeType {
 			return s.processLike(r, act)
+		}
+		if act.Type == vocab.AnnounceType {
+			return s.processAnnounce(r, act)
 		}
 
 		slog.Warn("Unsupported action", "body", body)

@@ -42,6 +42,7 @@ func App(db infra.Database) *web.WebApp {
 	interactionRegister := app.NewInteractionTypeRegistry()
 	interactionRegister.Register(&interactions.Webmention{})
 	interactionRegister.Register(&interactions.Like{})
+	interactionRegister.Register(&interactions.Repost{})
 
 	configRegister := app.NewConfigRegister()
 
