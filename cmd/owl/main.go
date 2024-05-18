@@ -70,7 +70,7 @@ func App(db infra.Database) *web.WebApp {
 	)
 	apService := app.NewActivityPubService(
 		followersRepo, configRepo, interactionRepo,
-		entryService, siteConfigService,
+		entryService, siteConfigService, binaryService,
 		eventBus,
 	)
 

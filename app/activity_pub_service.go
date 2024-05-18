@@ -63,6 +63,7 @@ type ActivityPubService struct {
 	interactionRepository repository.InteractionRepository
 	entryService          *EntryService
 	siteConfigServcie     *SiteConfigService
+	binService            *BinaryService
 }
 
 func NewActivityPubService(
@@ -71,6 +72,7 @@ func NewActivityPubService(
 	interactionRepository repository.InteractionRepository,
 	entryService *EntryService,
 	siteConfigServcie *SiteConfigService,
+	binService *BinaryService,
 	bus *EventBus,
 ) *ActivityPubService {
 	service := &ActivityPubService{
@@ -78,6 +80,7 @@ func NewActivityPubService(
 		configRepo:            configRepo,
 		interactionRepository: interactionRepository,
 		entryService:          entryService,
+		binService:            binService,
 		siteConfigServcie:     siteConfigServcie,
 	}
 
@@ -458,50 +461,20 @@ func (s *ActivityPubService) sendObject(to vocab.Actor, data []byte) error {
 
 func (svc *ActivityPubService) NotifyEntryCreated(entry model.Entry) {
 	slog.Info("Processing Entry Create for ActivityPub")
-	// limit to notes for now
-	noteEntry, ok := entry.(*entrytypes.Note)
-	if !ok {
-		slog.Info("not a note")
-		return
-	}
-
-	siteCfg, _ := svc.siteConfigServcie.GetSiteConfig()
 	followers, err := svc.AllFollowers()
 	if err != nil {
 		slog.Error("Cannot retrieve followers")
 	}
 
-	content := noteEntry.Content()
-
-	r := regexp.MustCompile("#[a-z0-9_]+")
-	matches := r.FindAllString(string(content), -1)
-	tags := vocab.ItemCollection{}
-	for _, hashtag := range matches {
-		tags.Append(vocab.Object{
-			ID:   vocab.ID(svc.HashtagId(hashtag)),
-			Name: vocab.NaturalLanguageValues{{Value: vocab.Content(hashtag)}},
-		})
+	object, err := svc.entryToObject(entry)
+	if err != nil {
+		slog.Error("Cannot convert object", "err", err)
 	}
 
-	note := vocab.Note{
-		ID:   vocab.ID(noteEntry.FullUrl(siteCfg)),
-		Type: "Note",
-		To: vocab.ItemCollection{
-			vocab.PublicNS,
-			vocab.IRI(svc.FollowersUrl()),
-		},
-		Published:    *noteEntry.PublishedAt(),
-		AttributedTo: vocab.ID(svc.ActorUrl()),
-		Content: vocab.NaturalLanguageValues{
-			{Value: vocab.Content(content)},
-		},
-		Tag: tags,
-	}
-
-	create := vocab.CreateNew(vocab.IRI(noteEntry.FullUrl(siteCfg)), note)
-	create.Actor = note.AttributedTo
-	create.To = note.To
-	create.Published = note.Published
+	create := vocab.CreateNew(object.ID, object)
+	create.Actor = object.AttributedTo
+	create.To = object.To
+	create.Published = object.Published
 	data, err := jsonld.WithContext(
 		jsonld.IRI(vocab.ActivityBaseURI),
 		jsonld.Context{
@@ -529,28 +502,20 @@ func (svc *ActivityPubService) NotifyEntryUpdated(entry model.Entry) {
 }
 
 func (svc *ActivityPubService) NotifyEntryDeleted(entry model.Entry) {
-	slog.Info("Processing Entry Delete for ActivityPub")
-	// limit to notes for now
-	noteEntry, ok := entry.(*entrytypes.Note)
-	if !ok {
-		slog.Info("not a note")
+	obj, err := svc.entryToObject(entry)
+	if err != nil {
+		slog.Error("error converting to object", "err", err)
 		return
 	}
 
-	siteCfg, _ := svc.siteConfigServcie.GetSiteConfig()
 	followers, err := svc.AllFollowers()
 	if err != nil {
 		slog.Error("Cannot retrieve followers")
 	}
 
-	note := vocab.Note{
-		ID:   vocab.ID(noteEntry.FullUrl(siteCfg)),
-		Type: "Note",
-	}
-
-	delete := vocab.DeleteNew(vocab.IRI(noteEntry.FullUrl(siteCfg)), note)
-	delete.Actor = note.AttributedTo
-	delete.To = note.To
+	delete := vocab.DeleteNew(obj.ID, obj)
+	delete.Actor = obj.AttributedTo
+	delete.To = obj.To
 	delete.Published = time.Now()
 	data, err := jsonld.WithContext(
 		jsonld.IRI(vocab.ActivityBaseURI),
@@ -566,5 +531,90 @@ func (svc *ActivityPubService) NotifyEntryDeleted(entry model.Entry) {
 		}
 		svc.sendObject(actor, data)
 	}
+
+}
+
+func (svc *ActivityPubService) entryToObject(entry model.Entry) (vocab.Object, error) {
+	// limit to notes for now
+
+	if noteEntry, ok := entry.(*entrytypes.Note); ok {
+		return svc.noteToObject(noteEntry), nil
+	}
+	if imageEntry, ok := entry.(*entrytypes.Image); ok {
+		return svc.imageToObject(imageEntry), nil
+	}
+	slog.Warn("entry type not yet supported for activity pub")
+	return vocab.Object{}, errors.New("entry type not supported")
+}
+
+func (svc *ActivityPubService) noteToObject(noteEntry *entrytypes.Note) vocab.Object {
+
+	siteCfg, _ := svc.siteConfigServcie.GetSiteConfig()
+	content := noteEntry.Content()
+	r := regexp.MustCompile("#[a-z0-9_]+")
+	matches := r.FindAllString(string(content), -1)
+	tags := vocab.ItemCollection{}
+	for _, hashtag := range matches {
+		tags.Append(vocab.Object{
+			ID:   vocab.ID(svc.HashtagId(hashtag)),
+			Name: vocab.NaturalLanguageValues{{Value: vocab.Content(hashtag)}},
+		})
+	}
+
+	note := vocab.Note{
+		ID:   vocab.ID(noteEntry.FullUrl(siteCfg)),
+		Type: "Note",
+		To: vocab.ItemCollection{
+			vocab.PublicNS,
+			vocab.IRI(svc.FollowersUrl()),
+		},
+		Published:    *noteEntry.PublishedAt(),
+		AttributedTo: vocab.ID(svc.ActorUrl()),
+		Content: vocab.NaturalLanguageValues{
+			{Value: vocab.Content(content)},
+		},
+		Tag: tags,
+	}
+	return note
+
+}
+
+func (svc *ActivityPubService) imageToObject(imageEntry *entrytypes.Image) vocab.Object {
+	siteCfg, _ := svc.siteConfigServcie.GetSiteConfig()
+	content := imageEntry.Content()
+
+	imgPath := imageEntry.ImageUrl()
+	fullImageUrl, _ := url.JoinPath(siteCfg.FullUrl, imgPath)
+	binaryFile, err := svc.binService.FindById(imageEntry.MetaData().(*entrytypes.ImageMetaData).ImageId)
+	if err != nil {
+		slog.Error("cannot get image file")
+	}
+
+	attachments := vocab.ItemCollection{}
+	attachments = append(attachments, vocab.Document{
+		Type:      vocab.DocumentType,
+		MediaType: vocab.MimeType(binaryFile.Mime()),
+		URL:       vocab.ID(fullImageUrl),
+	})
+
+	image := vocab.Note{
+		ID:   vocab.ID(imageEntry.FullUrl(siteCfg)),
+		Type: "Note",
+		To: vocab.ItemCollection{
+			vocab.PublicNS,
+			vocab.IRI(svc.FollowersUrl()),
+		},
+		Published:    *imageEntry.PublishedAt(),
+		AttributedTo: vocab.ID(svc.ActorUrl()),
+		Name: vocab.NaturalLanguageValues{
+			{Value: vocab.Content(imageEntry.Title())},
+		},
+		Content: vocab.NaturalLanguageValues{
+			{Value: vocab.Content(content)},
+		},
+		Attachment: attachments,
+		// Tag: tags,
+	}
+	return image
 
 }
