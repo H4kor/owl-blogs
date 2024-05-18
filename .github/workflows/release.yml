@@ -39,6 +39,7 @@ jobs:
         CGO_ENABLED: 1
         GOOS: linux
         GOARCH: amd64
+        GH_TOKEN: ${{ github.token }}
       run: |
         go build -o owl-linux-amd64 ./cmd/owl
         gh release upload ${{github.event.release.tag_name}} owl-linux-amd64        
