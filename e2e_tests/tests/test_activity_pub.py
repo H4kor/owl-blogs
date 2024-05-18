@@ -57,6 +57,7 @@ def test_following(client, inbox_url, followers_url, actor_url):
 
 def test_unfollow(client, inbox_url, followers_url, actor_url):
     ensure_follow(client, inbox_url, actor_url)
+    sleep(0.5)
     with msg_inc(1):
         req = sign(
             "POST",
