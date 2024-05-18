@@ -39,7 +39,8 @@ func NewWebApp(
 	apService *app.ActivityPubService,
 ) *WebApp {
 	fiberApp := fiber.New(fiber.Config{
-		BodyLimit: 50 * 1024 * 1024, // 50MB in bytes
+		BodyLimit:             50 * 1024 * 1024, // 50MB in bytes
+		DisableStartupMessage: true,
 	})
 	fiberApp.Use(middleware.NewUserMiddleware(authorService).Handle)
 

@@ -25,7 +25,6 @@ func (svc *SiteConfigService) defaultConfig() model.SiteConfig {
 	return model.SiteConfig{
 		Title:              "My Owl-Blog",
 		SubTitle:           "A freshly created blog",
-		HeaderColor:        "#efc48c",
 		PrimaryColor:       "#d37f12",
 		AuthorName:         "",
 		Me:                 []model.MeLinks{},

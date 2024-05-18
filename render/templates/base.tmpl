@@ -13,7 +13,12 @@
         <link rel="alternate" type="application/rss+xml" title="RSS" href="/index.xml">
 
         <link rel='stylesheet' href='/static/owl.css'>        
-        <link rel='stylesheet' href='/static/style.css'>        
+        <link rel='stylesheet' href='/static/style.css'>    
+        <style>
+            :root {
+                --primary: {{.SiteConfig.PrimaryColor}};
+            }
+        </style>    
         {{ .SiteConfig.HtmlHeadExtra }}
     </head>
     <body>

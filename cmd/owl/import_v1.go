@@ -92,7 +92,6 @@ var importCmd = &cobra.Command{
 		}
 		v2Config.Title = v1Config.Title
 		v2Config.SubTitle = v1Config.SubTitle
-		v2Config.HeaderColor = v1Config.HeaderColor
 		v2Config.AuthorName = v1Config.AuthorName
 		v2Config.Me = mes
 		v2Config.Lists = lists

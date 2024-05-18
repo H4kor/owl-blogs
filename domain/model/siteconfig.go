@@ -22,7 +22,6 @@ type MenuItem struct {
 type SiteConfig struct {
 	Title              string
 	SubTitle           string
-	HeaderColor        string
 	PrimaryColor       string
 	AuthorName         string
 	Me                 []MeLinks
