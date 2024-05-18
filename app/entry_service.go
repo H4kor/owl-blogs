@@ -48,7 +48,13 @@ func (s *EntryService) Create(entry model.Entry) error {
 	if err != nil {
 		return err
 	}
-	s.Bus.NotifyCreated(entry)
+	// only notify if the publishing date is set
+	// otherwise this is a draft.
+	// listeners might publish the entry to other services/platforms
+	// this should only happen for publshed content
+	if entry.PublishedAt() != nil && !entry.PublishedAt().IsZero() {
+		s.Bus.NotifyCreated(entry)
+	}
 	return nil
 }
 
@@ -57,7 +63,13 @@ func (s *EntryService) Update(entry model.Entry) error {
 	if err != nil {
 		return err
 	}
-	s.Bus.NotifyUpdated(entry)
+	// only notify if the publishing date is set
+	// otherwise this is a draft.
+	// listeners might publish the entry to other services/platforms
+	// this should only happen for publshed content
+	if entry.PublishedAt() != nil && !entry.PublishedAt().IsZero() {
+		s.Bus.NotifyUpdated(entry)
+	}
 	return nil
 }
 
@@ -66,6 +78,9 @@ func (s *EntryService) Delete(entry model.Entry) error {
 	if err != nil {
 		return err
 	}
+	// deletes should always be notfied
+	// a published entry might be converted to a draft before deletion
+	// omitting the deletion in this case would prevent deletion on other platforms
 	s.Bus.NotifyDeleted(entry)
 	return nil
 }

@@ -498,7 +498,41 @@ func (svc *ActivityPubService) NotifyEntryCreated(entry model.Entry) {
 }
 
 func (svc *ActivityPubService) NotifyEntryUpdated(entry model.Entry) {
+	slog.Info("Processing Entry Create for ActivityPub")
+	followers, err := svc.AllFollowers()
+	if err != nil {
+		slog.Error("Cannot retrieve followers")
+	}
 
+	object, err := svc.entryToObject(entry)
+	if err != nil {
+		slog.Error("Cannot convert object", "err", err)
+	}
+
+	update := vocab.UpdateNew(object.ID, object)
+	update.Actor = object.AttributedTo
+	update.To = object.To
+	update.Published = object.Published
+	data, err := jsonld.WithContext(
+		jsonld.IRI(vocab.ActivityBaseURI),
+		jsonld.Context{
+			jsonld.ContextElement{
+				Term: "toot",
+				IRI:  jsonld.IRI("http://joinmastodon.org/ns#"),
+			},
+		},
+	).Marshal(update)
+	if err != nil {
+		slog.Error("marshalling error", "err", err)
+	}
+
+	for _, follower := range followers {
+		actor, err := svc.GetActor(follower)
+		if err != nil {
+			slog.Error("Unable to retrieve follower actor", "err", err)
+		}
+		svc.sendObject(actor, data)
+	}
 }
 
 func (svc *ActivityPubService) NotifyEntryDeleted(entry model.Entry) {
@@ -543,6 +577,13 @@ func (svc *ActivityPubService) entryToObject(entry model.Entry) (vocab.Object, e
 	if imageEntry, ok := entry.(*entrytypes.Image); ok {
 		return svc.imageToObject(imageEntry), nil
 	}
+	if articleEntry, ok := entry.(*entrytypes.Article); ok {
+		return svc.articleToObject(articleEntry), nil
+	}
+	if recipeEntry, ok := entry.(*entrytypes.Recipe); ok {
+		return svc.recipeToObject(recipeEntry), nil
+	}
+
 	slog.Warn("entry type not yet supported for activity pub")
 	return vocab.Object{}, errors.New("entry type not supported")
 }
@@ -595,11 +636,14 @@ func (svc *ActivityPubService) imageToObject(imageEntry *entrytypes.Image) vocab
 		Type:      vocab.DocumentType,
 		MediaType: vocab.MimeType(binaryFile.Mime()),
 		URL:       vocab.ID(fullImageUrl),
+		Name: vocab.NaturalLanguageValues{
+			{Value: vocab.Content(content)},
+		},
 	})
 
-	image := vocab.Note{
+	image := vocab.Image{
 		ID:   vocab.ID(imageEntry.FullUrl(siteCfg)),
-		Type: "Note",
+		Type: "Image",
 		To: vocab.ItemCollection{
 			vocab.PublicNS,
 			vocab.IRI(svc.FollowersUrl()),
@@ -610,10 +654,58 @@ func (svc *ActivityPubService) imageToObject(imageEntry *entrytypes.Image) vocab
 			{Value: vocab.Content(imageEntry.Title())},
 		},
 		Content: vocab.NaturalLanguageValues{
-			{Value: vocab.Content(content)},
+			{Value: vocab.Content(imageEntry.Title() + "<br><br>" + string(content))},
 		},
 		Attachment: attachments,
 		// Tag: tags,
+	}
+	return image
+
+}
+
+func (svc *ActivityPubService) articleToObject(articleEntry *entrytypes.Article) vocab.Object {
+	siteCfg, _ := svc.siteConfigServcie.GetSiteConfig()
+	content := articleEntry.Content()
+
+	image := vocab.Article{
+		ID:   vocab.ID(articleEntry.FullUrl(siteCfg)),
+		Type: "Article",
+		To: vocab.ItemCollection{
+			vocab.PublicNS,
+			vocab.IRI(svc.FollowersUrl()),
+		},
+		Published:    *articleEntry.PublishedAt(),
+		AttributedTo: vocab.ID(svc.ActorUrl()),
+		Name: vocab.NaturalLanguageValues{
+			{Value: vocab.Content(articleEntry.Title())},
+		},
+		Content: vocab.NaturalLanguageValues{
+			{Value: vocab.Content(string(content))},
+		},
+	}
+	return image
+
+}
+
+func (svc *ActivityPubService) recipeToObject(recipeEntry *entrytypes.Recipe) vocab.Object {
+	siteCfg, _ := svc.siteConfigServcie.GetSiteConfig()
+	content := recipeEntry.Content()
+
+	image := vocab.Article{
+		ID:   vocab.ID(recipeEntry.FullUrl(siteCfg)),
+		Type: "Article",
+		To: vocab.ItemCollection{
+			vocab.PublicNS,
+			vocab.IRI(svc.FollowersUrl()),
+		},
+		Published:    *recipeEntry.PublishedAt(),
+		AttributedTo: vocab.ID(svc.ActorUrl()),
+		Name: vocab.NaturalLanguageValues{
+			{Value: vocab.Content(recipeEntry.Title())},
+		},
+		Content: vocab.NaturalLanguageValues{
+			{Value: vocab.Content(string(content))},
+		},
 	}
 	return image
 
