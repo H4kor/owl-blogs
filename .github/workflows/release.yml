@@ -1,0 +1,41 @@
+on:
+  release:
+    types: [created]
+
+permissions:
+    contents: write
+    packages: write
+
+jobs:
+  release-linux-amd64:
+    name: release linux/amd64
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.22'
+    - uses: actions/setup-python@v5 
+      with:
+        python-version: '3.11' 
+
+    - name: Build
+      run: go build -v ./...
+
+    - name: Test
+      run: go test -v ./...
+
+    - name: E2E Test
+      run: |
+        cd e2e_tests
+        docker compose -f docker-compose.ci.yml up -d
+        pip install -r requirements.txt
+        pytest
+
+    - uses: wangyoucao577/go-release-action@v1
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        goos: linux
+        goarch: amd64
