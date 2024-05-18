@@ -74,15 +74,16 @@ func (s *ActivityPubServer) HandleWebfinger(ctx *fiber.Ctx) error {
 }
 
 func (s *ActivityPubServer) Router(router fiber.Router) {
-	// router.Get("/actor", s.HandleActor)
 	router.Get("/outbox", s.HandleOutbox)
 	router.Post("/inbox", s.HandleInbox)
 	router.Get("/followers", s.HandleFollowers)
 }
 
 func (s *ActivityPubServer) HandleActor(ctx *fiber.Ctx) error {
-	accepts := strings.Contains(string(ctx.Request().Header.Peek("Accept")), "application/activity+json")
-	req_content := strings.Contains(string(ctx.Request().Header.Peek("Content-Type")), "application/activity+json")
+	accepts := (strings.Contains(string(ctx.Request().Header.Peek("Accept")), "application/activity+json") ||
+		strings.Contains(string(ctx.Request().Header.Peek("Accept")), "application/ld+json"))
+	req_content := (strings.Contains(string(ctx.Request().Header.Peek("Content-Type")), "application/activity+json") ||
+		strings.Contains(string(ctx.Request().Header.Peek("Content-Type")), "application/ld+json"))
 	if !accepts && !req_content {
 		return ctx.Next()
 	}
@@ -98,6 +99,11 @@ func (s *ActivityPubServer) HandleActor(ctx *fiber.Ctx) error {
 		Owner:        vocab.IRI(s.apService.ActorUrl()),
 		PublicKeyPem: apConfig.PublicKeyPem,
 	}
+
+	actor.Name = vocab.NaturalLanguageValues{{Value: vocab.Content(s.apService.ActorName())}}
+	actor.Icon = s.apService.ActorIcon()
+	actor.Summary = vocab.NaturalLanguageValues{{Value: vocab.Content(s.apService.ActorSummary())}}
+
 	data, err := jsonld.WithContext(
 		jsonld.IRI(vocab.ActivityBaseURI),
 		jsonld.IRI(vocab.SecurityContextURI),

@@ -156,6 +156,29 @@ func (svc *ActivityPubService) HashtagId(hashtag string) string {
 	return cfg.FullUrl + "/tags/" + strings.ReplaceAll(hashtag, "#", "")
 }
 
+func (svc *ActivityPubService) ActorName() string {
+	cfg, _ := svc.siteConfigServcie.GetSiteConfig()
+	return cfg.Title
+}
+
+func (svc *ActivityPubService) ActorIcon() vocab.Image {
+	cfg, _ := svc.siteConfigServcie.GetSiteConfig()
+	u := cfg.AvatarUrl
+	pUrl, _ := url.Parse(u)
+	parts := strings.Split(pUrl.Path, ".")
+	fullUrl, _ := url.JoinPath(cfg.FullUrl, u)
+	return vocab.Image{
+		Type:      vocab.ImageType,
+		MediaType: vocab.MimeType("image/" + parts[len(parts)-1]),
+		URL:       vocab.IRI(fullUrl),
+	}
+}
+
+func (svc *ActivityPubService) ActorSummary() string {
+	cfg, _ := svc.siteConfigServcie.GetSiteConfig()
+	return cfg.SubTitle
+}
+
 func (s *ActivityPubService) AddFollower(follower string) error {
 	return s.followersRepo.Add(follower)
 }
