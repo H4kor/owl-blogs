@@ -27,6 +27,10 @@ var (
 		status: 404,
 		msg:    "entry not found",
 	}
+	ErrInteractionNotFound WebError = &webError{
+		status: 404,
+		msg:    "interaction not found",
+	}
 	ErrUnsupportedObjectType WebError = &webError{
 		status: 501,
 		msg:    "object type not supported",
@@ -43,4 +47,7 @@ var (
 		status: 403,
 		msg:    "cannot verify signature",
 	}
+	ErrNoWebmentionEndpointFound error = errors.New("no webmention endpoint found")
+	ErrTypeAlreadyRegistered     error = errors.New("type already registered")
+	ErrTypeNotRegistered         error = errors.New("type not registered")
 )

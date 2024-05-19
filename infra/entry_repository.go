@@ -2,7 +2,6 @@ package infra
 
 import (
 	"encoding/json"
-	"errors"
 	"owl-blogs/app"
 	"owl-blogs/app/repository"
 	"owl-blogs/domain/model"
@@ -52,7 +51,7 @@ func NewEntryRepository(db Database, register *app.EntryTypeRegistry) repository
 func (r *DefaultEntryRepo) Create(entry model.Entry) error {
 	t, err := r.typeRegistry.TypeName(entry)
 	if err != nil {
-		return errors.New("entry type not registered")
+		return err
 	}
 
 	var metaDataJson []byte
@@ -71,7 +70,7 @@ func (r *DefaultEntryRepo) Create(entry model.Entry) error {
 // Delete implements repository.EntryRepository.
 func (r *DefaultEntryRepo) Delete(entry model.Entry) error {
 	if entry.ID() == "" {
-		return errors.New("entry not found")
+		return app.ErrEntryNotFound
 	}
 	_, err := r.db.Exec("DELETE FROM entries WHERE id = ?", entry.ID())
 	return err
@@ -120,7 +119,7 @@ func (r *DefaultEntryRepo) FindById(id string) (model.Entry, error) {
 		return nil, err
 	}
 	if data.Id == "" {
-		return nil, errors.New("entry not found")
+		return nil, app.ErrEntryNotFound
 	}
 	return r.sqlEntryToEntry(data)
 }
@@ -129,12 +128,12 @@ func (r *DefaultEntryRepo) FindById(id string) (model.Entry, error) {
 func (r *DefaultEntryRepo) Update(entry model.Entry) error {
 	exEntry, _ := r.FindById(entry.ID())
 	if exEntry == nil {
-		return errors.New("entry not found")
+		return app.ErrEntryNotFound
 	}
 
 	_, err := r.typeRegistry.TypeName(entry)
 	if err != nil {
-		return errors.New("entry type not registered")
+		return err
 	}
 
 	var metaDataJson []byte
@@ -149,7 +148,7 @@ func (r *DefaultEntryRepo) Update(entry model.Entry) error {
 func (r *DefaultEntryRepo) sqlEntryToEntry(entry sqlEntry) (model.Entry, error) {
 	e, err := r.typeRegistry.Type(entry.Type)
 	if err != nil {
-		return nil, errors.New("entry type not registered")
+		return nil, err
 	}
 	metaData := reflect.New(reflect.TypeOf(e.MetaData()).Elem()).Interface().(model.EntryMetaData)
 	json.Unmarshal([]byte(*entry.MetaData), metaData)

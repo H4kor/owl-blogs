@@ -1,7 +1,6 @@
 package app
 
 import (
-	"errors"
 	"reflect"
 )
 
@@ -20,7 +19,7 @@ func (r *TypeRegistry[T]) entryType(entry T) string {
 func (r *TypeRegistry[T]) Register(entry T) error {
 	t := r.entryType(entry)
 	if _, ok := r.types[t]; ok {
-		return errors.New("entry type already registered")
+		return ErrTypeAlreadyRegistered
 	}
 	r.types[t] = entry
 	return nil
@@ -37,14 +36,14 @@ func (r *TypeRegistry[T]) Types() []T {
 func (r *TypeRegistry[T]) TypeName(entry T) (string, error) {
 	t := r.entryType(entry)
 	if _, ok := r.types[t]; !ok {
-		return "", errors.New("entry type not registered")
+		return "", ErrTypeNotRegistered
 	}
 	return t, nil
 }
 
 func (r *TypeRegistry[T]) Type(name string) (T, error) {
 	if _, ok := r.types[name]; !ok {
-		return *new(T), errors.New("entry type not registered")
+		return *new(T), ErrTypeNotRegistered
 	}
 
 	val := reflect.ValueOf(r.types[name])

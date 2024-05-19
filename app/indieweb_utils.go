@@ -183,7 +183,7 @@ func GetWebmentionEndpoint(resp *http.Response) (string, error) {
 				return endpoint, nil
 			}
 		}
-		return "", errors.New("no webmention endpoint found")
+		return "", ErrNoWebmentionEndpointFound
 	}
 	linkUrlStr, err := findEndpoint(doc)
 	if err != nil {

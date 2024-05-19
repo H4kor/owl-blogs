@@ -2,7 +2,6 @@ package infra
 
 import (
 	"encoding/json"
-	"errors"
 	"owl-blogs/app"
 	"owl-blogs/app/repository"
 	"owl-blogs/domain/model"
@@ -50,7 +49,7 @@ func NewInteractionRepo(db Database, register *app.InteractionTypeRegistry) repo
 func (repo *DefaultInteractionRepo) Create(interaction model.Interaction) error {
 	t, err := repo.typeRegistry.TypeName(interaction)
 	if err != nil {
-		return errors.New("interaction type not registered")
+		return err
 	}
 
 	if interaction.ID() == "" {
@@ -80,7 +79,7 @@ func (repo *DefaultInteractionRepo) Create(interaction model.Interaction) error 
 // Delete implements repository.InteractionRepository.
 func (repo *DefaultInteractionRepo) Delete(interaction model.Interaction) error {
 	if interaction.ID() == "" {
-		return errors.New("interaction not found")
+		return app.ErrInteractionNotFound
 	}
 	_, err := repo.db.Exec("DELETE FROM interactions WHERE id = ?", interaction.ID())
 	return err
@@ -114,7 +113,7 @@ func (repo *DefaultInteractionRepo) FindById(id string) (model.Interaction, erro
 		return nil, err
 	}
 	if data.Id == "" {
-		return nil, errors.New("interaction not found")
+		return nil, app.ErrInteractionNotFound
 	}
 	return repo.sqlInteractionToInteraction(data)
 }
@@ -123,12 +122,12 @@ func (repo *DefaultInteractionRepo) FindById(id string) (model.Interaction, erro
 func (repo *DefaultInteractionRepo) Update(interaction model.Interaction) error {
 	exInter, _ := repo.FindById(interaction.ID())
 	if exInter == nil {
-		return errors.New("interaction not found")
+		return app.ErrInteractionNotFound
 	}
 
 	_, err := repo.typeRegistry.TypeName(interaction)
 	if err != nil {
-		return errors.New("interaction type not registered")
+		return err
 	}
 
 	var metaDataJson []byte
@@ -144,7 +143,7 @@ func (repo *DefaultInteractionRepo) Update(interaction model.Interaction) error 
 func (repo *DefaultInteractionRepo) sqlInteractionToInteraction(interaction sqlInteraction) (model.Interaction, error) {
 	i, err := repo.typeRegistry.Type(interaction.Type)
 	if err != nil {
-		return nil, errors.New("interaction type not registered")
+		return nil, err
 	}
 	metaData := reflect.New(reflect.TypeOf(i.MetaData()).Elem()).Interface()
 	json.Unmarshal([]byte(*interaction.MetaData), metaData)
