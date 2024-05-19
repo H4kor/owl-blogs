@@ -103,6 +103,7 @@ def test_status_code_unknown_post(client, inbox_url, followers_url, actor_url):
     )
     resp = requests.Session().send(req)
     assert resp.status_code == 404
+    assert resp.json()["error"] == "entry not found"
 
 
 def test_status_code_unsigned(client, inbox_url, followers_url, actor_url):
@@ -117,3 +118,4 @@ def test_status_code_unsigned(client, inbox_url, followers_url, actor_url):
         },
     )
     assert resp.status_code == 403
+    assert resp.json()["error"] == "cannot verify signature"
