@@ -511,10 +511,10 @@ func (svc *ActivityPubService) NotifyEntryUpdated(entry model.Entry) {
 		slog.Error("Cannot convert object", "err", err)
 	}
 
-	update := vocab.UpdateNew(object.ID, object)
-	update.Actor = object.AttributedTo
-	update.To = object.To
-	update.Published = object.Published
+	create := vocab.CreateNew(object.ID, object)
+	create.Actor = object.AttributedTo
+	create.To = object.To
+	create.Published = object.Published
 	data, err := jsonld.WithContext(
 		jsonld.IRI(vocab.ActivityBaseURI),
 		jsonld.Context{
@@ -523,7 +523,7 @@ func (svc *ActivityPubService) NotifyEntryUpdated(entry model.Entry) {
 				IRI:  jsonld.IRI("http://joinmastodon.org/ns#"),
 			},
 		},
-	).Marshal(update)
+	).Marshal(create)
 	if err != nil {
 		slog.Error("marshalling error", "err", err)
 	}
