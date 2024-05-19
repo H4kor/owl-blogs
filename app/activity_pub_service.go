@@ -6,7 +6,6 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
-	"errors"
 	"io"
 	"log/slog"
 	"net/http"
@@ -283,28 +282,31 @@ func (s *ActivityPubService) VerifySignature(r *http.Request, sender string) err
 
 	if err != nil {
 		slog.Error("unable to retrieve actor for sig verification", "sender", sender)
-		return err
+		return ErrUnableToVerifySignature
 	}
 	block, _ := pem.Decode([]byte(actor.PublicKey.PublicKeyPem))
 	pubKey, err := x509.ParsePKIXPublicKey(block.Bytes)
 	if err != nil {
 		slog.Error("unable to decode pub key pem", "pubKeyPem", actor.PublicKey.PublicKeyPem)
-		return err
+		return ErrUnableToVerifySignature
 	}
 	slog.Info("retrieved pub key of sender", "actor", actor, "pubKey", pubKey)
 
 	verifier, err := httpsig.NewVerifier(r)
 	if err != nil {
 		slog.Error("invalid signature", "err", err)
-		return err
+		return ErrUnableToVerifySignature
 	}
-	return verifier.Verify(pubKey, httpsig.RSA_SHA256)
+	if verifier.Verify(pubKey, httpsig.RSA_SHA256) != nil {
+		return ErrUnableToVerifySignature
+	}
+	return nil
 }
 
 func (s *ActivityPubService) Accept(act *vocab.Activity) error {
 	actor, err := s.GetActor(act.Actor.GetID().String())
 	if err != nil {
-		return err
+		return ErrUnableToVerifySignature
 	}
 
 	accept := vocab.AcceptNew(vocab.IRI(s.AcccepId()), act)
@@ -314,7 +316,7 @@ func (s *ActivityPubService) Accept(act *vocab.Activity) error {
 
 	if err != nil {
 		slog.Error("marshalling error", "err", err)
-		return err
+		return ErrUnableToVerifySignature
 	}
 
 	return s.sendObject(actor, data)
@@ -338,7 +340,7 @@ func (s *ActivityPubService) AddLike(sender string, liked string, likeId string)
 	}
 	like, ok := interaction.(*interactions.Like)
 	if !ok {
-		return errors.New("existing interaction with same id is not a like")
+		return ErrConflictingId
 	}
 	existing := like.ID() != ""
 
@@ -383,7 +385,7 @@ func (s *ActivityPubService) AddRepost(sender string, reposted string, respostId
 	}
 	repost, ok := interaction.(*interactions.Repost)
 	if !ok {
-		return errors.New("existing interaction with same id is not a like")
+		return ErrConflictingId
 	}
 	existing := repost.ID() != ""
 
@@ -418,7 +420,7 @@ func (s *ActivityPubService) sendObject(to vocab.Actor, data []byte) error {
 
 	if to.Inbox == nil {
 		slog.Error("actor has no inbox", "actor", to)
-		return errors.New("actor has no inbox")
+		return ErrNoActorInbox
 	}
 
 	actorUrl, err := url.Parse(to.Inbox.GetID().String())
@@ -585,7 +587,7 @@ func (svc *ActivityPubService) entryToObject(entry model.Entry) (vocab.Object, e
 	}
 
 	slog.Warn("entry type not yet supported for activity pub")
-	return vocab.Object{}, errors.New("entry type not supported")
+	return vocab.Object{}, ErrEntryTypeNotSupported
 }
 
 func (svc *ActivityPubService) noteToObject(noteEntry *entrytypes.Note) vocab.Object {

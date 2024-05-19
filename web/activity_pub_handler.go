@@ -1,12 +1,10 @@
 package web
 
 import (
-	"errors"
 	"log/slog"
 	"net/http"
 	"net/url"
 	"owl-blogs/app"
-	"strings"
 
 	vocab "github.com/go-ap/activitypub"
 	"github.com/go-ap/jsonld"
@@ -80,11 +78,7 @@ func (s *ActivityPubServer) Router(router fiber.Router) {
 }
 
 func (s *ActivityPubServer) HandleActor(ctx *fiber.Ctx) error {
-	accepts := (strings.Contains(string(ctx.Request().Header.Peek("Accept")), "application/activity+json") ||
-		strings.Contains(string(ctx.Request().Header.Peek("Accept")), "application/ld+json"))
-	req_content := (strings.Contains(string(ctx.Request().Header.Peek("Content-Type")), "application/activity+json") ||
-		strings.Contains(string(ctx.Request().Header.Peek("Content-Type")), "application/ld+json"))
-	if !accepts && !req_content {
+	if !isActivityPub(ctx) {
 		return ctx.Next()
 	}
 	apConfig, _ := s.apService.GetApConfig()
@@ -109,9 +103,9 @@ func (s *ActivityPubServer) HandleActor(ctx *fiber.Ctx) error {
 		jsonld.IRI(vocab.SecurityContextURI),
 	).Marshal(actor)
 	if err != nil {
-		return err
+		return s.handleError(ctx, err)
 	}
-	ctx.Set("Content-Type", "application/activity+json")
+	ctx.Set("Content-Type", "application/ld+json; profile=\"https://www.w3.org/ns/activitystreams\"")
 	return ctx.Send(data)
 }
 
@@ -121,7 +115,8 @@ func (s *ActivityPubServer) HandleOutbox(ctx *fiber.Ctx) error {
 
 	entries, err := s.entryService.FindAllByType(nil, true, false)
 	if err != nil {
-		return err
+		return s.handleError(ctx, err)
+
 	}
 
 	items := make([]vocab.Item, len(entries))
@@ -142,9 +137,10 @@ func (s *ActivityPubServer) HandleOutbox(ctx *fiber.Ctx) error {
 
 	data, err := outbox.MarshalJSON()
 	if err != nil {
-		return err
+		return s.handleError(ctx, err)
+
 	}
-	ctx.Set("Content-Type", "application/activity+json")
+	ctx.Set("Content-Type", "application/ld+json; profile=\"https://www.w3.org/ns/activitystreams\"")
 	return ctx.Send(data)
 }
 
@@ -189,7 +185,7 @@ func (s *ActivityPubServer) processUndo(r *http.Request, act *vocab.Activity) er
 			return s.apService.RemoveRepost(o.ID.String())
 		}
 		slog.Warn("unsupporeted object type for undo", "object", o)
-		return errors.New("unsupporeted object type")
+		return app.ErrUnsupportedObjectType
 	})
 
 }
@@ -244,7 +240,7 @@ func (s *ActivityPubServer) HandleInbox(ctx *fiber.Ctx) error {
 	data, err := vocab.UnmarshalJSON(body)
 	if err != nil {
 		slog.Error("failed to parse request body", "body", body, "err", err)
-		return err
+		return s.handleError(ctx, err)
 	}
 
 	err = vocab.OnActivity(data, func(act *vocab.Activity) error {
@@ -273,16 +269,16 @@ func (s *ActivityPubServer) HandleInbox(ctx *fiber.Ctx) error {
 
 		slog.Warn("Unsupported action", "body", body)
 
-		return errors.New("only follow and undo actions supported")
+		return app.ErrUnsupportedActionType
 	})
-	return err
+	return s.handleError(ctx, err)
 
 }
 
 func (s *ActivityPubServer) HandleFollowers(ctx *fiber.Ctx) error {
 	fs, err := s.apService.AllFollowers()
 	if err != nil {
-		return err
+		return s.handleError(ctx, err)
 	}
 
 	followers := vocab.Collection{}
@@ -296,8 +292,24 @@ func (s *ActivityPubServer) HandleFollowers(ctx *fiber.Ctx) error {
 	).Marshal(followers)
 
 	if err != nil {
-		return err
+		return s.handleError(ctx, err)
 	}
-	ctx.Set("Content-Type", "application/activity+json")
+	ctx.Set("Content-Type", "application/ld+json; profile=\"https://www.w3.org/ns/activitystreams\"")
 	return ctx.Send(data)
+}
+
+func (s *ActivityPubServer) handleError(ctx *fiber.Ctx, err error) error {
+	if err == nil {
+		return nil
+	}
+
+	webErr, ok := err.(app.WebError)
+	if ok {
+		ctx.Status(webErr.Status())
+		return ctx.JSON(map[string]string{
+			"error": webErr.Error(),
+		}, "application/ld+json; profile=\"https://www.w3.org/ns/activitystreams\"")
+	}
+	slog.Error("unhandled error", "error", err)
+	return err
 }

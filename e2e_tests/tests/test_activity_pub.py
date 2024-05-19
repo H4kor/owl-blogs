@@ -1,5 +1,6 @@
 from pprint import pprint
 from time import sleep
+import uuid
 import requests
 from .fixtures import ensure_follow, msg_inc, sign
 import pytest
@@ -86,3 +87,33 @@ def test_unfollow(client, inbox_url, followers_url, actor_url):
         pprint(data)
         assert "totalItems" in data
         assert data["totalItems"] == 0
+
+
+def test_status_code_unknown_post(client, inbox_url, followers_url, actor_url):
+    req = sign(
+        "POST",
+        inbox_url,
+        {
+            "@context": "https://www.w3.org/ns/activitystreams",
+            "id": f"http://mock_masto:8000/users/h4kor#like-{uuid.uuid4()}",
+            "type": "Like",
+            "actor": "http://mock_masto:8000/users/h4kor",
+            "object": "http://localhost:3000/post/foobar/",
+        },
+    )
+    resp = requests.Session().send(req)
+    assert resp.status_code == 404
+
+
+def test_status_code_unsigned(client, inbox_url, followers_url, actor_url):
+    resp = requests.post(
+        inbox_url,
+        json={
+            "@context": "https://www.w3.org/ns/activitystreams",
+            "id": f"http://mock_masto:8000/users/h4kor#like-{uuid.uuid4()}",
+            "type": "Like",
+            "actor": "http://mock_masto:8000/users/h4kor",
+            "object": "http://localhost:3000/post/foobar/",
+        },
+    )
+    assert resp.status_code == 403

@@ -1,7 +1,6 @@
 package app
 
 import (
-	"errors"
 	"fmt"
 	"owl-blogs/app/repository"
 	"owl-blogs/domain/model"
@@ -86,13 +85,19 @@ func (s *EntryService) Delete(entry model.Entry) error {
 }
 
 func (s *EntryService) FindById(id string) (model.Entry, error) {
-	return s.EntryRepository.FindById(id)
+	entry, err := s.EntryRepository.FindById(id)
+	if err != nil {
+		if err.Error() == "sql: no rows in result set" {
+			return nil, ErrEntryNotFound
+		}
+	}
+	return entry, nil
 }
 
 func (s *EntryService) FindByUrl(url string) (model.Entry, error) {
 	cfg, _ := s.siteConfigServcie.GetSiteConfig()
 	if !strings.HasPrefix(url, cfg.FullUrl) {
-		return nil, errors.New("url does not belong to blog")
+		return nil, ErrEntryNotFound
 	}
 	if strings.HasSuffix(url, "/") {
 		url = url[:len(url)-1]
