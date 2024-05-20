@@ -2,6 +2,7 @@ package entrytypes
 
 import (
 	"fmt"
+	"html/template"
 	"owl-blogs/domain/model"
 	"owl-blogs/render"
 )
@@ -17,7 +18,7 @@ type ArticleMetaData struct {
 }
 
 // Form implements model.EntryMetaData.
-func (meta *ArticleMetaData) Form(binSvc model.BinaryStorageInterface) string {
+func (meta *ArticleMetaData) Form(binSvc model.BinaryStorageInterface) template.HTML {
 	f, _ := render.RenderTemplateToString("forms/Article", meta)
 	return f
 }
@@ -33,12 +34,12 @@ func (e *Article) Title() string {
 	return e.meta.Title
 }
 
-func (e *Article) Content() model.EntryContent {
+func (e *Article) Content() template.HTML {
 	str, err := render.RenderTemplateToString("entry/Article", e)
 	if err != nil {
 		fmt.Println(err)
 	}
-	return model.EntryContent(str)
+	return template.HTML(str)
 }
 
 func (e *Article) MetaData() model.EntryMetaData {

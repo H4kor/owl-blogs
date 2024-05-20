@@ -2,6 +2,7 @@ package plugings
 
 import (
 	"bytes"
+	"html/template"
 	"owl-blogs/app"
 	"owl-blogs/app/repository"
 	"owl-blogs/domain/model"
@@ -22,7 +23,7 @@ type InstagramConfig struct {
 }
 
 // Form implements app.AppConfig.
-func (cfg *InstagramConfig) Form(binSvc model.BinaryStorageInterface) string {
+func (cfg *InstagramConfig) Form(binSvc model.BinaryStorageInterface) template.HTML {
 	f, _ := render.RenderTemplateToString("forms/InstagramConfig", cfg)
 	return f
 }

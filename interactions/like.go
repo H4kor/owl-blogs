@@ -2,6 +2,7 @@ package interactions
 
 import (
 	"fmt"
+	"html/template"
 	"owl-blogs/domain/model"
 	"owl-blogs/render"
 )
@@ -16,12 +17,12 @@ type LikeMetaData struct {
 	SenderName string
 }
 
-func (i *Like) Content() model.InteractionContent {
+func (i *Like) Content() template.HTML {
 	str, err := render.RenderTemplateToString("interaction/Like", i)
 	if err != nil {
 		fmt.Println(err)
 	}
-	return model.InteractionContent(str)
+	return template.HTML(str)
 }
 
 func (i *Like) MetaData() interface{} {

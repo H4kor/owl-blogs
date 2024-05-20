@@ -1,8 +1,9 @@
 package model
 
-import "time"
-
-type InteractionContent string
+import (
+	"html/template"
+	"time"
+)
 
 // Interaction is a generic interface for all interactions with entries
 // These interactions can be:
@@ -12,7 +13,7 @@ type InteractionContent string
 type Interaction interface {
 	ID() string
 	EntryID() string
-	Content() InteractionContent
+	Content() template.HTML
 	CreatedAt() time.Time
 	MetaData() interface{}
 

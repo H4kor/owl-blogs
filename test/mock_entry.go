@@ -1,6 +1,7 @@
 package test
 
 import (
+	"html/template"
 	"owl-blogs/domain/model"
 	"time"
 )
@@ -13,7 +14,7 @@ type MockEntryMetaData struct {
 }
 
 // Form implements model.EntryMetaData.
-func (*MockEntryMetaData) Form(binSvc model.BinaryStorageInterface) string {
+func (*MockEntryMetaData) Form(binSvc model.BinaryStorageInterface) template.HTML {
 	panic("unimplemented")
 }
 
@@ -27,8 +28,8 @@ type MockEntry struct {
 	metaData *MockEntryMetaData
 }
 
-func (e *MockEntry) Content() model.EntryContent {
-	return model.EntryContent(e.metaData.Str)
+func (e *MockEntry) Content() template.HTML {
+	return template.HTML(e.metaData.Str)
 }
 
 func (e *MockEntry) MetaData() model.EntryMetaData {

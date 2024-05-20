@@ -2,6 +2,7 @@ package entrytypes
 
 import (
 	"fmt"
+	"html/template"
 	"owl-blogs/domain/model"
 	"owl-blogs/render"
 	"strings"
@@ -21,7 +22,7 @@ type RecipeMetaData struct {
 }
 
 // Form implements model.EntryMetaData.
-func (meta *RecipeMetaData) Form(binSvc model.BinaryStorageInterface) string {
+func (meta *RecipeMetaData) Form(binSvc model.BinaryStorageInterface) template.HTML {
 	f, _ := render.RenderTemplateToString("forms/Recipe", meta)
 	return f
 }
@@ -47,12 +48,12 @@ func (e *Recipe) Title() string {
 	return e.meta.Title
 }
 
-func (e *Recipe) Content() model.EntryContent {
+func (e *Recipe) Content() template.HTML {
 	str, err := render.RenderTemplateToString("entry/Recipe", e)
 	if err != nil {
 		fmt.Println(err)
 	}
-	return model.EntryContent(str)
+	return template.HTML(str)
 }
 
 func (e *Recipe) MetaData() model.EntryMetaData {

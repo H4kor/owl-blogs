@@ -3,10 +3,10 @@ package render
 import (
 	"bytes"
 	"embed"
+	"html/template"
 	"io"
 	"net/url"
 	"owl-blogs/domain/model"
-	"text/template"
 
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/extension"
@@ -24,12 +24,12 @@ var templates embed.FS
 var SiteConfigService model.SiteConfigInterface
 
 var funcMap = template.FuncMap{
-	"markdown": func(text string) string {
+	"markdown": func(text string) template.HTML {
 		html, err := RenderMarkdown(text)
 		if err != nil {
 			return ">>>could not render markdown<<<"
 		}
-		return html
+		return template.HTML(html)
 	},
 	"urljoin": func(elems ...string) string {
 		r, _ := url.JoinPath(elems[0], elems[1:]...)
@@ -68,7 +68,7 @@ func RenderTemplateWithBase(w io.Writer, templateName string, data interface{}) 
 
 }
 
-func RenderTemplateToString(templateName string, data interface{}) (string, error) {
+func RenderTemplateToString(templateName string, data interface{}) (template.HTML, error) {
 	tmplStr, _ := templates.ReadFile("templates/" + templateName + ".tmpl")
 
 	t, err := template.New("templates/" + templateName + ".tmpl").Funcs(funcMap).Parse(string(tmplStr))
@@ -80,7 +80,7 @@ func RenderTemplateToString(templateName string, data interface{}) (string, erro
 	var output bytes.Buffer
 
 	err = t.Execute(&output, data)
-	return output.String(), err
+	return template.HTML(output.String()), err
 }
 
 func RenderMarkdown(mdText string) (string, error) {

@@ -1,6 +1,7 @@
 package web
 
 import (
+	"html/template"
 	"owl-blogs/app"
 	"owl-blogs/render"
 
@@ -42,8 +43,8 @@ func (h *SiteConfigHandler) HandlePost(c *fiber.Ctx) error {
 	siteConfig.AuthorName = c.FormValue("AuthorName")
 	siteConfig.AvatarUrl = c.FormValue("AvatarUrl")
 	siteConfig.FullUrl = c.FormValue("FullUrl")
-	siteConfig.HtmlHeadExtra = c.FormValue("HtmlHeadExtra")
-	siteConfig.FooterExtra = c.FormValue("FooterExtra")
+	siteConfig.HtmlHeadExtra = template.HTML(c.FormValue("HtmlHeadExtra"))
+	siteConfig.FooterExtra = template.HTML(c.FormValue("FooterExtra"))
 
 	err = h.svc.UpdateSiteConfig(siteConfig)
 	if err != nil {

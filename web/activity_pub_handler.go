@@ -164,6 +164,10 @@ func (s *ActivityPubServer) processFollow(r *http.Request, act *vocab.Activity) 
 func (s *ActivityPubServer) processUndo(r *http.Request, act *vocab.Activity) error {
 	sender := act.Actor.GetID().String()
 	err := s.apService.VerifySignature(r, sender)
+	if err != nil {
+		slog.Error("wrong signature", "err", err)
+		return err
+	}
 
 	return vocab.OnObject(act.Object, func(o *vocab.Object) error {
 		if o.Type == vocab.FollowType {
@@ -186,6 +190,29 @@ func (s *ActivityPubServer) processUndo(r *http.Request, act *vocab.Activity) er
 		}
 		slog.Warn("unsupporeted object type for undo", "object", o)
 		return app.ErrUnsupportedObjectType
+	})
+}
+
+func (s *ActivityPubServer) processCreate(r *http.Request, act *vocab.Activity) error {
+	sender := act.Actor.GetID().String()
+	err := s.apService.VerifySignature(r, sender)
+	if err != nil {
+		slog.Error("wrong signature", "err", err)
+		return err
+	}
+
+	return vocab.OnObject(act.Object, func(o *vocab.Object) error {
+		if o.Type == vocab.NoteType {
+			slog.Info("processing note")
+			return s.apService.AddReply(sender, o.InReplyTo.GetID().String(), o.ID.String(), o.Content.String())
+		}
+		if o.Type == vocab.ArticleType {
+			slog.Info("processing article")
+			return s.apService.AddReply(sender, o.InReplyTo.GetID().String(), o.ID.String(), o.Name.String())
+		}
+
+		slog.Warn("Not processing craete", "action", act, "object", o)
+		return nil
 	})
 
 }
@@ -229,7 +256,18 @@ func (s *ActivityPubServer) processAnnounce(r *http.Request, act *vocab.Activity
 }
 
 func (s *ActivityPubServer) processDelete(r *http.Request, act *vocab.Activity) error {
+	sender := act.Actor.GetID().String()
+	err := s.apService.VerifySignature(r, sender)
+	if err != nil {
+		slog.Error("wrong signature", "err", err)
+		return err
+	}
+
 	return vocab.OnObject(act.Object, func(o *vocab.Object) error {
+		if o.Type == vocab.NoteType || o.Type == vocab.ArticleType {
+			return s.apService.RemoveReply(o.ID.String())
+		}
+
 		slog.Warn("Not processing delete", "action", act, "object", o)
 		return nil
 	})
@@ -265,6 +303,9 @@ func (s *ActivityPubServer) HandleInbox(ctx *fiber.Ctx) error {
 		}
 		if act.Type == vocab.AnnounceType {
 			return s.processAnnounce(r, act)
+		}
+		if act.Type == vocab.CreateType {
+			return s.processCreate(r, act)
 		}
 
 		slog.Warn("Unsupported action", "body", body)

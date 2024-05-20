@@ -1,15 +1,14 @@
 package model
 
 import (
+	"html/template"
 	"net/url"
 	"time"
 )
 
-type EntryContent string
-
 type Entry interface {
 	ID() string
-	Content() EntryContent
+	Content() template.HTML
 	PublishedAt() *time.Time
 	AuthorId() string
 	MetaData() EntryMetaData

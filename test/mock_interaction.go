@@ -1,6 +1,7 @@
 package test
 
 import (
+	"html/template"
 	"owl-blogs/domain/model"
 	"time"
 )
@@ -17,7 +18,7 @@ type MockInteraction struct {
 }
 
 // Content implements model.Interaction.
-func (*MockInteraction) Content() model.InteractionContent {
+func (*MockInteraction) Content() template.HTML {
 	return ""
 }
 

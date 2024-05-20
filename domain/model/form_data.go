@@ -1,9 +1,12 @@
 package model
 
-import "mime/multipart"
+import (
+	"html/template"
+	"mime/multipart"
+)
 
 type Formable interface {
-	Form(binSvc BinaryStorageInterface) string
+	Form(binSvc BinaryStorageInterface) template.HTML
 	ParseFormData(data HttpFormData, binSvc BinaryStorageInterface) error
 }
 

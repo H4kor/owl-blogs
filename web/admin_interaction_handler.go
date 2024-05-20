@@ -1,6 +1,7 @@
 package web
 
 import (
+	"errors"
 	"owl-blogs/app/repository"
 	"owl-blogs/render"
 
@@ -44,7 +45,10 @@ func (h *AdminInteractionHandler) HandleGet(c *fiber.Ctx) error {
 func (h *AdminInteractionHandler) HandleDelete(c *fiber.Ctx) error {
 	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
 
-	id := c.Params("id")
+	id := c.Query("id", "")
+	if id == "" {
+		return errors.New("no id given")
+	}
 	inter, err := h.interactionRepo.FindById(id)
 	entryId := inter.EntryID()
 	if err != nil {

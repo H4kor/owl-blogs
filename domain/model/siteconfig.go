@@ -1,5 +1,7 @@
 package model
 
+import "html/template"
+
 type MeLinks struct {
 	Name string
 	Url  string
@@ -32,6 +34,6 @@ type SiteConfig struct {
 	Secret             string
 	AvatarUrl          string
 	FullUrl            string
-	HtmlHeadExtra      string
-	FooterExtra        string
+	HtmlHeadExtra      template.HTML
+	FooterExtra        template.HTML
 }

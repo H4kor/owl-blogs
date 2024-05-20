@@ -2,6 +2,7 @@ package entrytypes
 
 import (
 	"fmt"
+	"html/template"
 	"owl-blogs/domain/model"
 	"owl-blogs/render"
 )
@@ -16,7 +17,7 @@ type NoteMetaData struct {
 }
 
 // Form implements model.EntryMetaData.
-func (meta *NoteMetaData) Form(binSvc model.BinaryStorageInterface) string {
+func (meta *NoteMetaData) Form(binSvc model.BinaryStorageInterface) template.HTML {
 	f, _ := render.RenderTemplateToString("forms/Note", meta)
 	return f
 }
@@ -31,12 +32,12 @@ func (e *Note) Title() string {
 	return ""
 }
 
-func (e *Note) Content() model.EntryContent {
+func (e *Note) Content() template.HTML {
 	str, err := render.RenderTemplateToString("entry/Note", e)
 	if err != nil {
 		fmt.Println(err)
 	}
-	return model.EntryContent(str)
+	return template.HTML(str)
 }
 
 func (e *Note) MetaData() model.EntryMetaData {

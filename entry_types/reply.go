@@ -2,6 +2,7 @@ package entrytypes
 
 import (
 	"fmt"
+	"html/template"
 	"owl-blogs/domain/model"
 	"owl-blogs/render"
 )
@@ -18,7 +19,7 @@ type ReplyMetaData struct {
 }
 
 // Form implements model.EntryMetaData.
-func (meta *ReplyMetaData) Form(binSvc model.BinaryStorageInterface) string {
+func (meta *ReplyMetaData) Form(binSvc model.BinaryStorageInterface) template.HTML {
 	f, _ := render.RenderTemplateToString("forms/Reply", meta)
 	return f
 }
@@ -35,12 +36,12 @@ func (e *Reply) Title() string {
 	return "Re: " + e.meta.Title
 }
 
-func (e *Reply) Content() model.EntryContent {
+func (e *Reply) Content() template.HTML {
 	str, err := render.RenderTemplateToString("entry/Reply", e)
 	if err != nil {
 		fmt.Println(err)
 	}
-	return model.EntryContent(str)
+	return template.HTML(str)
 }
 
 func (e *Reply) MetaData() model.EntryMetaData {

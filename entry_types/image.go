@@ -2,6 +2,7 @@ package entrytypes
 
 import (
 	"fmt"
+	"html/template"
 	"owl-blogs/domain/model"
 	"owl-blogs/render"
 )
@@ -18,7 +19,7 @@ type ImageMetaData struct {
 }
 
 // Form implements model.EntryMetaData.
-func (meta *ImageMetaData) Form(binSvc model.BinaryStorageInterface) string {
+func (meta *ImageMetaData) Form(binSvc model.BinaryStorageInterface) template.HTML {
 	f, _ := render.RenderTemplateToString("forms/Image", meta)
 	return f
 }
@@ -62,12 +63,12 @@ func (e *Image) ImageUrl() string {
 	return "/media/" + e.meta.ImageId
 }
 
-func (e *Image) Content() model.EntryContent {
+func (e *Image) Content() template.HTML {
 	str, err := render.RenderTemplateToString("entry/Image", e)
 	if err != nil {
 		fmt.Println(err)
 	}
-	return model.EntryContent(str)
+	return template.HTML(str)
 }
 
 func (e *Image) MetaData() model.EntryMetaData {

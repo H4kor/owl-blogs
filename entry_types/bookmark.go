@@ -2,6 +2,7 @@ package entrytypes
 
 import (
 	"fmt"
+	"html/template"
 	"owl-blogs/domain/model"
 	"owl-blogs/render"
 )
@@ -18,7 +19,7 @@ type BookmarkMetaData struct {
 }
 
 // Form implements model.EntryMetaData.
-func (meta *BookmarkMetaData) Form(binSvc model.BinaryStorageInterface) string {
+func (meta *BookmarkMetaData) Form(binSvc model.BinaryStorageInterface) template.HTML {
 	f, _ := render.RenderTemplateToString("forms/Bookmark", meta)
 	return f
 }
@@ -35,12 +36,12 @@ func (e *Bookmark) Title() string {
 	return e.meta.Title
 }
 
-func (e *Bookmark) Content() model.EntryContent {
+func (e *Bookmark) Content() template.HTML {
 	str, err := render.RenderTemplateToString("entry/Bookmark", e)
 	if err != nil {
 		fmt.Println(err)
 	}
-	return model.EntryContent(str)
+	return template.HTML(str)
 }
 
 func (e *Bookmark) MetaData() model.EntryMetaData {

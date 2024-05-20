@@ -6,6 +6,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
+	"html/template"
 	"io"
 	"log/slog"
 	"net/http"
@@ -25,6 +26,7 @@ import (
 	vocab "github.com/go-ap/activitypub"
 	"github.com/go-ap/jsonld"
 	"github.com/go-fed/httpsig"
+	"github.com/microcosm-cc/bluemonday"
 )
 
 type ActivityPubConfig struct {
@@ -34,7 +36,7 @@ type ActivityPubConfig struct {
 }
 
 // Form implements app.AppConfig.
-func (cfg *ActivityPubConfig) Form(binSvc model.BinaryStorageInterface) string {
+func (cfg *ActivityPubConfig) Form(binSvc model.BinaryStorageInterface) template.HTML {
 	f, _ := render.RenderTemplateToString("forms/ActivityPubConfig", cfg)
 	return f
 }
@@ -362,7 +364,7 @@ func (s *ActivityPubService) AddLike(sender string, liked string, likeId string)
 func (s *ActivityPubService) RemoveLike(id string) error {
 	interaction, err := s.interactionRepository.FindById(id)
 	if err != nil {
-		interaction = &interactions.Like{}
+		return err
 	}
 	return s.interactionRepository.Delete(interaction)
 }
@@ -407,7 +409,79 @@ func (s *ActivityPubService) AddRepost(sender string, reposted string, respostId
 func (s *ActivityPubService) RemoveRepost(id string) error {
 	interaction, err := s.interactionRepository.FindById(id)
 	if err != nil {
-		interaction = &interactions.Repost{}
+		return err
+	}
+	return s.interactionRepository.Delete(interaction)
+}
+
+func (s *ActivityPubService) AddReply(sender string, replyTo string, replyId string, replyContent string) error {
+	entry, err := s.entryService.FindByUrl(replyTo)
+	if err != nil {
+		return err
+	}
+
+	actor, err := s.GetActor(sender)
+	if err != nil {
+		return err
+	}
+
+	var reply *interactions.Reply
+	interaction, err := s.interactionRepository.FindById(replyId)
+	if err != nil {
+		interaction = &interactions.Reply{}
+	}
+	reply, ok := interaction.(*interactions.Reply)
+	if !ok {
+		return ErrConflictingId
+	}
+	existing := reply.ID() != ""
+
+	// clean reply to list of all allowed html tags
+	p := bluemonday.NewPolicy()
+	// Require URLs to be parseable by net/url.Parse and either:
+	//   mailto: http:// or https://
+	p.AllowStandardURLs()
+	// We only allow <p> and <a href="">
+	p.AllowAttrs("href").OnElements("a")
+	p.AllowElements("p")
+	p.AllowElements("p")
+	p.AllowElements("span")
+	p.AllowElements("br")
+	p.AllowElements("del")
+	p.AllowElements("pre")
+	p.AllowElements("code")
+	p.AllowElements("em")
+	p.AllowElements("strong")
+	p.AllowElements("b")
+	p.AllowElements("i")
+	p.AllowElements("u")
+	p.AllowElements("ul")
+	p.AllowElements("ol")
+	p.AllowElements("li")
+	p.AllowElements("blockquote")
+	cleanReplyContent := p.Sanitize(replyContent)
+
+	replyMeta := interactions.ReplyMetaData{
+		SenderUrl:   sender,
+		SenderName:  actor.Name.String(),
+		OriginalUrl: replyId,
+		Content:     template.HTML(cleanReplyContent),
+	}
+	reply.SetID(replyId)
+	reply.SetMetaData(&replyMeta)
+	reply.SetEntryID(entry.ID())
+	reply.SetCreatedAt(time.Now())
+	if !existing {
+		return s.interactionRepository.Create(reply)
+	} else {
+		return s.interactionRepository.Update(reply)
+	}
+}
+
+func (s *ActivityPubService) RemoveReply(id string) error {
+	interaction, err := s.interactionRepository.FindById(id)
+	if err != nil {
+		return err
 	}
 	return s.interactionRepository.Delete(interaction)
 }
