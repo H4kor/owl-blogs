@@ -668,7 +668,7 @@ func (svc *ActivityPubService) noteToObject(noteEntry *entrytypes.Note) vocab.Ob
 
 	siteCfg, _ := svc.siteConfigServcie.GetSiteConfig()
 	content := noteEntry.Content()
-	r := regexp.MustCompile("#[a-z0-9_]+")
+	r := regexp.MustCompile("#[a-zA-Z0-9_]+")
 	matches := r.FindAllString(string(content), -1)
 	tags := vocab.ItemCollection{}
 	for _, hashtag := range matches {
