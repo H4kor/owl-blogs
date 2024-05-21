@@ -1,4 +1,5 @@
 from pprint import pprint
+import sys
 from time import sleep
 import uuid
 import requests
@@ -119,3 +120,59 @@ def test_status_code_unsigned(client, inbox_url, followers_url, actor_url):
     )
     assert resp.status_code == 403
     assert resp.json()["error"] == "cannot verify signature"
+
+
+def test_entry_is_sent(client, inbox_url, followers_url, actor_url):
+    ensure_follow(client, inbox_url, actor_url)
+    sleep(0.5)
+    import subprocess
+
+    subprocess.run(
+        [
+            "docker",
+            "compose",
+            "exec",
+            "web",
+            "/bin/owl",
+            "new-author",
+            "-u",
+            "test",
+            "-p",
+            "test",
+        ]
+    )
+
+    with msg_inc(1):
+
+        with requests.Session() as session:
+            login_resp = session.post(
+                "http://localhost:3000/auth/login",
+                data={
+                    "name": "test",
+                    "password": "test",
+                },
+                allow_redirects=False,
+            )
+            assert login_resp.status_code == 302
+            assert login_resp.url == "http://localhost:3000/auth/login"
+
+            create_resp = session.post(
+                "http://localhost:3000/editor/new/Note/",
+                data={"content": "test note", "action": "Publish"},
+                allow_redirects=False,
+            )
+            assert create_resp.status_code == 302
+
+    resp = requests.get("http://localhost:8000/msgs")
+    data = resp.json()[-1]
+    assert data["actor"] == actor_url
+    assert data["type"] == "Create"
+    assert "object" in data
+    assert "id" in data["object"]
+    assert "published" in data["object"]
+    assert "test note" in data["object"]["content"]
+
+    assert "https://www.w3.org/ns/activitystreams#Public" in data["to"]
+    assert followers_url in data["to"]
+    assert "https://www.w3.org/ns/activitystreams#Public" in data["object"]["to"]
+    assert followers_url in data["object"]["to"]
