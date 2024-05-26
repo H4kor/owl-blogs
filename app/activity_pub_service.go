@@ -14,11 +14,9 @@ import (
 	"owl-blogs/app/repository"
 	"owl-blogs/config"
 	"owl-blogs/domain/model"
-	entrytypes "owl-blogs/entry_types"
 	"owl-blogs/interactions"
 	"owl-blogs/render"
 	"reflect"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -647,142 +645,19 @@ func (svc *ActivityPubService) NotifyEntryDeleted(entry model.Entry) {
 func (svc *ActivityPubService) entryToObject(entry model.Entry) (vocab.Object, error) {
 	// limit to notes for now
 
-	if noteEntry, ok := entry.(*entrytypes.Note); ok {
-		return svc.noteToObject(noteEntry), nil
-	}
-	if imageEntry, ok := entry.(*entrytypes.Image); ok {
-		return svc.imageToObject(imageEntry), nil
-	}
-	if articleEntry, ok := entry.(*entrytypes.Article); ok {
-		return svc.articleToObject(articleEntry), nil
-	}
-	if recipeEntry, ok := entry.(*entrytypes.Recipe); ok {
-		return svc.recipeToObject(recipeEntry), nil
+	if activityEntry, ok := entry.(ToActivityPub); ok {
+		siteCfg, _ := svc.siteConfigServcie.GetSiteConfig()
+		obj := activityEntry.ActivityObject(siteCfg, *svc.binService)
+		obj.ID = vocab.ID(entry.FullUrl(siteCfg))
+		obj.To = vocab.ItemCollection{
+			vocab.PublicNS,
+			vocab.IRI(svc.FollowersUrl()),
+		}
+		obj.AttributedTo = vocab.ID(svc.ActorUrl())
+
+		return obj, nil
 	}
 
 	slog.Warn("entry type not yet supported for activity pub")
 	return vocab.Object{}, ErrEntryTypeNotSupported
-}
-
-func (svc *ActivityPubService) noteToObject(noteEntry *entrytypes.Note) vocab.Object {
-
-	siteCfg, _ := svc.siteConfigServcie.GetSiteConfig()
-	content := noteEntry.Content()
-	r := regexp.MustCompile("#[a-zA-Z0-9_]+")
-	matches := r.FindAllString(string(content), -1)
-	tags := vocab.ItemCollection{}
-	for _, hashtag := range matches {
-		tags.Append(vocab.Object{
-			ID:   vocab.ID(svc.HashtagId(hashtag)),
-			Name: vocab.NaturalLanguageValues{{Value: vocab.Content(hashtag)}},
-		})
-	}
-
-	note := vocab.Note{
-		ID:   vocab.ID(noteEntry.FullUrl(siteCfg)),
-		Type: "Note",
-		To: vocab.ItemCollection{
-			vocab.PublicNS,
-			vocab.IRI(svc.FollowersUrl()),
-		},
-		Published:    *noteEntry.PublishedAt(),
-		AttributedTo: vocab.ID(svc.ActorUrl()),
-		Content: vocab.NaturalLanguageValues{
-			{Value: vocab.Content(content)},
-		},
-		Tag: tags,
-	}
-	return note
-
-}
-
-func (svc *ActivityPubService) imageToObject(imageEntry *entrytypes.Image) vocab.Object {
-	siteCfg, _ := svc.siteConfigServcie.GetSiteConfig()
-	content := imageEntry.Content()
-
-	imgPath := imageEntry.ImageUrl()
-	fullImageUrl, _ := url.JoinPath(siteCfg.FullUrl, imgPath)
-	binaryFile, err := svc.binService.FindById(imageEntry.MetaData().(*entrytypes.ImageMetaData).ImageId)
-	if err != nil {
-		slog.Error("cannot get image file")
-	}
-
-	attachments := vocab.ItemCollection{}
-	attachments = append(attachments, vocab.Document{
-		Type:      vocab.DocumentType,
-		MediaType: vocab.MimeType(binaryFile.Mime()),
-		URL:       vocab.ID(fullImageUrl),
-		Name: vocab.NaturalLanguageValues{
-			{Value: vocab.Content(content)},
-		},
-	})
-
-	image := vocab.Image{
-		ID:   vocab.ID(imageEntry.FullUrl(siteCfg)),
-		Type: "Image",
-		To: vocab.ItemCollection{
-			vocab.PublicNS,
-			vocab.IRI(svc.FollowersUrl()),
-		},
-		Published:    *imageEntry.PublishedAt(),
-		AttributedTo: vocab.ID(svc.ActorUrl()),
-		Name: vocab.NaturalLanguageValues{
-			{Value: vocab.Content(imageEntry.Title())},
-		},
-		Content: vocab.NaturalLanguageValues{
-			{Value: vocab.Content(imageEntry.Title() + "<br><br>" + string(content))},
-		},
-		Attachment: attachments,
-		// Tag: tags,
-	}
-	return image
-
-}
-
-func (svc *ActivityPubService) articleToObject(articleEntry *entrytypes.Article) vocab.Object {
-	siteCfg, _ := svc.siteConfigServcie.GetSiteConfig()
-	content := articleEntry.Content()
-
-	image := vocab.Article{
-		ID:   vocab.ID(articleEntry.FullUrl(siteCfg)),
-		Type: "Article",
-		To: vocab.ItemCollection{
-			vocab.PublicNS,
-			vocab.IRI(svc.FollowersUrl()),
-		},
-		Published:    *articleEntry.PublishedAt(),
-		AttributedTo: vocab.ID(svc.ActorUrl()),
-		Name: vocab.NaturalLanguageValues{
-			{Value: vocab.Content(articleEntry.Title())},
-		},
-		Content: vocab.NaturalLanguageValues{
-			{Value: vocab.Content(string(content))},
-		},
-	}
-	return image
-
-}
-
-func (svc *ActivityPubService) recipeToObject(recipeEntry *entrytypes.Recipe) vocab.Object {
-	siteCfg, _ := svc.siteConfigServcie.GetSiteConfig()
-	content := recipeEntry.Content()
-
-	image := vocab.Article{
-		ID:   vocab.ID(recipeEntry.FullUrl(siteCfg)),
-		Type: "Article",
-		To: vocab.ItemCollection{
-			vocab.PublicNS,
-			vocab.IRI(svc.FollowersUrl()),
-		},
-		Published:    *recipeEntry.PublishedAt(),
-		AttributedTo: vocab.ID(svc.ActorUrl()),
-		Name: vocab.NaturalLanguageValues{
-			{Value: vocab.Content(recipeEntry.Title())},
-		},
-		Content: vocab.NaturalLanguageValues{
-			{Value: vocab.Content(string(content))},
-		},
-	}
-	return image
-
 }

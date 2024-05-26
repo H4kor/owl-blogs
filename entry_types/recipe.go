@@ -3,9 +3,12 @@ package entrytypes
 import (
 	"fmt"
 	"html/template"
+	"owl-blogs/app"
 	"owl-blogs/domain/model"
 	"owl-blogs/render"
 	"strings"
+
+	vocab "github.com/go-ap/activitypub"
 )
 
 type Recipe struct {
@@ -62,4 +65,21 @@ func (e *Recipe) MetaData() model.EntryMetaData {
 
 func (e *Recipe) SetMetaData(metaData model.EntryMetaData) {
 	e.meta = *metaData.(*RecipeMetaData)
+}
+
+func (e *Recipe) ActivityObject(siteCfg model.SiteConfig, binSvc app.BinaryService) vocab.Object {
+	content := e.Content()
+
+	image := vocab.Article{
+		Type:      "Article",
+		Published: *e.PublishedAt(),
+		Name: vocab.NaturalLanguageValues{
+			{Value: vocab.Content(e.Title())},
+		},
+		Content: vocab.NaturalLanguageValues{
+			{Value: vocab.Content(string(content))},
+		},
+	}
+	return image
+
 }

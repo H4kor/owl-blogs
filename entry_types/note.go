@@ -3,8 +3,11 @@ package entrytypes
 import (
 	"fmt"
 	"html/template"
+	"owl-blogs/app"
 	"owl-blogs/domain/model"
 	"owl-blogs/render"
+
+	vocab "github.com/go-ap/activitypub"
 )
 
 type Note struct {
@@ -46,4 +49,32 @@ func (e *Note) MetaData() model.EntryMetaData {
 
 func (e *Note) SetMetaData(metaData model.EntryMetaData) {
 	e.meta = *metaData.(*NoteMetaData)
+}
+
+func (e *Note) ActivityObject(siteCfg model.SiteConfig, binSvc app.BinaryService) vocab.Object {
+
+	content := e.Content()
+	tags := vocab.ItemCollection{}
+	// TODO: move into more generic structure
+	// r := regexp.MustCompile("#[a-zA-Z0-9_]+")
+	// matches := r.FindAllString(string(content), -1)
+	// should also be usable elsewhere
+	// for _, hashtag := range matches {
+	// 	tags.Append(vocab.Object{
+	// 		ID:   vocab.ID(svc.HashtagId(hashtag)),
+	// 		Name: vocab.NaturalLanguageValues{{Value: vocab.Content(hashtag)}},
+	// 	})
+	// }
+
+	note := vocab.Note{
+		ID:        vocab.ID(e.FullUrl(siteCfg)),
+		Type:      "Note",
+		Published: *e.PublishedAt(),
+		Content: vocab.NaturalLanguageValues{
+			{Value: vocab.Content(content)},
+		},
+		Tag: tags,
+	}
+	return note
+
 }
