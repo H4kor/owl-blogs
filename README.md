@@ -6,27 +6,14 @@ Owl-blogs is a blogging software focused on simplicity with IndieWeb and Fediver
 
 # Usage
 
-## Run
-
-To run the web server use the command:
-
-```
-owl web
-```
-
-The blog will run on port 3000 (http://localhost:3000)
-
-To create a new account:
-
-```
-owl new-author -u <name> -p <password>
-```
+**Detailed information can be found in  [Setup](SETUP.md)**
 
 To retrieve a list of all commands run:
 
 ```
 owl -h
 ```
+
 
 # Development
 
