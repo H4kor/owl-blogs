@@ -6,6 +6,8 @@ import (
 	"owl-blogs/app"
 	"owl-blogs/domain/model"
 	"owl-blogs/render"
+	"regexp"
+	"strings"
 
 	vocab "github.com/go-ap/activitypub"
 )
@@ -55,16 +57,6 @@ func (e *Note) ActivityObject(siteCfg model.SiteConfig, binSvc app.BinaryService
 
 	content := e.Content()
 	tags := vocab.ItemCollection{}
-	// TODO: move into more generic structure
-	// r := regexp.MustCompile("#[a-zA-Z0-9_]+")
-	// matches := r.FindAllString(string(content), -1)
-	// should also be usable elsewhere
-	// for _, hashtag := range matches {
-	// 	tags.Append(vocab.Object{
-	// 		ID:   vocab.ID(svc.HashtagId(hashtag)),
-	// 		Name: vocab.NaturalLanguageValues{{Value: vocab.Content(hashtag)}},
-	// 	})
-	// }
 
 	note := vocab.Note{
 		ID:        vocab.ID(e.FullUrl(siteCfg)),
@@ -77,4 +69,18 @@ func (e *Note) ActivityObject(siteCfg model.SiteConfig, binSvc app.BinaryService
 	}
 	return note
 
+}
+
+func (e *Note) Tags() []string {
+	// TODO: move into more generic structure
+	// should also be usable elsewhere
+	r := regexp.MustCompile("#[a-zA-Z0-9_]+")
+	content := e.meta.Content
+	matches := r.FindAllString(string(content), -1)
+	tags := make([]string, 0)
+	for _, hashtag := range matches {
+		tag, _ := strings.CutPrefix(hashtag, "#")
+		tags = append(tags, tag)
+	}
+	return tags
 }

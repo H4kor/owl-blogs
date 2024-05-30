@@ -27,6 +27,13 @@ import (
 	"github.com/microcosm-cc/bluemonday"
 )
 
+var ApEncoder = jsonld.WithContext(
+	jsonld.Context{
+		{IRI: jsonld.IRI(vocab.ActivityBaseURI)},
+		{Term: jsonld.Term("Hashtag"), IRI: jsonld.IRI("https://www.w3.org/ns/activitystreams#Hashtag")},
+	},
+)
+
 type ActivityPubConfig struct {
 	PreferredUsername string
 	PublicKeyPem      string
@@ -153,9 +160,9 @@ func (svc *ActivityPubService) AcccepId() string {
 	return cfg.FullUrl + "#accept-" + strconv.FormatInt(time.Now().UnixNano(), 16)
 }
 
-func (svc *ActivityPubService) HashtagId(hashtag string) string {
+func (svc *ActivityPubService) HashtagId(tag string) string {
 	cfg, _ := svc.siteConfigServcie.GetSiteConfig()
-	return cfg.FullUrl + "/tags/" + strings.ReplaceAll(hashtag, "#", "")
+	return cfg.FullUrl + "/tags/" + tag + "/"
 }
 
 func (svc *ActivityPubService) ActorName() string {
@@ -540,7 +547,7 @@ func (svc *ActivityPubService) NotifyEntryCreated(entry model.Entry) {
 		slog.Error("Cannot retrieve followers")
 	}
 
-	object, err := svc.entryToObject(entry)
+	object, err := svc.EntryToObject(entry)
 	if err != nil {
 		slog.Error("Cannot convert object", "err", err)
 	}
@@ -549,15 +556,7 @@ func (svc *ActivityPubService) NotifyEntryCreated(entry model.Entry) {
 	create.Actor = object.AttributedTo
 	create.To = object.To
 	create.Published = object.Published
-	data, err := jsonld.WithContext(
-		jsonld.IRI(vocab.ActivityBaseURI),
-		jsonld.Context{
-			jsonld.ContextElement{
-				Term: "toot",
-				IRI:  jsonld.IRI("http://joinmastodon.org/ns#"),
-			},
-		},
-	).Marshal(create)
+	data, err := ApEncoder.Marshal(create)
 	if err != nil {
 		slog.Error("marshalling error", "err", err)
 	}
@@ -578,7 +577,7 @@ func (svc *ActivityPubService) NotifyEntryUpdated(entry model.Entry) {
 		slog.Error("Cannot retrieve followers")
 	}
 
-	object, err := svc.entryToObject(entry)
+	object, err := svc.EntryToObject(entry)
 	if err != nil {
 		slog.Error("Cannot convert object", "err", err)
 	}
@@ -587,15 +586,7 @@ func (svc *ActivityPubService) NotifyEntryUpdated(entry model.Entry) {
 	create.Actor = object.AttributedTo
 	create.To = object.To
 	create.Published = object.Published
-	data, err := jsonld.WithContext(
-		jsonld.IRI(vocab.ActivityBaseURI),
-		jsonld.Context{
-			jsonld.ContextElement{
-				Term: "toot",
-				IRI:  jsonld.IRI("http://joinmastodon.org/ns#"),
-			},
-		},
-	).Marshal(create)
+	data, err := ApEncoder.Marshal(create)
 	if err != nil {
 		slog.Error("marshalling error", "err", err)
 	}
@@ -610,7 +601,7 @@ func (svc *ActivityPubService) NotifyEntryUpdated(entry model.Entry) {
 }
 
 func (svc *ActivityPubService) NotifyEntryDeleted(entry model.Entry) {
-	obj, err := svc.entryToObject(entry)
+	obj, err := svc.EntryToObject(entry)
 	if err != nil {
 		slog.Error("error converting to object", "err", err)
 		return
@@ -625,9 +616,7 @@ func (svc *ActivityPubService) NotifyEntryDeleted(entry model.Entry) {
 	delete.Actor = obj.AttributedTo
 	delete.To = obj.To
 	delete.Published = time.Now()
-	data, err := jsonld.WithContext(
-		jsonld.IRI(vocab.ActivityBaseURI),
-	).Marshal(delete)
+	data, err := ApEncoder.Marshal(delete)
 	if err != nil {
 		slog.Error("marshalling error", "err", err)
 	}
@@ -642,7 +631,7 @@ func (svc *ActivityPubService) NotifyEntryDeleted(entry model.Entry) {
 
 }
 
-func (svc *ActivityPubService) entryToObject(entry model.Entry) (vocab.Object, error) {
+func (svc *ActivityPubService) EntryToObject(entry model.Entry) (vocab.Object, error) {
 	// limit to notes for now
 
 	if activityEntry, ok := entry.(ToActivityPub); ok {
@@ -654,6 +643,16 @@ func (svc *ActivityPubService) entryToObject(entry model.Entry) (vocab.Object, e
 			vocab.IRI(svc.FollowersUrl()),
 		}
 		obj.AttributedTo = vocab.ID(svc.ActorUrl())
+
+		for _, tag := range entry.Tags() {
+			hashtag := vocab.LinkNew("", "Hashtag")
+			hashtag.Type = "Hashtag"
+			hashtag.Href = vocab.IRI(svc.HashtagId(tag))
+			hashtag.Name = vocab.NaturalLanguageValues{
+				{Value: vocab.Content("#" + tag)},
+			}
+			obj.Tag = append(obj.Tag, hashtag)
+		}
 
 		return obj, nil
 	}
