@@ -85,8 +85,9 @@ func (i *Instagram) NotifyEntryCreated(entry model.Entry) {
 
 	_, err = client.Upload(
 		&goinsta.UploadOptions{
-			File:    bytes.NewReader(bin.Data),
-			Caption: image.Title(),
+			File: bytes.NewReader(bin.Data),
+			// using meta content here to avoid HTML in Instagram
+			Caption: image.Title() + "\n\n" + meta.Content,
 		},
 	)
 	if err != nil {

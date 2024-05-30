@@ -69,3 +69,6 @@ func (e *Article) ActivityObject(siteCfg model.SiteConfig, binSvc app.BinaryServ
 	return image
 
 }
+func (e *Article) Tags() []string {
+	return extractTags(e.meta.Content)
+}

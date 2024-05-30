@@ -51,3 +51,7 @@ func (e *Reply) MetaData() model.EntryMetaData {
 func (e *Reply) SetMetaData(metaData model.EntryMetaData) {
 	e.meta = *metaData.(*ReplyMetaData)
 }
+
+func (e *Reply) Tags() []string {
+	return extractTags(e.meta.Content)
+}

@@ -83,3 +83,7 @@ func (e *Recipe) ActivityObject(siteCfg model.SiteConfig, binSvc app.BinaryServi
 	return image
 
 }
+
+func (e *Recipe) Tags() []string {
+	return extractTags(e.meta.Content)
+}

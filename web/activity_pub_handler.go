@@ -263,7 +263,7 @@ func (s *ActivityPubServer) processDelete(r *http.Request, act *vocab.Activity) 
 		return err
 	}
 
-	return vocab.OnObject(act.Object, func(o *vocab.Object) error {
+	err = vocab.OnObject(act.Object, func(o *vocab.Object) error {
 		if o.Type == vocab.NoteType || o.Type == vocab.ArticleType {
 			return s.apService.RemoveReply(o.ID.String())
 		}
@@ -271,6 +271,10 @@ func (s *ActivityPubServer) processDelete(r *http.Request, act *vocab.Activity) 
 		slog.Warn("Not processing delete", "action", act, "object", o)
 		return nil
 	})
+	// error can be because object is an IRI
+	// this can be safely ignored -> log as warning and return nil
+	slog.Warn("Error on procressDelete", "error", err)
+	return nil
 }
 
 func (s *ActivityPubServer) HandleInbox(ctx *fiber.Ctx) error {

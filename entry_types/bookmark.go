@@ -51,3 +51,7 @@ func (e *Bookmark) MetaData() model.EntryMetaData {
 func (e *Bookmark) SetMetaData(metaData model.EntryMetaData) {
 	e.meta = *metaData.(*BookmarkMetaData)
 }
+
+func (e *Bookmark) Tags() []string {
+	return extractTags(e.meta.Content)
+}
