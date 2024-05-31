@@ -716,7 +716,7 @@ func (svc *ActivityPubService) EntryToObject(entry model.Entry) (vocab.Object, e
 		}
 
 		// if "inReplyTo" is set -> add actor to recipients
-		if obj.InReplyTo.GetID() != "" {
+		if obj.InReplyTo != nil && obj.InReplyTo.GetID() != "" {
 			replyObj, err := svc.GetObject(string(obj.InReplyTo.GetID()))
 			if err == nil {
 				obj.To = append(obj.To, replyObj.AttributedTo.GetID())
