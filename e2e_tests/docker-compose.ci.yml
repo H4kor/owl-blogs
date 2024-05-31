@@ -3,7 +3,7 @@ services:
     build:
       context: ../
       dockerfile: Dockerfile
-    command: web
+    command: /bin/owl web
     ports:
       - "3000:3000"
   mock_masto:
