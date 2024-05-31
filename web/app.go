@@ -125,7 +125,7 @@ func NewWebApp(
 	// RSS
 	fiberApp.Get("/index.xml", rssHandler.Handle)
 	// Posts
-	fiberApp.Get("/posts/:post/", entryHandler.Handle)
+	fiberApp.Get("/posts/:post/", activityPubServer.HandleEntry, entryHandler.Handle)
 	// Webmention
 	fiberApp.Post("/webmention/", webmentionHandler.Handle)
 	// robots.txt

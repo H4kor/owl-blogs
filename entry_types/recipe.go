@@ -70,7 +70,7 @@ func (e *Recipe) SetMetaData(metaData model.EntryMetaData) {
 func (e *Recipe) ActivityObject(siteCfg model.SiteConfig, binSvc app.BinaryService) vocab.Object {
 	content := e.Content()
 
-	image := vocab.Article{
+	obj := vocab.Article{
 		Type:      "Article",
 		Published: *e.PublishedAt(),
 		Name: vocab.NaturalLanguageValues{
@@ -80,7 +80,7 @@ func (e *Recipe) ActivityObject(siteCfg model.SiteConfig, binSvc app.BinaryServi
 			{Value: vocab.Content(string(content))},
 		},
 	}
-	return image
+	return obj
 
 }
 

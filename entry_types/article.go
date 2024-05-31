@@ -56,7 +56,7 @@ func (e *Article) SetMetaData(metaData model.EntryMetaData) {
 func (e *Article) ActivityObject(siteCfg model.SiteConfig, binSvc app.BinaryService) vocab.Object {
 	content := e.Content()
 
-	image := vocab.Article{
+	obj := vocab.Article{
 		Type:      "Article",
 		Published: *e.PublishedAt(),
 		Name: vocab.NaturalLanguageValues{
@@ -66,9 +66,10 @@ func (e *Article) ActivityObject(siteCfg model.SiteConfig, binSvc app.BinaryServ
 			{Value: vocab.Content(string(content))},
 		},
 	}
-	return image
+	return obj
 
 }
+
 func (e *Article) Tags() []string {
 	return extractTags(e.meta.Content)
 }

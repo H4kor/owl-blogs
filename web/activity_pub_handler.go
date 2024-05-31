@@ -1,6 +1,7 @@
 package web
 
 import (
+	"errors"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -102,6 +103,33 @@ func (s *ActivityPubServer) HandleActor(ctx *fiber.Ctx) error {
 		jsonld.IRI(vocab.ActivityBaseURI),
 		jsonld.IRI(vocab.SecurityContextURI),
 	).Marshal(actor)
+	if err != nil {
+		return s.handleError(ctx, err)
+	}
+	ctx.Set("Content-Type", "application/ld+json; profile=\"https://www.w3.org/ns/activitystreams\"")
+	return ctx.Send(data)
+}
+
+func (s *ActivityPubServer) HandleEntry(ctx *fiber.Ctx) error {
+	if !isActivityPub(ctx) {
+		return ctx.Next()
+	}
+
+	entryId := ctx.Params("post")
+	entry, err := s.entryService.FindById(entryId)
+	if err != nil {
+		return err
+	}
+
+	obj, err := s.apService.EntryToObject(entry)
+	if err != nil {
+		if errors.Is(err, app.ErrEntryTypeNotSupported) || errors.Is(err, app.ErrEntryNotFound) {
+			return ctx.SendStatus(404)
+		}
+		return err
+	}
+
+	data, err := app.ApEncoder.Marshal(obj)
 	if err != nil {
 		return s.handleError(ctx, err)
 	}
