@@ -273,6 +273,58 @@ func (s *ActivityPubService) GetActor(reqUrl string) (vocab.Actor, error) {
 	return actor, err
 }
 
+func (s *ActivityPubService) GetObject(objUrl string) (vocab.Object, error) {
+
+	siteConfig := model.SiteConfig{}
+	apConfig := ActivityPubConfig{}
+	s.configRepo.Get(config.ACT_PUB_CONF_NAME, &apConfig)
+	s.configRepo.Get(config.SITE_CONFIG, &siteConfig)
+
+	c := http.Client{}
+
+	parsedUrl, err := url.Parse(objUrl)
+	if err != nil {
+		slog.Error("parse error", "err", err)
+		return vocab.Object{}, err
+	}
+
+	req, _ := http.NewRequest("GET", objUrl, nil)
+	req.Header.Set("Accept", "application/ld+json")
+	req.Header.Set("Date", time.Now().Format(http.TimeFormat))
+	req.Header.Set("Host", parsedUrl.Host)
+
+	err = s.sign(apConfig.PrivateKey(), s.MainKeyUri(), nil, req)
+	if err != nil {
+		slog.Error("Signing error", "err", err)
+		return vocab.Object{}, err
+	}
+
+	resp, err := c.Do(req)
+	if err != nil {
+		slog.Error("failed to retrieve object", "err", err, "url", objUrl)
+		return vocab.Object{}, err
+	}
+
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return vocab.Object{}, err
+	}
+
+	item, err := vocab.UnmarshalJSON(data)
+	if err != nil {
+		return vocab.Object{}, err
+	}
+
+	var obj vocab.Object
+
+	err = vocab.OnObject(item, func(o *vocab.Object) error {
+		obj = *o
+		return nil
+	})
+
+	return obj, err
+}
+
 func (s *ActivityPubService) VerifySignature(r *http.Request, sender string) error {
 	siteConfig := model.SiteConfig{}
 	apConfig := ActivityPubConfig{}
@@ -598,6 +650,15 @@ func (svc *ActivityPubService) NotifyEntryUpdated(entry model.Entry) {
 		}
 		svc.sendObject(actor, data)
 	}
+
+	for _, to := range create.To {
+		actor, err := svc.GetActor(to.GetID().String())
+		if err != nil {
+			slog.Error("Unable to retrieve follower actor", "err", err)
+		}
+		svc.sendObject(actor, data)
+	}
+
 }
 
 func (svc *ActivityPubService) NotifyEntryDeleted(entry model.Entry) {
@@ -652,6 +713,21 @@ func (svc *ActivityPubService) EntryToObject(entry model.Entry) (vocab.Object, e
 				{Value: vocab.Content("#" + tag)},
 			}
 			obj.Tag = append(obj.Tag, hashtag)
+		}
+
+		// if "inReplyTo" is set -> add actor to recipients
+		if obj.InReplyTo.GetID() != "" {
+			replyObj, err := svc.GetObject(string(obj.InReplyTo.GetID()))
+			if err == nil {
+				obj.To = append(obj.To, replyObj.AttributedTo.GetID())
+				mention := vocab.MentionNew(
+					replyObj.AttributedTo.GetID(),
+				)
+				mention.Href = vocab.ID(replyObj.AttributedTo.GetID())
+				obj.Tag = append(obj.Tag, mention)
+			} else {
+				slog.Warn("could not get reply object", "error", err)
+			}
 		}
 
 		return obj, nil

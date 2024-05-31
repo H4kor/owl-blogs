@@ -3,8 +3,11 @@ package entrytypes
 import (
 	"fmt"
 	"html/template"
+	"owl-blogs/app"
 	"owl-blogs/domain/model"
 	"owl-blogs/render"
+
+	vocab "github.com/go-ap/activitypub"
 )
 
 type Reply struct {
@@ -50,6 +53,24 @@ func (e *Reply) MetaData() model.EntryMetaData {
 
 func (e *Reply) SetMetaData(metaData model.EntryMetaData) {
 	e.meta = *metaData.(*ReplyMetaData)
+}
+
+func (e *Reply) ActivityObject(siteCfg model.SiteConfig, binSvc app.BinaryService) vocab.Object {
+	content := e.Content()
+
+	obj := vocab.Article{
+		Type:      "Article",
+		Published: *e.PublishedAt(),
+		Name: vocab.NaturalLanguageValues{
+			{Value: vocab.Content(e.Title())},
+		},
+		Content: vocab.NaturalLanguageValues{
+			{Value: vocab.Content(string(content))},
+		},
+		InReplyTo: vocab.IRI(e.meta.Url),
+	}
+	return obj
+
 }
 
 func (e *Reply) Tags() []string {
