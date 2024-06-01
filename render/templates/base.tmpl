@@ -52,6 +52,7 @@
             <nav>
                 <ul>
                     <li><a target="_blank" href="/index.xml">RSS Feed</a></li>
+                    <li><a href="/tags/">Tags</a></li>
                     {{ range $link := .SiteConfig.FooterMenu }}
                         {{ if $link.List }}
                             <li><a href="/lists/{{ $link.List }}">{{ $link.Title }}</a></li>
