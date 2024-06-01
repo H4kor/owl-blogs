@@ -12,6 +12,7 @@ import (
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/renderer/html"
+	"go.abhg.dev/goldmark/hashtag"
 )
 
 type TemplateData struct {
@@ -83,14 +84,26 @@ func RenderTemplateToString(templateName string, data interface{}) (template.HTM
 	return template.HTML(output.String()), err
 }
 
+type HashTagResolver struct {
+}
+
+// ResolveHashtag reports the link that the provided hashtag Node
+// should point to, or an empty destination for hashtags that should
+// not link to anything.
+func (*HashTagResolver) ResolveHashtag(node *hashtag.Node) (destination []byte, err error) {
+	return []byte("/tags/" + string(node.Tag) + "/"), nil
+}
+
 func RenderMarkdown(mdText string) (string, error) {
 	markdown := goldmark.New(
 		goldmark.WithRendererOptions(
 			html.WithUnsafe(),
 		),
 		goldmark.WithExtensions(
-			// meta.Meta,
 			extension.GFM,
+			&hashtag.Extender{
+				Resolver: &HashTagResolver{},
+			},
 		),
 	)
 	var buf bytes.Buffer
