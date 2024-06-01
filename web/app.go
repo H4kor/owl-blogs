@@ -46,6 +46,7 @@ func NewWebApp(
 
 	indexHandler := NewIndexHandler(entryService, siteConfigService)
 	listHandler := NewListHandler(entryService, siteConfigService)
+	tagHandler := NewTagHandler(entryService, siteConfigService)
 	entryHandler := NewEntryHandler(entryService, typeRegistry, authorService, configRepo, interactionRepo)
 	mediaHandler := NewMediaHandler(binService)
 	rssHandler := NewRSSHandler(entryService, siteConfigService)
@@ -119,13 +120,16 @@ func NewWebApp(
 		Browse:     false,
 	}))
 	fiberApp.Get("/", activityPubServer.HandleActor, indexHandler.Handle)
+	// Posts
+	fiberApp.Get("/posts/:post/", activityPubServer.HandleEntry, entryHandler.Handle)
+	// Tags
+	fiberApp.Get("/tags/:tag/", tagHandler.Handle)
+	// Lists
 	fiberApp.Get("/lists/:list/", listHandler.Handle)
 	// Media
 	fiberApp.Get("/media/+", mediaHandler.Handle)
 	// RSS
 	fiberApp.Get("/index.xml", rssHandler.Handle)
-	// Posts
-	fiberApp.Get("/posts/:post/", activityPubServer.HandleEntry, entryHandler.Handle)
 	// Webmention
 	fiberApp.Post("/webmention/", webmentionHandler.Handle)
 	// robots.txt

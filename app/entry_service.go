@@ -126,6 +126,11 @@ func (s *EntryService) FindAllByType(types *[]string, published bool, drafts boo
 
 }
 
+func (s *EntryService) FindAllByTag(tag string, published bool, drafts bool) ([]model.Entry, error) {
+	entries, err := s.EntryRepository.FindAllByTag(tag)
+	return s.filterEntries(entries, published, drafts), err
+}
+
 func (s *EntryService) FindAll() ([]model.Entry, error) {
 	entries, err := s.EntryRepository.FindAll(nil)
 	return s.filterEntries(entries, true, true), err
