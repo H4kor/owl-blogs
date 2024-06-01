@@ -10,6 +10,7 @@ type EntryRepository interface {
 	Delete(entry model.Entry) error
 	FindById(id string) (model.Entry, error)
 	FindAll(types *[]string) ([]model.Entry, error)
+	FindAllByTag(tag string) ([]model.Entry, error)
 }
 
 type BinaryRepository interface {

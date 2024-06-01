@@ -6,6 +6,7 @@ import (
 	"owl-blogs/app/repository"
 	"owl-blogs/domain/model"
 	"reflect"
+	"slices"
 	"strings"
 	"time"
 
@@ -109,6 +110,23 @@ func (r *DefaultEntryRepo) FindAll(types *[]string) ([]model.Entry, error) {
 		result = append(result, e)
 	}
 	return result, nil
+}
+
+// FindAll implements repository.EntryRepository.
+func (r *DefaultEntryRepo) FindAllByTag(tag string) ([]model.Entry, error) {
+	// tags are not persisted into database (yet)
+	// therefore we have to get all entries and filter in application
+	entries, err := r.FindAll(nil)
+	if err != nil {
+		return nil, err
+	}
+	tagEntries := make([]model.Entry, 0)
+	for _, e := range entries {
+		if slices.Contains(e.Tags(), tag) {
+			tagEntries = append(tagEntries, e)
+		}
+	}
+	return tagEntries, nil
 }
 
 // FindById implements repository.EntryRepository.
