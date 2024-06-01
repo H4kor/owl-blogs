@@ -3,9 +3,9 @@
 
 {{define "main"}}
 
-<div class="h-feed">
+<div role="feed" class="h-feed">
 {{ range .Entries }}
-    <div class="h-entry">
+    <article class="h-entry">
         <h1 class="entry-title">
             <a class="u-url" href="/posts/{{ .ID }}/">
                 {{if .Title}}
@@ -24,7 +24,7 @@
             {{ end }}
         </div> 
         {{ .Content }}
-    </div>
+    </article>
     <hr>
 {{ end }}
 </div>

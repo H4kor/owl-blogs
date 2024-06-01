@@ -21,7 +21,7 @@
     <br>
 {{ end }}
 
-<div class="h-entry">
+<article class="h-entry">
     {{if .Entry.Title}}
         <h1 class="p-name entry-title">{{.Entry.Title}}</h1>
     {{else}}
@@ -51,7 +51,7 @@
         {{.Entry.Content}}
     </div>
 
-</div>
+</article>
 
 {{if .Interactions}}
 <br>
@@ -62,16 +62,18 @@
     Interactions
 </h4>
 {{range .Interactions}}
-    {{ .Content }}
-    {{ if $.LoggedIn }}
-        <form style="border: 2px dashed var(--secondary);background-color:var(--secondary-l4);" method="post" action="/admin/interactions/delete/?id={{.ID}}" class="grid">
-            <label for="confirm" style="margin: auto 0;">
-                Confirm deletion
-            </label>
-            <input type="checkbox" name="confirm" id="confirm" required />
-            <input type="submit" class="secondary" value="Delete" />
-        </form>
-    {{ end }}
+    <div role="comment">
+        {{ .Content }}
+        {{ if $.LoggedIn }}
+            <form style="border: 2px dashed var(--secondary);background-color:var(--secondary-l4);" method="post" action="/admin/interactions/delete/?id={{.ID}}" class="grid">
+                <label for="confirm" style="margin: auto 0;">
+                    Confirm deletion
+                </label>
+                <input type="checkbox" name="confirm" id="confirm" required />
+                <input type="submit" class="secondary" value="Delete" />
+            </form>
+        {{ end }}
+    </div>
     <hr>
     {{end}}
 {{end}}
