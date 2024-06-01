@@ -35,6 +35,16 @@ type tagRenderData struct {
 	LastPage  bool
 }
 
+func (h *TagHandler) HandleList(c *fiber.Ctx) error {
+	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
+	tagcounts, err := h.entrySvc.ListTags()
+	if err != nil {
+		return err
+	}
+
+	return render.RenderTemplateWithBase(c, "views/tag_list", tagcounts)
+}
+
 func (h *TagHandler) Handle(c *fiber.Ctx) error {
 	c.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
 	tag := c.Params("tag")

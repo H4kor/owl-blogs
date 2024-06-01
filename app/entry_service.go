@@ -5,9 +5,14 @@ import (
 	"owl-blogs/app/repository"
 	"owl-blogs/domain/model"
 	"regexp"
+	"slices"
 	"strings"
 )
 
+type TagCount struct {
+	Tag   string
+	Count int
+}
 type EntryService struct {
 	EntryRepository   repository.EntryRepository
 	siteConfigServcie *SiteConfigService
@@ -129,6 +134,38 @@ func (s *EntryService) FindAllByType(types *[]string, published bool, drafts boo
 func (s *EntryService) FindAllByTag(tag string, published bool, drafts bool) ([]model.Entry, error) {
 	entries, err := s.EntryRepository.FindAllByTag(tag)
 	return s.filterEntries(entries, published, drafts), err
+}
+
+func (s *EntryService) ListTags() ([]TagCount, error) {
+	entries, err := s.FindAllByType(nil, true, false)
+	if err != nil {
+		return nil, err
+	}
+	counts := map[string]int{}
+	for _, e := range entries {
+		for _, t := range e.Tags() {
+			c := counts[t]
+			counts[t] = c + 1
+		}
+	}
+	ret := make([]TagCount, 0)
+	for tag, count := range counts {
+		ret = append(ret,
+			TagCount{
+				Tag:   tag,
+				Count: count,
+			},
+		)
+	}
+	// order by count descending
+	slices.SortFunc(ret, func(a TagCount, b TagCount) int {
+		if b.Count-a.Count != 0 {
+			return b.Count - a.Count
+		} else {
+			return strings.Compare(a.Tag, b.Tag)
+		}
+	})
+	return ret, nil
 }
 
 func (s *EntryService) FindAll() ([]model.Entry, error) {

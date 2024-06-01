@@ -123,6 +123,7 @@ func NewWebApp(
 	// Posts
 	fiberApp.Get("/posts/:post/", activityPubServer.HandleEntry, entryHandler.Handle)
 	// Tags
+	fiberApp.Get("/tags/", tagHandler.HandleList)
 	fiberApp.Get("/tags/:tag/", tagHandler.Handle)
 	// Lists
 	fiberApp.Get("/lists/:list/", listHandler.Handle)

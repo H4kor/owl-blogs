@@ -1,0 +1,12 @@
+{{define "title"}}Tags{{end}}
+{{define "head"}}{{end}}
+
+{{define "main"}}
+
+<ul>
+{{ range . }}
+    <li><a href="/tags/{{.Tag}}/">{{.Tag}}</a>, {{.Count}}</li>
+{{ end }}
+</ul>
+
+{{end}}
