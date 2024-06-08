@@ -23,7 +23,7 @@ owl -h
 CGO_ENABLED=1 go build -o owl ./cmd/owl
 ```
 
-For development with live reload use `air` ([has to be install first](https://github.com/cosmtrek/air))
+For development with live reload use `air` ([has to be install first](https://github.com/air-verse/air))
 
 ## Tests
 

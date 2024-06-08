@@ -3,7 +3,7 @@ testdata_dir = "testdata"
 tmp_dir = "/tmp"
 
 [build]
-  args_bin = ["web"]
+  args_bin = ["web", "-b", ":3000"]
   bin = "/tmp/main"
   cmd = "go build -buildvcs=false -o /tmp/main owl-blogs/cmd/owl"
   delay = 1000
