@@ -14,11 +14,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const DbPath = "owlblogs.db"
+var DbPath string
 
 var rootCmd = &cobra.Command{
 	Use:   "owl",
 	Short: "Owl Blogs is a not so static blog generator",
+}
+
+func init() {
+	rootCmd.PersistentFlags().StringVarP(&DbPath, "file", "f", "owlblogs.db", "Path to blog file")
 }
 
 func Execute() {

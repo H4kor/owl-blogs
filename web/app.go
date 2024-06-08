@@ -157,6 +157,11 @@ func NewWebApp(
 	}
 }
 
-func (w *WebApp) Run() {
-	w.FiberApp.Listen(":3000")
+func (w *WebApp) Run(host string, port string) {
+	listen := fmt.Sprintf("%s:%s", host, port)
+	fmt.Printf("owl-blogs starts listning on: %s\n", listen)
+	err := w.FiberApp.Listen(listen)
+	if err != nil {
+		panic(fmt.Sprintf("%v", err))
+	}
 }

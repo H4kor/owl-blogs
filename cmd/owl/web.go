@@ -6,8 +6,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var port string
+var host string
+
 func init() {
 	rootCmd.AddCommand(webCmd)
+
+	webCmd.Flags().StringVarP(&port, "port", "p", "3000", "Port to listen on")
+	webCmd.Flags().StringVarP(&host, "host", "b", "localhost", "Address to listen on")
+
 }
 
 var webCmd = &cobra.Command{
@@ -16,6 +23,6 @@ var webCmd = &cobra.Command{
 	Long:  `Start the web server`,
 	Run: func(cmd *cobra.Command, args []string) {
 		db := infra.NewSqliteDB(DbPath)
-		App(db).Run()
+		App(db).Run(host, port)
 	},
 }
