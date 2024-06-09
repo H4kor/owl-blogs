@@ -104,6 +104,7 @@ func RenderMarkdown(mdText string) (string, error) {
 			&hashtag.Extender{
 				Resolver: &HashTagResolver{},
 			},
+			&ThumbnailExtension{},
 		),
 	)
 	var buf bytes.Buffer

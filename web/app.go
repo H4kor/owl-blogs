@@ -30,6 +30,7 @@ func NewWebApp(
 	entryService *app.EntryService,
 	typeRegistry *app.EntryTypeRegistry,
 	binService *app.BinaryService,
+	thumbnailService *app.ThumbnailService,
 	authorService *app.AuthorService,
 	configRepo repository.ConfigRepository,
 	configRegister *app.ConfigRegister,
@@ -56,6 +57,7 @@ func NewWebApp(
 	tagHandler := NewTagHandler(entryService, siteConfigService)
 	entryHandler := NewEntryHandler(entryService, typeRegistry, authorService, configRepo, interactionRepo)
 	mediaHandler := NewMediaHandler(binService)
+	thumbnailHandler := NewThumbnailHandler(binService, thumbnailService)
 	rssHandler := NewRSSHandler(entryService, siteConfigService)
 	loginHandler := NewLoginHandler(authorService, configRepo)
 	editorHandler := NewEditorHandler(entryService, typeRegistry, binService, configRepo)
@@ -136,6 +138,7 @@ func NewWebApp(
 	fiberApp.Get("/lists/:list/", listHandler.Handle)
 	// Media
 	fiberApp.Get("/media/+", mediaHandler.Handle)
+	fiberApp.Get("/thumbnail/+", thumbnailHandler.Handle)
 	// RSS
 	fiberApp.Get("/index.xml", rssHandler.Handle)
 	// Webmention

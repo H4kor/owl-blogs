@@ -27,6 +27,16 @@ type BinaryRepository interface {
 	Delete(binary *model.BinaryFile) error
 }
 
+type ThumbnailRepository interface {
+	// Save saves a thumbnail for a BinaryFile.
+	// If a thumbnail already exists it is overwritten
+	Save(binaryFileId string, mimeType string, data []byte) (*model.Thumbnail, error)
+	// Delete deletes the thumbnail of a BinaryFile.
+	Delete(binaryFileId string) error
+	// Get returns the Thumbnail for a BinaryFile.
+	Get(binaryFileId string) (*model.Thumbnail, error)
+}
+
 type AuthorRepository interface {
 	// Create creates a new author
 	// It returns an error if the name is already taken

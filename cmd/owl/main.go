@@ -54,6 +54,7 @@ func App(db infra.Database) *web.WebApp {
 	// Create Repositories
 	entryRepo := infra.NewEntryRepository(db, entryRegister)
 	binRepo := infra.NewBinaryFileRepo(db)
+	thumbnailRepo := infra.NewThumbnailRepo(db)
 	authorRepo := infra.NewDefaultAuthorRepo(db)
 	configRepo := infra.NewConfigRepo(db)
 	interactionRepo := infra.NewInteractionRepo(db, interactionRegister)
@@ -69,6 +70,7 @@ func App(db infra.Database) *web.WebApp {
 	siteConfigService := app.NewSiteConfigService(configRepo)
 	entryService := app.NewEntryService(entryRepo, siteConfigService, eventBus)
 	binaryService := app.NewBinaryFileService(binRepo)
+	thumbnailService := app.NewThumbnailService(thumbnailRepo)
 	authorService := app.NewAuthorService(authorRepo, siteConfigService)
 	webmentionService := app.NewWebmentionService(
 		siteConfigService, interactionRepo, entryRepo, httpClient, eventBus,
@@ -90,7 +92,7 @@ func App(db infra.Database) *web.WebApp {
 
 	// Create WebApp
 	return web.NewWebApp(
-		entryService, entryRegister, binaryService,
+		entryService, entryRegister, binaryService, thumbnailService,
 		authorService, configRepo, configRegister,
 		siteConfigService, webmentionService, interactionRepo,
 		apService,

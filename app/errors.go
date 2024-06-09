@@ -23,6 +23,7 @@ func (e *webError) Status() int {
 var (
 	ErrNoActorInbox          error    = errors.New("actor has no inbox")
 	ErrEntryTypeNotSupported error    = errors.New("entry type not supported")
+	ErrBinaryFileNotAnImage  error    = errors.New("binary file is not an image")
 	ErrEntryNotFound         WebError = &webError{
 		status: 404,
 		msg:    "entry not found",
