@@ -50,6 +50,7 @@ require (
 	github.com/valyala/fastjson v1.6.4 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	go.abhg.dev/goldmark/hashtag v0.3.1 // indirect
+	golang.org/x/image v0.17.0 // indirect
 	golang.org/x/sys v0.20.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
