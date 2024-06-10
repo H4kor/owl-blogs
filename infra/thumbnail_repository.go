@@ -56,7 +56,7 @@ func (d *DefaultThumbnailRepo) Get(binaryFileId string) (*model.Thumbnail, error
 
 // Save implements repository.ThumbnailRepository.
 func (d *DefaultThumbnailRepo) Save(binaryFileId string, mimeType string, data []byte) (*model.Thumbnail, error) {
-	_, err := d.db.Exec("INSERT OR REPLACE INTO thumbnails (binary_file_id, data, mime_type) VALUE (?,?,?)")
+	_, err := d.db.Exec("INSERT OR REPLACE INTO thumbnails (binary_file_id, data, mime_type) VALUES (?,?,?)", binaryFileId, data, mimeType)
 	return &model.Thumbnail{
 		BinaryFileId: binaryFileId,
 		MimeType:     mimeType,

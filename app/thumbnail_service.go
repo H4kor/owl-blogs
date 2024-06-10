@@ -6,7 +6,9 @@ import (
 	"image"
 	"image/jpeg"
 	_ "image/jpeg"
+	"image/png"
 	_ "image/png"
+	"io"
 	"owl-blogs/app/repository"
 	"owl-blogs/domain/model"
 	"strings"
@@ -30,8 +32,27 @@ func (s *ThumbnailService) GetThumbnailForBinaryFileId(binaryFileId string) (*mo
 	return s.repo.Get(binaryFileId)
 }
 
+func (s *ThumbnailService) JpegEncode(w io.Writer, m image.Image) error {
+	return jpeg.Encode(w, m, &jpeg.Options{Quality: 90})
+}
+
 func (s *ThumbnailService) CreateThumbnailForBinary(binary *model.BinaryFile) (*model.Thumbnail, error) {
-	if strings.HasPrefix(binary.Mime(), "image") {
+	if strings.HasPrefix(binary.Mime(), "image/") {
+		// determine data format
+		format, _ := strings.CutPrefix(binary.Mime(), "image/")
+
+		var encoder func(w io.Writer, m image.Image) error
+		switch format {
+		case "png":
+			encoder = png.Encode
+		case "jpeg":
+			encoder = s.JpegEncode
+		case "jpg":
+			encoder = s.JpegEncode
+		default:
+			return nil, ErrBinaryFileUnsupportedFormat
+		}
+
 		img, _, err := image.Decode(bytes.NewReader(binary.Data))
 		if err != nil {
 			return nil, err
@@ -42,8 +63,8 @@ func (s *ThumbnailService) CreateThumbnailForBinary(binary *model.BinaryFile) (*
 
 		var data []byte
 		if imgWidth > MAX_WIDTH {
-			h := MAX_WIDTH
-			w := int(float32(imgHeight) * float32(MAX_WIDTH) / float32(imgWidth))
+			w := MAX_WIDTH
+			h := int(float32(imgHeight) * float32(MAX_WIDTH) / float32(imgWidth))
 			if w == 0 {
 				w = 1
 			}
@@ -54,13 +75,13 @@ func (s *ThumbnailService) CreateThumbnailForBinary(binary *model.BinaryFile) (*
 
 			var b bytes.Buffer
 			output := bufio.NewWriter(&b)
-			jpeg.Encode(output, dst, nil)
+			encoder(output, dst)
 			data = b.Bytes()
 		} else {
 			// no need for resizing, image is small enough
 			data = binary.Data
 		}
-		return s.repo.Save(binary.Id, "image/jpeg", data)
+		return s.repo.Save(binary.Id, binary.Mime(), data)
 	}
 	return nil, ErrBinaryFileNotAnImage
 }
