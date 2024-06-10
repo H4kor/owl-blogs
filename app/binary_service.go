@@ -7,10 +7,11 @@ import (
 
 type BinaryService struct {
 	repo repository.BinaryRepository
+	bus  *EventBus
 }
 
-func NewBinaryFileService(repo repository.BinaryRepository) *BinaryService {
-	return &BinaryService{repo: repo}
+func NewBinaryFileService(repo repository.BinaryRepository, bus *EventBus) *BinaryService {
+	return &BinaryService{repo: repo, bus: bus}
 }
 
 func (s *BinaryService) Create(name string, file []byte) (*model.BinaryFile, error) {
@@ -33,5 +34,6 @@ func (s *BinaryService) ListIds(filter string) ([]string, error) {
 }
 
 func (s *BinaryService) Delete(binary *model.BinaryFile) error {
+	defer s.bus.NotifyBinaryDeleted(*binary)
 	return s.repo.Delete(binary)
 }

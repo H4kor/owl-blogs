@@ -14,6 +14,10 @@ type EntryDeletedSubscriber interface {
 	NotifyEntryDeleted(entry model.Entry)
 }
 
+type BinaryFileDeletedSubscriber interface {
+	NotifyBinaryFileDeleted(binaryFile model.BinaryFile)
+}
+
 type EventBus struct {
 	subscribers []Subscriber
 }
@@ -46,6 +50,14 @@ func (b *EventBus) NotifyDeleted(entry model.Entry) {
 	for _, subscriber := range b.subscribers {
 		if sub, ok := subscriber.(EntryDeletedSubscriber); ok {
 			go sub.NotifyEntryDeleted(entry)
+		}
+	}
+}
+
+func (b *EventBus) NotifyBinaryDeleted(binFile model.BinaryFile) {
+	for _, subscriber := range b.subscribers {
+		if sub, ok := subscriber.(BinaryFileDeletedSubscriber); ok {
+			go sub.NotifyBinaryFileDeleted(binFile)
 		}
 	}
 }

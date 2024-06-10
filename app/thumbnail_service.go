@@ -9,6 +9,7 @@ import (
 	"image/png"
 	_ "image/png"
 	"io"
+	"log/slog"
 	"owl-blogs/app/repository"
 	"owl-blogs/domain/model"
 	"strings"
@@ -22,10 +23,12 @@ type ThumbnailService struct {
 	repo repository.ThumbnailRepository
 }
 
-func NewThumbnailService(repo repository.ThumbnailRepository) *ThumbnailService {
-	return &ThumbnailService{
+func NewThumbnailService(repo repository.ThumbnailRepository, bus *EventBus) *ThumbnailService {
+	s := &ThumbnailService{
 		repo: repo,
 	}
+	bus.Subscribe(s)
+	return s
 }
 
 func (s *ThumbnailService) GetThumbnailForBinaryFileId(binaryFileId string) (*model.Thumbnail, error) {
@@ -84,4 +87,9 @@ func (s *ThumbnailService) CreateThumbnailForBinary(binary *model.BinaryFile) (*
 		return s.repo.Save(binary.Id, binary.Mime(), data)
 	}
 	return nil, ErrBinaryFileNotAnImage
+}
+
+func (s *ThumbnailService) NotifyBinaryFileDeleted(binaryFile model.BinaryFile) {
+	slog.Info("Deleting Thumbnail for binary file", "id", binaryFile.Id)
+	s.repo.Delete(binaryFile.Id)
 }
