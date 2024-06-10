@@ -36,7 +36,8 @@ func NewThumbnailRepo(db Database) repository.ThumbnailRepository {
 
 // Delete implements repository.ThumbnailRepository.
 func (d *DefaultThumbnailRepo) Delete(binaryFileId string) error {
-	panic("unimplemented")
+	_, err := d.db.Exec("DELETE FROM thumbnails WHERE binary_file_id = ?", binaryFileId)
+	return err
 }
 
 // Get implements repository.ThumbnailRepository.

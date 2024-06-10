@@ -69,8 +69,8 @@ func App(db infra.Database) *web.WebApp {
 	// Create Services
 	siteConfigService := app.NewSiteConfigService(configRepo)
 	entryService := app.NewEntryService(entryRepo, siteConfigService, eventBus)
-	binaryService := app.NewBinaryFileService(binRepo)
-	thumbnailService := app.NewThumbnailService(thumbnailRepo)
+	binaryService := app.NewBinaryFileService(binRepo, eventBus)
+	thumbnailService := app.NewThumbnailService(thumbnailRepo, eventBus)
 	authorService := app.NewAuthorService(authorRepo, siteConfigService)
 	webmentionService := app.NewWebmentionService(
 		siteConfigService, interactionRepo, entryRepo, httpClient, eventBus,
