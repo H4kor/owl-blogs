@@ -1,9 +1,9 @@
 package web
 
 import (
+	"log/slog"
 	"net/url"
 	"owl-blogs/app"
-	"strings"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -18,15 +18,7 @@ func NewThumbnailHandler(binaryService *app.BinaryService, thumbnailService *app
 }
 
 func (h *ThumbnailHandler) Handle(c *fiber.Ctx) error {
-	fileName := c.Params("+")
-
-	dotIdx := strings.LastIndex(fileName, ".")
-	if dotIdx == -1 {
-		return c.SendStatus(fiber.StatusUnprocessableEntity)
-	}
-
-	binaryFileId := fileName[:dotIdx]
-
+	binaryFileId := c.Params("+")
 	// urldecode
 	binaryFileId, err := url.PathUnescape(binaryFileId)
 	if err != nil {
@@ -36,12 +28,16 @@ func (h *ThumbnailHandler) Handle(c *fiber.Ctx) error {
 	thumbnail, err := h.thumbnailService.GetThumbnailForBinaryFileId(binaryFileId)
 
 	if err != nil {
+		slog.Info("Could not get thumbnail", "error", err)
 		binary, err := h.binaryService.FindById(binaryFileId)
 		if err != nil {
+			slog.Info("Could not find binary file", "error", err)
 			return c.SendStatus(fiber.StatusNotFound)
 		}
+		slog.Info("Generating new thumbnail")
 		thumbnail, err = h.thumbnailService.CreateThumbnailForBinary(binary)
 		if err != nil {
+			slog.Warn("Could not create thumbnail", "error", err)
 			// cannot create thumbnail for binary. Deliver binary instead
 			c.Set("Content-Type", binary.Mime())
 			return c.Send(binary.Data)

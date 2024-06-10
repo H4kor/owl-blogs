@@ -16,7 +16,6 @@ type ThumbnailExtension struct {
 
 // SetConfig implements renderer.Option.
 func (e *ThumbnailExtension) SetConfig(c *renderer.Config) {
-	println("SetConfig")
 	c.NodeRenderers = append(c.NodeRenderers, util.PrioritizedValue{
 		Priority: 0,
 		Value:    &ThumbnailExtension{},
@@ -24,7 +23,6 @@ func (e *ThumbnailExtension) SetConfig(c *renderer.Config) {
 }
 
 func (e *ThumbnailExtension) Extend(m goldmark.Markdown) {
-	println("Extending")
 	m.Renderer().AddOptions(e)
 }
 
@@ -82,7 +80,7 @@ func (e *ThumbnailExtension) renderImageWithThumbnail(w util.BufWriter, source [
 		return ast.WalkContinue, nil
 	}
 	n := node.(*ast.Image)
-	newDest := strings.Replace(string(n.Destination), "/media/", "/thumbnail/", 1) + ".jpg"
+	newDest := strings.Replace(string(n.Destination), "/media/", "/thumbnail/", 1)
 	_, _ = w.WriteString("<a href=\"")
 	_, _ = w.Write(util.EscapeHTML(util.URLEscape(n.Destination, true)))
 	_, _ = w.WriteString("\">")
@@ -114,6 +112,5 @@ func (e *ThumbnailExtension) NodeRendererFunc(
 }
 
 func (e *ThumbnailExtension) RegisterFuncs(reg renderer.NodeRendererFuncRegisterer) {
-	println("register")
 	reg.Register(ast.KindImage, e.NodeRendererFunc)
 }
