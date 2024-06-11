@@ -32,11 +32,11 @@ var (
 		msg:    "interaction not found",
 	}
 	ErrUnsupportedObjectType WebError = &webError{
-		status: 501,
+		status: 200,
 		msg:    "object type not supported",
 	}
 	ErrUnsupportedActionType WebError = &webError{
-		status: 501,
+		status: 200,
 		msg:    "action type not supported",
 	}
 	ErrConflictingId WebError = &webError{
