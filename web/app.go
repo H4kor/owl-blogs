@@ -41,6 +41,13 @@ func NewWebApp(
 	fiberApp := fiber.New(fiber.Config{
 		BodyLimit:             50 * 1024 * 1024, // 50MB in bytes
 		DisableStartupMessage: true,
+		ErrorHandler: func(c *fiber.Ctx, err error) error {
+			if werr, ok := err.(app.WebError); ok {
+				c.SendStatus(werr.Status())
+				return c.Send([]byte(werr.Error()))
+			}
+			return fiber.DefaultErrorHandler(c, err)
+		},
 	})
 	fiberApp.Use(middleware.NewUserMiddleware(authorService).Handle)
 
