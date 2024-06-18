@@ -4,6 +4,7 @@ import (
 	"owl-blogs/app"
 	"owl-blogs/domain/model"
 	"owl-blogs/render"
+	"sort"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
@@ -45,6 +46,10 @@ func (h *SiteConfigListHandler) HandleGet(c *fiber.Ctx) error {
 		}
 		types = append(types, typeName)
 	}
+
+	sort.Slice(types, func(i, j int) bool {
+		return types[i] < types[j]
+	})
 
 	return render.RenderTemplateWithBase(
 		c, "views/site_config_list", siteConfigListTemplateData{

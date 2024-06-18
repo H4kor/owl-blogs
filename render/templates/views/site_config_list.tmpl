@@ -13,16 +13,34 @@
     <label for="Title">Title</label>
     <input type="text" name="Title" id="Title"/>
 
-    <label for="Include">Include</label>
-    {{ range .Types}}
-        <input type="checkbox" name="Include" value="{{.}}" id="{{.}}"/>
-        <label for="{{.}}">{{.}}</label>
-    {{end}}
+    <table>
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>Include</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{ range .Types}}
+            <tr>
+                <td>
+                    <label for="{{.}}">{{.}}</label>
+                </td>
+                <td>
+                    <input type="checkbox" name="Include" value="{{.}}" id="{{.}}"/>
+                </td>
+            </tr>
+            {{end}}
+        </tbody>
+    </table>
 
-    <br>
-    <br>
-    <label for="ListType">ListType</label>
-    <input type="text" name="ListType" id="ListType"/>
+    <!--
+        List Types are not yet implemented
+        <br>
+        <br>
+        <label for="ListType">ListType</label>
+        <input type="text" name="ListType" id="ListType"/>
+    -->
 
     <input type="submit" value="Create" />
 </form>

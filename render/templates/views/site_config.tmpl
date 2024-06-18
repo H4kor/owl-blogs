@@ -9,29 +9,52 @@
 
 <form method="post" enctype="multipart/form-data">
     <label for="Title">Title</label>
-    <input type="text" name="Title" id="Title" value="{{.Title}}"/>
+    <input type="text" name="Title" id="Title" value="{{.Config.Title}}"/>
 
     <label for="SubTitle">SubTitle</label>
-    <input type="text" name="SubTitle" id="SubTitle" value="{{.SubTitle}}"/>
+    <input type="text" name="SubTitle" id="SubTitle" value="{{.Config.SubTitle}}"/>
 
     <label for="PrimaryColor">PrimaryColor</label>
-    <input type="color" name="PrimaryColor" id="PrimaryColor" value="{{.PrimaryColor}}"/>
+    <input type="color" name="PrimaryColor" id="PrimaryColor" value="{{.Config.PrimaryColor}}"/>
 
     <label for="AuthorName">AuthorName</label>
-    <input type="text" name="AuthorName" id="AuthorName" value="{{.AuthorName}}"/>
+    <input type="text" name="AuthorName" id="AuthorName" value="{{.Config.AuthorName}}"/>
 
     <label for="AvatarUrl">AvatarUrl</label>
-    <input type="text" name="AvatarUrl" id="AvatarUrl" value="{{.AvatarUrl}}"/>
+    <input type="text" name="AvatarUrl" id="AvatarUrl" value="{{.Config.AvatarUrl}}"/>
     
     <label for="FullUrl">FullUrl</label>
-    <input type="text" name="FullUrl" id="FullUrl" value="{{.FullUrl}}"/>
+    <input type="text" name="FullUrl" id="FullUrl" value="{{.Config.FullUrl}}"/>
 
     <label for="HtmlHeadExtra">HtmlHeadExtra</label>
-    <textarea name="HtmlHeadExtra" id="HtmlHeadExtra">{{.HtmlHeadExtra}}</textarea>
+    <textarea name="HtmlHeadExtra" id="HtmlHeadExtra">{{.Config.HtmlHeadExtra}}</textarea>
 
     <label for="FooterExtra">FooterExtra</label>
-    <textarea name="FooterExtra" id="FooterExtra">{{.FooterExtra}}</textarea>
+    <textarea name="FooterExtra" id="FooterExtra">{{.Config.FooterExtra}}</textarea>
     
+    <h3>Main Page</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>Include</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{ range .Types}}
+            <tr>
+                <td>
+                    <label for="{{.Type}}">{{.Type}}</label>
+                </td>
+                <td>
+                    <input type="checkbox" name="Include" value="{{.Type}}" id="{{.Type}}" {{if .Included}}checked{{end}} />
+                </td>
+            </tr>
+            {{end}}
+        </tbody>
+    </table>
+
+
     <input type="submit" value="Save" />
 </form>
 

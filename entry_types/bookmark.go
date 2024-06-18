@@ -3,8 +3,11 @@ package entrytypes
 import (
 	"fmt"
 	"html/template"
+	"owl-blogs/app"
 	"owl-blogs/domain/model"
 	"owl-blogs/render"
+
+	vocab "github.com/go-ap/activitypub"
 )
 
 type Bookmark struct {
@@ -33,7 +36,7 @@ func (meta *BookmarkMetaData) ParseFormData(data model.HttpFormData, binSvc mode
 }
 
 func (e *Bookmark) Title() string {
-	return e.meta.Title
+	return "Link:" + e.meta.Title
 }
 
 func (e *Bookmark) Content() template.HTML {
@@ -50,6 +53,23 @@ func (e *Bookmark) MetaData() model.EntryMetaData {
 
 func (e *Bookmark) SetMetaData(metaData model.EntryMetaData) {
 	e.meta = *metaData.(*BookmarkMetaData)
+}
+
+func (e *Bookmark) ActivityObject(siteCfg model.SiteConfig, binSvc app.BinaryService) vocab.Object {
+	content := e.Content()
+
+	obj := vocab.Article{
+		Type:      "Article",
+		Published: *e.PublishedAt(),
+		Name: vocab.NaturalLanguageValues{
+			{Value: vocab.Content(e.Title())},
+		},
+		Content: vocab.NaturalLanguageValues{
+			{Value: vocab.Content(string(content))},
+		},
+	}
+	return obj
+
 }
 
 func (e *Bookmark) Tags() []string {

@@ -101,7 +101,7 @@ func NewWebApp(
 	siteConfig := fiberApp.Group("/site-config")
 	siteConfig.Use(middleware.NewAuthMiddleware(authorService).Handle)
 
-	siteConfigHandler := NewSiteConfigHandler(siteConfigService)
+	siteConfigHandler := NewSiteConfigHandler(siteConfigService, typeRegistry)
 	siteConfig.Get("/", siteConfigHandler.HandleGet)
 	siteConfig.Post("/", siteConfigHandler.HandlePost)
 
