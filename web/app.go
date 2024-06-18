@@ -37,6 +37,7 @@ func NewWebApp(
 	siteConfigService *app.SiteConfigService,
 	webmentionService *app.WebmentionService,
 	interactionRepo repository.InteractionRepository,
+	followerRepo repository.FollowerRepository,
 	apService *app.ActivityPubService,
 ) *WebApp {
 	fiberApp := fiber.New(fiber.Config{
@@ -72,6 +73,7 @@ func NewWebApp(
 	draftHandler := NewDraftHandler(entryService, siteConfigService)
 	binaryManageHandler := NewBinaryManageHandler(configRepo, binService)
 	adminInteractionHandler := NewAdminInteractionHandler(configRepo, interactionRepo)
+	adminFollowerHandler := NewAdminFollowerHandler(configRepo, followerRepo)
 	admin := fiberApp.Group("/admin")
 	admin.Use(middleware.NewAuthMiddleware(authorService).Handle)
 	admin.Get("/", adminHandler.Handle)
@@ -83,6 +85,7 @@ func NewWebApp(
 	admin.Post("/binaries/delete", binaryManageHandler.HandleDelete)
 	admin.Post("/interactions/delete/", adminInteractionHandler.HandleDelete)
 	admin.Get("/interactions/", adminInteractionHandler.HandleGet)
+	admin.Get("/followers/", adminFollowerHandler.HandleGet)
 
 	adminApi := admin.Group("/api")
 	adminApi.Post("/binaries", binaryManageHandler.HandleUploadApi)

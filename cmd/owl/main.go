@@ -94,7 +94,7 @@ func App(db infra.Database) *web.WebApp {
 	return web.NewWebApp(
 		entryService, entryRegister, binaryService, thumbnailService,
 		authorService, configRepo, configRegister,
-		siteConfigService, webmentionService, interactionRepo,
+		siteConfigService, webmentionService, interactionRepo, followersRepo,
 		apService,
 	)
 

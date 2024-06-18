@@ -1,0 +1,44 @@
+{{define "title"}}Followers{{end}}
+{{define "head"}}{{end}}
+
+{{define "main"}}
+
+<a href="/admin">&larr; Back</a>
+<br>
+<br>
+
+<h2>Followers</h2>
+
+<table role="grid">
+    <thead>
+        <tr>
+            <th scope="col">Follower</th>
+        </tr>
+    </thead>
+    {{ range .Followers }}
+        <tr>
+            <td>
+                <a href="{{ . }}" target="_blank">{{ . }}</a>
+            </td>
+        </tr>
+    {{ end }}
+</table>
+
+<hr>
+<nav class="row">
+    {{ if not .FirstPage }}
+        <div>
+            <a href="?page={{ .PrevPage }}">Prev</a>
+        </div>
+    {{ end }}
+    
+    <div>Page {{.Page}}</div>
+
+    {{ if not .LastPage }}
+        <div>
+            <a href="?page={{ .NextPage }}">Next</a>
+        </div>
+    {{ end }}
+</nav>
+
+{{end}}
