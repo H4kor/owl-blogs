@@ -103,6 +103,9 @@ func RenderMarkdown(mdText string) (string, error) {
 			extension.GFM,
 			&hashtag.Extender{
 				Resolver: &HashTagResolver{},
+				Attributes: []hashtag.Attribute{
+					{Attr: "class", Value: "p-category"},
+				},
 			},
 			&ThumbnailExtension{},
 		),
