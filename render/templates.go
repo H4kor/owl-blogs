@@ -104,7 +104,7 @@ func RenderMarkdown(mdText string) (string, error) {
 			&hashtag.Extender{
 				Resolver: &HashTagResolver{},
 				Attributes: []hashtag.Attribute{
-					{Attr: "class", Value: "p-category"},
+					{Name: "class", Value: "p-category"},
 				},
 			},
 			&ThumbnailExtension{},

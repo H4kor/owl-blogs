@@ -55,4 +55,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace go.abhg.dev/goldmark/hashtag => github.com/H4kor/goldmark-hashtag v0.0.0-20240619193802-bec327f5be38
+replace go.abhg.dev/goldmark/hashtag => github.com/H4kor/goldmark-hashtag v0.0.0-20240620171940-9268da657059
