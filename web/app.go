@@ -18,12 +18,14 @@ import (
 var embedDirStatic embed.FS
 
 type WebApp struct {
-	FiberApp       *fiber.App
-	EntryService   *app.EntryService
-	BinaryService  *app.BinaryService
-	Registry       *app.EntryTypeRegistry
-	AuthorService  *app.AuthorService
-	SiteConfigRepo repository.ConfigRepository
+	FiberApp           *fiber.App
+	EntryService       *app.EntryService
+	BinaryService      *app.BinaryService
+	Registry           *app.EntryTypeRegistry
+	AuthorService      *app.AuthorService
+	SiteConfigService  *app.SiteConfigService
+	ActivityPubService *app.ActivityPubService
+	SiteConfigRepo     repository.ConfigRepository
 }
 
 func NewWebApp(
@@ -161,12 +163,14 @@ func NewWebApp(
 	fiberApp.Route("/activitypub", activityPubServer.Router)
 
 	return &WebApp{
-		FiberApp:       fiberApp,
-		EntryService:   entryService,
-		Registry:       typeRegistry,
-		BinaryService:  binService,
-		AuthorService:  authorService,
-		SiteConfigRepo: configRepo,
+		FiberApp:           fiberApp,
+		EntryService:       entryService,
+		Registry:           typeRegistry,
+		BinaryService:      binService,
+		AuthorService:      authorService,
+		SiteConfigRepo:     configRepo,
+		SiteConfigService:  siteConfigService,
+		ActivityPubService: apService,
 	}
 }
 

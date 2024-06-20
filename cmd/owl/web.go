@@ -1,6 +1,7 @@
 package main
 
 import (
+	owlblogs "owl-blogs"
 	"owl-blogs/infra"
 
 	"github.com/spf13/cobra"
@@ -21,6 +22,6 @@ var webCmd = &cobra.Command{
 	Long:  `Start the web server`,
 	Run: func(cmd *cobra.Command, args []string) {
 		db := infra.NewSqliteDB(DbPath)
-		App(db).Run(bindAddr)
+		owlblogs.App(db).Run(bindAddr)
 	},
 }

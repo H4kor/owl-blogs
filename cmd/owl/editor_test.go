@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	owlblogs "owl-blogs"
 	"owl-blogs/app"
 	entrytypes "owl-blogs/entry_types"
 	"owl-blogs/infra"
@@ -34,7 +35,7 @@ func getUserToken(service *app.AuthorService) string {
 
 func TestEditorFormGet(t *testing.T) {
 	db := test.NewMockDb()
-	owlApp := App(db)
+	owlApp := owlblogs.App(db)
 	app := owlApp.FiberApp
 	token := getUserToken(owlApp.AuthorService)
 
@@ -47,7 +48,7 @@ func TestEditorFormGet(t *testing.T) {
 
 func TestEditorFormGetNoAuth(t *testing.T) {
 	db := test.NewMockDb()
-	owlApp := App(db)
+	owlApp := owlblogs.App(db)
 	app := owlApp.FiberApp
 
 	req := httptest.NewRequest("GET", "/editor/new/Image", nil)
@@ -59,7 +60,7 @@ func TestEditorFormGetNoAuth(t *testing.T) {
 
 func TestEditorFormPost(t *testing.T) {
 	db := test.NewMockDb()
-	owlApp := App(db)
+	owlApp := owlblogs.App(db)
 	app := owlApp.FiberApp
 	token := getUserToken(owlApp.AuthorService)
 	repo := infra.NewEntryRepository(db, owlApp.Registry)
@@ -106,7 +107,7 @@ func TestEditorFormPost(t *testing.T) {
 
 func TestEditorFormPostNoAuth(t *testing.T) {
 	db := test.NewMockDb()
-	owlApp := App(db)
+	owlApp := owlblogs.App(db)
 	app := owlApp.FiberApp
 
 	fileDir, _ := os.Getwd()

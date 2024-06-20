@@ -1,6 +1,7 @@
 package main
 
 import (
+	owlblogs "owl-blogs"
 	"owl-blogs/infra"
 
 	"github.com/spf13/cobra"
@@ -21,6 +22,6 @@ var resetPasswordCmd = &cobra.Command{
 	Long:  `Resets the password of an author`,
 	Run: func(cmd *cobra.Command, args []string) {
 		db := infra.NewSqliteDB(DbPath)
-		App(db).AuthorService.Create(user, password)
+		owlblogs.App(db).AuthorService.Create(user, password)
 	},
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http/httptest"
+	owlblogs "owl-blogs"
 	"owl-blogs/test"
 	"testing"
 
@@ -10,7 +11,7 @@ import (
 
 func TestMediaWithSpace(t *testing.T) {
 	db := test.NewMockDb()
-	owlApp := App(db)
+	owlApp := owlblogs.App(db)
 	app := owlApp.FiberApp
 
 	_, err := owlApp.BinaryService.Create("name with space.jpg", []byte("111"))

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	owlblogs "owl-blogs"
 	"owl-blogs/config"
 	"owl-blogs/domain/model"
 	entrytypes "owl-blogs/entry_types"
@@ -32,7 +33,7 @@ var importCmd = &cobra.Command{
 	Long:  `Import data from v1`,
 	Run: func(cmd *cobra.Command, args []string) {
 		db := infra.NewSqliteDB(DbPath)
-		app := App(db)
+		app := owlblogs.App(db)
 
 		posts, err := importer.AllUserPosts(userPath)
 		if err != nil {

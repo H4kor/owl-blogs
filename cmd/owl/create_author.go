@@ -3,6 +3,8 @@ package main
 import (
 	"owl-blogs/infra"
 
+	owlblogs "owl-blogs"
+
 	"github.com/spf13/cobra"
 )
 
@@ -24,6 +26,6 @@ var newAuthorCmd = &cobra.Command{
 	Long:  `Creates a new author`,
 	Run: func(cmd *cobra.Command, args []string) {
 		db := infra.NewSqliteDB(DbPath)
-		App(db).AuthorService.Create(user, password)
+		owlblogs.App(db).AuthorService.Create(user, password)
 	},
 }
