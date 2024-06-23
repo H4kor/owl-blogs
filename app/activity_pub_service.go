@@ -56,6 +56,7 @@ func (cfg *ActivityPubConfig) ParseFormData(data model.HttpFormData, binSvc mode
 
 func (cfg *ActivityPubConfig) PrivateKey() *rsa.PrivateKey {
 	block, _ := pem.Decode([]byte(cfg.PrivateKeyPem))
+	println("PRIVATE KEY", cfg.PrivateKeyPem, block)
 	privKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
 	if err != nil {
 		slog.Error("error x509.ParsePKCS1PrivateKey", "err", err)
@@ -346,8 +347,10 @@ func (s *ActivityPubService) VerifySignature(r *http.Request, sender string) err
 	block, _ := pem.Decode([]byte(actor.PublicKey.PublicKeyPem))
 	pubKey, err := x509.ParsePKIXPublicKey(block.Bytes)
 	if err != nil {
-		slog.Error("unable to decode pub key pem", "pubKeyPem", actor.PublicKey.PublicKeyPem)
-		return ErrUnableToVerifySignature
+		pubKey, err = x509.ParsePKCS1PublicKey(block.Bytes)
+		if err != nil {
+			return err
+		}
 	}
 	slog.Info("retrieved pub key of sender", "actor", actor, "pubKey", pubKey)
 

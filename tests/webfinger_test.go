@@ -5,7 +5,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	// "github.com/H4kor/fedi-games/web"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
 	"github.com/stretchr/testify/require"
 )

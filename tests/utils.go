@@ -2,8 +2,11 @@ package tests
 
 import (
 	"crypto/rsa"
+	"encoding/json"
 	"log/slog"
 	"net/http"
+	"net/http/httptest"
+	"net/url"
 	owlblogs "owl-blogs"
 	"owl-blogs/config"
 	"owl-blogs/infra"
@@ -53,4 +56,46 @@ func DefaultTestApp() *web.WebApp {
 
 	return app
 
+}
+
+func GetActorUrl(srv http.HandlerFunc) string {
+	req := httptest.NewRequest(
+		"GET", "/.well-known/webfinger?resource=acct:tester@example.com", nil)
+	resp := httptest.NewRecorder()
+	srv.ServeHTTP(resp, req)
+	var data map[string]interface{}
+	json.Unmarshal(resp.Body.Bytes(), &data)
+	return data["links"].([]interface{})[0].(map[string]interface{})["href"].(string)
+}
+
+func GetActor(srv http.HandlerFunc) map[string]interface{} {
+	url := GetActorUrl(srv)
+	req := httptest.NewRequest(
+		"GET", url, nil)
+	req.Header.Set("Accept", "application/ld+json")
+	resp := httptest.NewRecorder()
+	srv.ServeHTTP(resp, req)
+	var data map[string]interface{}
+	json.Unmarshal(resp.Body.Bytes(), &data)
+	return data
+}
+
+func GetInboxUrl(srv http.HandlerFunc) string {
+	actor := GetActor(srv)
+	return actor["inbox"].(string)
+}
+
+func GetFollowersUrl(srv http.HandlerFunc) string {
+	actor := GetActor(srv)
+	return actor["followers"].(string)
+}
+
+func GetOutboxUrl(srv http.HandlerFunc) string {
+	actor := GetActor(srv)
+	return actor["outbox"].(string)
+}
+
+func Path(u string) string {
+	_url, _ := url.Parse(u)
+	return _url.Path
 }

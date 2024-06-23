@@ -147,8 +147,13 @@ func (s *MockApServer) KeyId(name string) string {
 	return "http://localhost:" + s.Port + "/actors/" + name + "#main-key"
 }
 
-func (s *MockApServer) ActorUrl(name string) string {
+func (s *MockApServer) MockActorUrl(name string) string {
 	return "http://localhost:" + s.Port + "/actors/" + name
+}
+
+func (s *MockApServer) MockActivityUrl(id string) string {
+	return "http://localhost:" + s.Port + "/activity/" + id
+
 }
 
 func (s *MockApServer) SignedRequest(actorId string, method string, path string, body []byte) (*http.Request, error) {
