@@ -11,8 +11,13 @@ import (
 	"owl-blogs/config"
 	"owl-blogs/infra"
 	"owl-blogs/web"
+	"strconv"
+	"testing"
+	"time"
 
 	"github.com/go-fed/httpsig"
+	"github.com/google/uuid"
+	"github.com/stretchr/testify/require"
 )
 
 func Sign(privateKey *rsa.PrivateKey, pubKeyId string, body []byte, r *http.Request) error {
@@ -45,7 +50,8 @@ func Sign(privateKey *rsa.PrivateKey, pubKeyId string, body []byte, r *http.Requ
 // PreferredUsername: tester
 func DefaultTestApp() *web.WebApp {
 	// setup default test server
-	db := infra.NewSqliteDB(":memory:")
+	dbId, _ := uuid.NewRandom()
+	db := infra.NewSqliteDB("file:" + dbId.String() + "?mode=memory&cache=shared")
 	app := owlblogs.App(db)
 	cfg, _ := app.SiteConfigService.GetSiteConfig()
 	cfg.FullUrl = "https://example.com"
@@ -66,6 +72,25 @@ func GetActorUrl(srv http.HandlerFunc) string {
 	var data map[string]interface{}
 	json.Unmarshal(resp.Body.Bytes(), &data)
 	return data["links"].([]interface{})[0].(map[string]interface{})["href"].(string)
+}
+
+func EnsureFollowed(t *testing.T, srv http.HandlerFunc, mock MockApServer, follower string) {
+	actorUrl := GetActorUrl(srv)
+	inbox := GetInboxUrl(srv)
+	follow := map[string]interface{}{
+		"@context": "https://www.w3.org/ns/activitystreams",
+		"id":       mock.MockActivityUrl(strconv.Itoa(time.Now().Nanosecond())),
+		"type":     "Follow",
+		"actor":    follower,
+		"object":   actorUrl,
+	}
+	reqData, _ := json.Marshal(follow)
+	req, err := mock.SignedRequest(actorUrl, "POST", Path(inbox), reqData)
+	require.NoError(t, err)
+	resp := httptest.NewRecorder()
+	srv.ServeHTTP(resp, req)
+	require.Equal(t, resp.Result().StatusCode, 200)
+
 }
 
 func GetActor(srv http.HandlerFunc) map[string]interface{} {

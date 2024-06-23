@@ -17,6 +17,7 @@ func TestFollowing(t *testing.T) {
 	actorUrl := GetActorUrl(srv)
 	inbox := GetInboxUrl(srv)
 	mock := NewMockAPServer()
+	defer mock.Server.Close()
 
 	// test
 	{
@@ -33,7 +34,7 @@ func TestFollowing(t *testing.T) {
 		resp := httptest.NewRecorder()
 		srv.ServeHTTP(resp, req)
 		require.Equal(t, resp.Result().StatusCode, 200)
-		time.Sleep(200 * time.Millisecond)
+		time.Sleep(50 * time.Millisecond)
 	}
 	// verification
 	{
@@ -45,6 +46,32 @@ func TestFollowing(t *testing.T) {
 		err := json.Unmarshal(resp.Body.Bytes(), &data)
 		require.NoError(t, err)
 		require.Equal(t, []interface{}{mock.MockActorUrl("foo")}, data["items"])
+	}
+
+}
+
+func TestMultipleFollows(t *testing.T) {
+	//setup
+	app := DefaultTestApp()
+	srv := adaptor.FiberApp(app.FiberApp)
+	mock := NewMockAPServer()
+	defer mock.Server.Close()
+
+	EnsureFollowed(t, srv, mock, mock.MockActorUrl("1"))
+	EnsureFollowed(t, srv, mock, mock.MockActorUrl("2"))
+	EnsureFollowed(t, srv, mock, mock.MockActorUrl("3"))
+	time.Sleep(50 * time.Millisecond)
+
+	// verification
+	{
+		followers := GetFollowersUrl(srv)
+		req := httptest.NewRequest("GET", Path(followers), nil)
+		resp := httptest.NewRecorder()
+		srv.ServeHTTP(resp, req)
+		var data map[string]interface{}
+		err := json.Unmarshal(resp.Body.Bytes(), &data)
+		require.NoError(t, err)
+		require.Len(t, data["items"], 3)
 	}
 
 }

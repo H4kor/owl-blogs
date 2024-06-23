@@ -125,7 +125,7 @@ func (svc *ActivityPubService) GetApConfig() (ActivityPubConfig, error) {
 	apConfig := ActivityPubConfig{}
 	err := svc.configRepo.Get(config.ACT_PUB_CONF_NAME, &apConfig)
 	if err != nil {
-		println("ERROR IN ACTIVITY PUB CONFIG")
+		println("ERROR IN ACTIVITY PUB CONFIG", err.Error())
 		return ActivityPubConfig{}, err
 	}
 	if reflect.ValueOf(apConfig).IsZero() {
