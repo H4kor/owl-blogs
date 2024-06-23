@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/url"
 	"owl-blogs/domain/model"
+	"strings"
 
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/extension"
@@ -91,7 +92,7 @@ type HashTagResolver struct {
 // should point to, or an empty destination for hashtags that should
 // not link to anything.
 func (*HashTagResolver) ResolveHashtag(node *hashtag.Node) (destination []byte, err error) {
-	return []byte("/tags/" + string(node.Tag) + "/"), nil
+	return []byte("/tags/" + strings.ToLower(string(node.Tag)) + "/"), nil
 }
 
 func RenderMarkdown(mdText string) (string, error) {

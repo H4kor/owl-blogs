@@ -1,6 +1,7 @@
 package entrytypes
 
 import (
+	"strings"
 	"unicode"
 )
 
@@ -17,7 +18,8 @@ func extractTags(content string) []string {
 		if start != -1 {
 			if endOfHashtag(c) {
 				if i != start {
-					tagMap[content[start:i]] = true
+					tag := strings.ToLower(content[start:i])
+					tagMap[tag] = true
 				}
 				start = -1
 			}
@@ -29,7 +31,8 @@ func extractTags(content string) []string {
 		}
 	}
 	if start != -1 && len(content)+1 > start {
-		tagMap[content[start:]] = true
+		tag := strings.ToLower(content[start:])
+		tagMap[tag] = true
 	}
 	tags := make([]string, 0, len(tagMap))
 	for t := range tagMap {
