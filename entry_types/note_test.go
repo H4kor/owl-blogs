@@ -16,6 +16,6 @@ func TestNoteTags(t *testing.T) {
 	tags := n.Tags()
 	require.Len(t, tags, 3)
 	require.Contains(t, tags, "tag1")
-	require.Contains(t, tags, "tagTwo")
+	require.Contains(t, tags, "tagtwo")
 	require.Contains(t, tags, "a-tag")
 }

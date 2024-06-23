@@ -3,9 +3,9 @@
 
 {{define "main"}}
 
-<ul>
+<ul class="tag-list">
 {{ range . }}
-    <li><a href="/tags/{{.Tag}}/">{{.Tag}}</a>, {{.Count}}</li>
+    <li><a href="/tags/{{.Tag}}/">{{.Tag}}</a></li>
 {{ end }}
 </ul>
 

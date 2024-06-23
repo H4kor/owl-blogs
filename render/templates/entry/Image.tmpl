@@ -2,5 +2,5 @@
     <img src="/thumbnail/{{.MetaData.ImageId}}" alt="{{.MetaData.Title}}" />
 </a>
 
-{{.MetaData.Content}}
+{{.MetaData.Content | markdown}}
 
