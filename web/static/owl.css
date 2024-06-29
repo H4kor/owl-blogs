@@ -28,6 +28,7 @@
     --font: Arial, Helvetica, sans-serif;
     --font-h: 'Courier New', Courier, monospace;
     --font-code: 'Courier New', Courier, monospace;
+    --line-height: 1.5;
 
 
     /* spacings */
@@ -111,6 +112,7 @@ main {
 
 :is(h1, h2, h3, h4, h5, h6) {
     font-family: var(--font-h);
+    font-weight: bold;
     margin-top: var(--s4);
     margin-bottom: var(--s0);
 }
@@ -146,6 +148,12 @@ h6 {
     font-size: var(--fsl4);
 }
 
+p {
+    margin-bottom: 0;
+    margin-top: var(--s3);
+    line-height: var(--line-height);
+}
+
 hr {
     color: var(--primary);
     border-style: dashed;
@@ -163,6 +171,8 @@ pre {
 
 main img {
     max-width: 100%;
+    display: block;
+    margin: 0 auto;
 }
 
 /* inline elements */
