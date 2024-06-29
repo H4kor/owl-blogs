@@ -1,0 +1,45 @@
+package tests
+
+import (
+	entrytypes "owl-blogs/entry_types"
+	"testing"
+	"time"
+
+	"github.com/gofiber/fiber/v2/middleware/adaptor"
+	"github.com/stretchr/testify/require"
+)
+
+func TestEntryIsSent(t *testing.T) {
+	//setup
+	app := DefaultTestApp()
+	srv := adaptor.FiberApp(app.FiberApp)
+	mock := NewMockAPServer()
+	defer mock.Server.Close()
+
+	EnsureFollowed(t, srv, mock, mock.MockActorUrl("1"))
+	time.Sleep(50 * time.Millisecond)
+
+	require.Equal(t, 1, len(mock.Retrieved))
+	require.Equal(t, 1, len(mock.Retrieved["1"]))
+
+	note := entrytypes.Note{}
+	note.SetMetaData(&entrytypes.NoteMetaData{
+		Content: "test note",
+	})
+	now := time.Now()
+	note.SetPublishedAt(&now)
+
+	app.EntryService.Create(&note)
+	time.Sleep(50 * time.Millisecond)
+
+	require.Equal(t, 1, len(mock.Retrieved))
+	require.Equal(t, 2, len(mock.Retrieved["1"]))
+
+	msg := mock.Retrieved["1"][1]
+
+	require.Equal(t, "Create", msg["type"])
+	require.Contains(t, msg, "id")
+	require.Contains(t, msg, "published")
+	require.Contains(t, msg["object"].(map[string]interface{})["content"], "test note")
+
+}

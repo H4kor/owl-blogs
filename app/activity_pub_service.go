@@ -56,7 +56,6 @@ func (cfg *ActivityPubConfig) ParseFormData(data model.HttpFormData, binSvc mode
 
 func (cfg *ActivityPubConfig) PrivateKey() *rsa.PrivateKey {
 	block, _ := pem.Decode([]byte(cfg.PrivateKeyPem))
-	println("PRIVATE KEY", cfg.PrivateKeyPem, block)
 	privKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
 	if err != nil {
 		slog.Error("error x509.ParsePKCS1PrivateKey", "err", err)
