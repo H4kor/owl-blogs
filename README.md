@@ -29,20 +29,8 @@ For development with live reload use `air` ([has to be install first](https://gi
 
 The project has two test suites; "unit tests" written in go and "end-to-end tests" written in python.
 
-### Unit Tests
+### Tests
 
 ```
 go test ./...
 ```
-
-### End-to-End tests
-
-- Start the docker compose setup in the `e2e_tests` directory.
-- Install the python dependencies into a virtualenv
-```
-cd e2e_tests
-python3 -m venv venv
-. venv/bin/activate
-pip install -r requirements.txt
-```
-- Run the e2e_tests with `pytest`
