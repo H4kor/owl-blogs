@@ -44,7 +44,7 @@ func (svc *SiteConfigService) GetSiteConfig() (model.SiteConfig, error) {
 	siteConfig := model.SiteConfig{}
 	err := svc.repo.Get(config.SITE_CONFIG, &siteConfig)
 	if err != nil {
-		println("ERROR IN SITE CONFIG")
+		println("ERROR IN SITE CONFIG", err.Error())
 		return model.SiteConfig{}, err
 	}
 	if reflect.ValueOf(siteConfig).IsZero() {

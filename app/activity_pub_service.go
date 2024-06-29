@@ -124,7 +124,7 @@ func (svc *ActivityPubService) GetApConfig() (ActivityPubConfig, error) {
 	apConfig := ActivityPubConfig{}
 	err := svc.configRepo.Get(config.ACT_PUB_CONF_NAME, &apConfig)
 	if err != nil {
-		println("ERROR IN ACTIVITY PUB CONFIG")
+		println("ERROR IN ACTIVITY PUB CONFIG", err.Error())
 		return ActivityPubConfig{}, err
 	}
 	if reflect.ValueOf(apConfig).IsZero() {
@@ -346,8 +346,10 @@ func (s *ActivityPubService) VerifySignature(r *http.Request, sender string) err
 	block, _ := pem.Decode([]byte(actor.PublicKey.PublicKeyPem))
 	pubKey, err := x509.ParsePKIXPublicKey(block.Bytes)
 	if err != nil {
-		slog.Error("unable to decode pub key pem", "pubKeyPem", actor.PublicKey.PublicKeyPem)
-		return ErrUnableToVerifySignature
+		pubKey, err = x509.ParsePKCS1PublicKey(block.Bytes)
+		if err != nil {
+			return err
+		}
 	}
 	slog.Info("retrieved pub key of sender", "actor", actor, "pubKey", pubKey)
 
