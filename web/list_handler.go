@@ -70,7 +70,8 @@ func (h *ListHandler) Handle(c *fiber.Ctx) error {
 	}
 	pageNum, err := strconv.Atoi(page)
 	if err != nil {
-		pageNum = 1
+		// if the page number is not an integer -> remove query param by redirect
+		return c.Redirect(c.Path(), 301)
 	}
 	limit := 10
 	offset := (pageNum - 1) * limit
@@ -84,10 +85,6 @@ func (h *ListHandler) Handle(c *fiber.Ctx) error {
 		lastPage = true
 	}
 	entries = entries[offset : offset+limit]
-
-	if err != nil {
-		return err
-	}
 
 	return render.RenderTemplateWithBase(c, "views/list", listRenderData{
 		List:      list,

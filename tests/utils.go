@@ -9,6 +9,7 @@ import (
 	"net/url"
 	owlblogs "owl-blogs"
 	"owl-blogs/config"
+	"owl-blogs/domain/model"
 	"owl-blogs/infra"
 	"owl-blogs/web"
 	"strconv"
@@ -45,6 +46,7 @@ func Sign(privateKey *rsa.PrivateKey, pubKeyId string, body []byte, r *http.Requ
 //
 // == SiteConfig ==
 // FullUrl: https://example.com
+// Lists: two lists named "list_one" and "list_two"
 //
 // == ActivityPub Config ==
 // PreferredUsername: tester
@@ -55,6 +57,18 @@ func DefaultTestApp() *web.WebApp {
 	app := owlblogs.App(db)
 	cfg, _ := app.SiteConfigService.GetSiteConfig()
 	cfg.FullUrl = "https://example.com"
+	cfg.Lists = []model.EntryList{
+		{
+			Id:      "list_one",
+			Title:   "List One",
+			Include: []string{"Article"},
+		},
+		{
+			Id:      "list_two",
+			Title:   "List Two",
+			Include: []string{"Note"},
+		},
+	}
 	app.SiteConfigService.UpdateSiteConfig(cfg)
 	acPubCfg, _ := app.ActivityPubService.GetApConfig()
 	acPubCfg.PreferredUsername = "tester"
