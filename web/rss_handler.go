@@ -111,7 +111,7 @@ func NewRSSHandler(entryService *app.EntryService, siteConfigService *app.SiteCo
 	return &RSSHandler{entrySvc: entryService, siteConfigService: siteConfigService}
 }
 
-func (h *RSSHandler) Handle(c *fiber.Ctx) error {
+func (h *RSSHandler) HandleMainFeed(c *fiber.Ctx) error {
 	c.Set(fiber.HeaderContentType, fiber.MIMEApplicationXML)
 
 	siteConfig, err := h.siteConfigService.GetSiteConfig()
@@ -120,6 +120,42 @@ func (h *RSSHandler) Handle(c *fiber.Ctx) error {
 	}
 
 	entries, err := h.entrySvc.FindAllByType(&siteConfig.PrimaryListInclude, true, false)
+	if err != nil {
+		return err
+	}
+
+	// sort entries by date descending
+	sort.Slice(entries, func(i, j int) bool {
+		return entries[i].PublishedAt().After(*entries[j].PublishedAt())
+	})
+
+	rss, err := RenderRSSFeed(siteConfig, entries)
+	if err != nil {
+		return err
+	}
+
+	return c.SendString(rss)
+}
+
+func (h *RSSHandler) HandleListFeed(c *fiber.Ctx) error {
+	c.Set(fiber.HeaderContentType, fiber.MIMEApplicationXML)
+
+	siteConfig, err := h.siteConfigService.GetSiteConfig()
+	if err != nil {
+		return err
+	}
+	listId := c.Params("list")
+	list := model.EntryList{}
+	for _, l := range siteConfig.Lists {
+		if l.Id == listId {
+			list = l
+		}
+	}
+	if list.Id == "" {
+		return c.SendStatus(fiber.StatusNotFound)
+	}
+
+	entries, err := h.entrySvc.FindAllByType(&list.Include, true, false)
 	if err != nil {
 		return err
 	}

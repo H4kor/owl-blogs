@@ -1,5 +1,7 @@
 {{define "title"}}{{.List.Title}}{{end}}
-{{define "head"}}{{end}}
+{{define "head"}}
+    <link rel="alternate" type="application/rss+xml" title="{{.Data.List.Title}} - {{ .SiteConfig.Title }}" href="index.xml">
+{{end}}
 
 {{define "main"}}
 
