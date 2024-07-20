@@ -50,7 +50,9 @@ func (h *ListHandler) Handle(c *fiber.Ctx) error {
 		}
 	}
 	if list.Id == "" {
-		return c.SendStatus(404)
+		return Render404PageWithMessage(NotFoundPageData{
+			Msg: "List not found",
+		}, c)
 	}
 
 	entries, err := h.entrySvc.FindAllByType(&list.Include, true, false)
