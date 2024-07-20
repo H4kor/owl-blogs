@@ -172,3 +172,30 @@ func (h *RSSHandler) HandleListFeed(c *fiber.Ctx) error {
 
 	return c.SendString(rss)
 }
+
+func (h *RSSHandler) HandleTagFeed(c *fiber.Ctx) error {
+	c.Set(fiber.HeaderContentType, fiber.MIMEApplicationXML)
+
+	siteConfig, err := h.siteConfigService.GetSiteConfig()
+	if err != nil {
+		return err
+	}
+
+	tag := c.Params("tag")
+	entries, err := h.entrySvc.FindAllByTag(tag, true, false)
+	if err != nil {
+		return err
+	}
+
+	// sort entries by date descending
+	sort.Slice(entries, func(i, j int) bool {
+		return entries[i].PublishedAt().After(*entries[j].PublishedAt())
+	})
+
+	rss, err := RenderRSSFeed(siteConfig, entries)
+	if err != nil {
+		return err
+	}
+
+	return c.SendString(rss)
+}

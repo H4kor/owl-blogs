@@ -1,7 +1,10 @@
 {{define "title"}}{{.Tag}}{{end}}
+<link rel="alternate" type="application/rss+xml" title="Tag: {{.Data.Tag}} - {{ .SiteConfig.Title }}" href="index.xml">
 {{define "head"}}{{end}}
 
 {{define "main"}}
+
+<h1>Tag: {{.Tag}}</h1>
 
 <div role="feed" class="h-feed">
 {{ range .Entries }}

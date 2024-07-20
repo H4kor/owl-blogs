@@ -21,6 +21,9 @@ func TestRssFeeds(t *testing.T) {
 		{
 			give: give{path: "/lists/list_one/index.xml"},
 		},
+		{
+			give: give{path: "/tags/a_tag/index.xml"},
+		},
 	}
 	// test
 	app := DefaultTestApp()
