@@ -33,6 +33,20 @@ func TestNiceEntryId(t *testing.T) {
 	require.Equal(t, "hello-world", entry.ID())
 }
 
+func TestPreserveSetEntryId(t *testing.T) {
+	service := setupService()
+	entry := &test.MockEntry{}
+	meta := test.MockEntryMetaData{
+		Title: "Hello World",
+	}
+	entry.SetMetaData(&meta)
+	entry.SetID("foobar")
+
+	err := service.Create(entry)
+	require.NoError(t, err)
+	require.Equal(t, "foobar", entry.ID())
+}
+
 func TestNoTitleCreation(t *testing.T) {
 	service := setupService()
 	entry := &test.MockEntry{}

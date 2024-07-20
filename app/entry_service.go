@@ -34,7 +34,12 @@ func NewEntryService(
 func (s *EntryService) Create(entry model.Entry) error {
 	// try to find a good ID
 	m := regexp.MustCompile(`[^a-z0-9-]`)
-	prefix := m.ReplaceAllString(strings.ToLower(entry.Title()), "-")
+	var prefix string
+	if entry.ID() != "" {
+		prefix = m.ReplaceAllString(strings.ToLower(entry.ID()), "-")
+	} else {
+		prefix = m.ReplaceAllString(strings.ToLower(entry.Title()), "-")
+	}
 	title := prefix
 	counter := 0
 	for {

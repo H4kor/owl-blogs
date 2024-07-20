@@ -10,6 +10,7 @@ import (
 	owlblogs "owl-blogs"
 	"owl-blogs/config"
 	"owl-blogs/domain/model"
+	entrytypes "owl-blogs/entry_types"
 	"owl-blogs/infra"
 	"owl-blogs/web"
 	"strconv"
@@ -73,6 +74,30 @@ func DefaultTestApp() *web.WebApp {
 	acPubCfg, _ := app.ActivityPubService.GetApConfig()
 	acPubCfg.PreferredUsername = "tester"
 	app.SiteConfigRepo.Update(config.ACT_PUB_CONF_NAME, acPubCfg)
+
+	draftEntry := entrytypes.Note{}
+	draftEntry.SetID("draft")
+	draftEntry.SetPublishedAt(nil)
+	draftEntry.SetMetaData(&entrytypes.NoteMetaData{
+		Content: "draft note",
+	})
+	err := app.EntryService.Create(&draftEntry)
+	if err != nil {
+		panic(err)
+	}
+
+	publishedNote := entrytypes.Note{}
+	publishedNote.SetID("published")
+	pubDate := time.Date(
+		2020, 1, 1, 13, 37, 0, 0, time.UTC)
+	publishedNote.SetPublishedAt(&pubDate)
+	publishedNote.SetMetaData(&entrytypes.NoteMetaData{
+		Content: "published note",
+	})
+	app.EntryService.Create(&publishedNote)
+	if err != nil {
+		panic(err)
+	}
 
 	return app
 

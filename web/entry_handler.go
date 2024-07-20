@@ -1,6 +1,7 @@
 package web
 
 import (
+	"errors"
 	"net/http"
 	"owl-blogs/app"
 	"owl-blogs/app/repository"
@@ -54,12 +55,19 @@ func (h *EntryHandler) Handle(c *fiber.Ctx) error {
 	entryId := c.Params("post")
 	entry, err := h.entrySvc.FindById(entryId)
 	if err != nil {
+		if errors.Is(err, app.ErrEntryNotFound) {
+			return Render404PageWithMessage(NotFoundPageData{
+				Msg: "Entry not found",
+			}, c)
+		}
 		return err
 	}
 
 	if !loggedIn {
 		if entry.PublishedAt() == nil || entry.PublishedAt().IsZero() {
-			return fiber.NewError(fiber.StatusNotFound, "Entry not found")
+			return Render404PageWithMessage(NotFoundPageData{
+				Msg: "Entry not found",
+			}, c)
 		}
 	}
 
