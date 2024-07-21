@@ -36,7 +36,7 @@
 <nav class="row">
     {{ if not .FirstPage }}
         <div>
-            <a href="/lists/{{.List.Id}}/?page={{ .PrevPage }}">Prev</a>
+            <a href="/tags/{{.Tag}}/?page={{ .PrevPage }}">Prev</a>
         </div>
     {{ end }}
     
@@ -44,7 +44,7 @@
 
     {{ if not .LastPage }}
         <div>
-            <a href="/lists/{{.List.Id}}/?page={{ .NextPage }}">Next</a>
+            <a href="/tags/{{.Tag}}/?page={{ .NextPage }}">Next</a>
         </div>
     {{ end }}
 </nav>
