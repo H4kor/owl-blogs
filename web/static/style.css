@@ -116,3 +116,29 @@ nav.row {
     margin: var(--s0);
     background-color: var(--primary-l4);
 }
+
+.interaction-item:nth-child(2) {
+    background: var(--primary-l4);
+}
+
+.interaction-item {
+    border-color: var(--primary);
+    border-top-style: dashed;
+    border-bottom: none;
+    border-width: 3px;
+    padding-bottom: var(--s1);
+    padding-left: var(--s0);
+    padding-right: var(--s0);
+}
+
+.interaction-item h5 {
+    margin-top: var(--s1);
+}
+
+.interaction-content {
+    padding-left: var(--s0);
+    border-color: var(--primary);
+    border-left-style: dotted;
+    border-bottom: none;
+    border-width: 3px;
+}

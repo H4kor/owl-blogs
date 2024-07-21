@@ -9,24 +9,21 @@
 
 <h2>Recent Interactions</h2>
 
-<table role="grid">
-    <thead>
-        <tr>
-            <th scope="col">Entry</th>
-            <th scope="col">Created At</th>
-        </tr>
-    </thead>
+<div class="interaction-list">
     {{ range .Interactions }}
-        <tr>
-            <td scope="row">
-                <a href="/posts/{{ .EntryID }}">{{ .EntryID }}</a>
-            </td>
-            <td>
-                {{ .CreatedAt.Format "2006-01-02 15:04"  }}
-            </td>
-        </tr>
+    <div class="interaction-item">
+        <h5>
+            On: <a href="/posts/{{ .EntryID }}">{{ .EntryID }}</a>
+        </h5>
+        <div class="entry-meta">
+            Retrieved: {{ .CreatedAt.Format "2006-01-02 15:04"  }}
+        </div>
+        <div class="interaction-content">
+            {{ .Content }}
+        </div>
+    </div>
     {{ end }}
-</table>
+</div>
 
 <hr>
 <nav class="row">
