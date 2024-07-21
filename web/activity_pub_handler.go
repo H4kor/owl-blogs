@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"owl-blogs/app"
+	"owl-blogs/config"
 
 	vocab "github.com/go-ap/activitypub"
 	"github.com/go-ap/jsonld"
@@ -72,10 +73,50 @@ func (s *ActivityPubServer) HandleWebfinger(ctx *fiber.Ctx) error {
 
 }
 
+func (s *ActivityPubServer) HandleNodeInfo(ctx *fiber.Ctx) error {
+	siteConfig, _ := s.siteConfigService.GetSiteConfig()
+	href, _ := url.JoinPath(siteConfig.FullUrl, "/activitypub/nodeinfo/2.1")
+	nodeinfo := map[string]interface{}{
+		"links": []map[string]interface{}{
+			{
+				"rel":  "http://nodeinfo.diaspora.software/ns/schema/2.1",
+				"href": href,
+			},
+		},
+	}
+	return ctx.JSON(nodeinfo)
+}
+
+func (s *ActivityPubServer) HandleNodeInfoDetails(ctx *fiber.Ctx) error {
+	nodeinfo := map[string]interface{}{
+		"version": "2.1",
+		"software": map[string]interface{}{
+			"name":       "owl-blogs",
+			"version":    config.OWL_VERSION,
+			"repository": "https://github.com/H4kor/owl-blogs",
+		},
+		"protocols": []string{
+			"activitypub",
+		},
+		"services": map[string]interface{}{
+			"inbound": []string{},
+			"outbound": []string{
+				"atom1.0", "rss2.0",
+			},
+		},
+		"openRegistrations": false,
+		"usage": map[string]interface{}{
+			"users": map[string]interface{}{},
+		},
+	}
+	return ctx.JSON(nodeinfo)
+}
+
 func (s *ActivityPubServer) Router(router fiber.Router) {
 	router.Get("/outbox", s.HandleOutbox)
 	router.Post("/inbox", s.HandleInbox)
 	router.Get("/followers", s.HandleFollowers)
+	router.Get("/nodeinfo/2.1", s.HandleNodeInfoDetails)
 }
 
 func (s *ActivityPubServer) HandleActor(ctx *fiber.Ctx) error {

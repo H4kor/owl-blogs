@@ -162,6 +162,7 @@ func NewWebApp(
 
 	// ActivityPub
 	fiberApp.Get("/.well-known/webfinger", activityPubServer.HandleWebfinger)
+	fiberApp.Get("/.well-known/nodeinfo", activityPubServer.HandleNodeInfo)
 	fiberApp.Route("/activitypub", activityPubServer.Router)
 
 	return &WebApp{
