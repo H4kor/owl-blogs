@@ -117,7 +117,7 @@ nav.row {
     background-color: var(--primary-l4);
 }
 
-.interaction-item:nth-child(2) {
+.interaction-item:nth-child(2n) {
     background: var(--primary-l4);
 }
 
