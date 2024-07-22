@@ -1,8 +1,23 @@
+site_name: DungeonPlanner
 site_name: owl-blogs
+site_url: https://h4kor.github.io/owl-blogs/
+site_author: Niko Abeler
+site_description: "A blogging software focused on simplicity with IndieWeb and Fediverse support."
+repo_url: "https://github.com/h4kor/owl-blogs"
+edit_uri: "edit/main/docs/"
+
+
+theme:
+  name: null
+  custom_dir: 'docs_theme/cinder'
 
 nav:
   - Home: index.md
-
+  - User Guide:
+    - installation: user-guide/installation.md
+    - Setup: user-guide/setup.md
+    - First Post: user-guide/first_post.md
+    - Setup ActivtiyPub: user-guide/setup_activtiy_pub.md
 markdown_extensions:
   - attr_list
   - md_in_html
