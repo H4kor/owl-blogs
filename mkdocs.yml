@@ -1,0 +1,8 @@
+site_name: owl-blogs
+
+nav:
+  - Home: index.md
+
+markdown_extensions:
+  - attr_list
+  - md_in_html
