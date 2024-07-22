@@ -1,4 +1,4 @@
-# Dungeon Planner
+# owl-blogs
 
 ![owl-blogs Mascot](assets/owl.svg){ align=right width=200}
 
