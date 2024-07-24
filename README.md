@@ -6,14 +6,10 @@ Owl-blogs is a blogging software focused on simplicity with IndieWeb and Fediver
 
 # Usage
 
-**Detailed information can be found in  [Setup](SETUP.md)**
+Full Documentation can be found on the [owl-blogs website](https://h4kor.github.io/owl-blogs/)
 
-To retrieve a list of all commands run:
-
-```
-owl -h
-```
-
+- [Installation](https://h4kor.github.io/owl-blogs/user-guide/installation/)
+- [Setup](https://h4kor.github.io/owl-blogs/user-guide/setup/)
 
 # Development
 
