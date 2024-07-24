@@ -26,10 +26,8 @@ RUN apk add ca-certificates
 
 COPY --from=build /tmp/owl/out/ /bin/
 
-# This container exposes port 8080 to the outside world
 EXPOSE 3000
 
 WORKDIR /owl
 
-# Run the binary program produced by `go install`
 ENTRYPOINT ["/bin/owl"]
