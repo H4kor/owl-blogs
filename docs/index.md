@@ -8,7 +8,7 @@ Owl-blogs is a blogging software focused on simplicity with IndieWeb and Fediver
 ## Features
 
 - RSS/Atom Feeds
-    - [Tags](features/tags.md) and lists have there own feeds, allowing your readers to subscribe to specific topics
+    - [Tags](features/tags.md) and [lists](features/lists.md) have there own feeds, allowing your readers to subscribe to specific topics
 - Posts are published via [ActivityPub](https://activitypub.rocks/) allowing readers to subscribe to your blog using their favorite social media app, such as [Mastodon](https://joinmastodon.org/).
 - Markdown formatting
 - Posts are tagged with [microformats](http://microformats.org/wiki/Main_Page)

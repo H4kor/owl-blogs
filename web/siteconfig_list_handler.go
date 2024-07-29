@@ -3,7 +3,9 @@ package web
 import (
 	"owl-blogs/app"
 	"owl-blogs/domain/model"
+	"owl-blogs/internal"
 	"owl-blogs/render"
+	"slices"
 	"sort"
 	"strconv"
 
@@ -72,9 +74,19 @@ func (h *SiteConfigListHandler) HandleCreate(c *fiber.Ctx) error {
 		return err
 	}
 
+	id := c.FormValue("Id")
+	title := c.FormValue("Title")
+	if id == "" {
+		id = internal.TurnIntoId(title, func(s string) bool {
+			return !slices.ContainsFunc(siteConfig.Lists, func(l model.EntryList) bool {
+				return s == l.Id
+			})
+		})
+	}
+
 	siteConfig.Lists = append(siteConfig.Lists, model.EntryList{
-		Id:       c.FormValue("Id"),
-		Title:    c.FormValue("Title"),
+		Id:       id,
+		Title:    title,
 		Include:  form.Value["Include"],
 		ListType: c.FormValue("ListType"),
 	})

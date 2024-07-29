@@ -18,6 +18,10 @@ nav:
     - Setup: user-guide/setup.md
     - First Post: user-guide/first_post.md
     - Setup ActivtiyPub: user-guide/setup_activtiy_pub.md
+  - Documentation:
+    - Tags: features/tags.md
+    - Lists: features/lists.md
+    - Menus: features/menus.md
 markdown_extensions:
   - attr_list
   - md_in_html

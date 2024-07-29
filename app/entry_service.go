@@ -1,10 +1,9 @@
 package app
 
 import (
-	"fmt"
 	"owl-blogs/app/repository"
 	"owl-blogs/domain/model"
-	"regexp"
+	"owl-blogs/internal"
 	"slices"
 	"strings"
 )
@@ -32,26 +31,17 @@ func NewEntryService(
 }
 
 func (s *EntryService) Create(entry model.Entry) error {
-	// try to find a good ID
-	m := regexp.MustCompile(`[^a-z0-9-]`)
 	var prefix string
 	if entry.ID() != "" {
-		prefix = m.ReplaceAllString(strings.ToLower(entry.ID()), "-")
+		prefix = entry.ID()
 	} else {
-		prefix = m.ReplaceAllString(strings.ToLower(entry.Title()), "-")
+		prefix = entry.Title()
 	}
-	title := prefix
-	counter := 0
-	for {
-		_, err := s.EntryRepository.FindById(title)
-		if err == nil {
-			counter += 1
-			title = prefix + "-" + fmt.Sprintf("%s-%d", prefix, counter)
-		} else {
-			break
-		}
-	}
-	entry.SetID(title)
+	id := internal.TurnIntoId(prefix, func(id string) bool {
+		_, err := s.EntryRepository.FindById(id)
+		return err != nil
+	})
+	entry.SetID(id)
 
 	err := s.EntryRepository.Create(entry)
 	if err != nil {

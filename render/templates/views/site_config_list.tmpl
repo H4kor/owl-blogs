@@ -53,7 +53,7 @@
             <th>Id</th>
             <th>Title</th>
             <th>Include</th>
-            <th>ListType</th>
+            <!--<th>ListType</th>-->
             <th>Actions</th>
         </tr>
     </thead>
@@ -62,8 +62,10 @@
         <tr>
             <td>{{$l.Id}}</td>
             <td>{{$l.Title}}</td>
-            <td>{{$l.Include}}</td>
-            <td>{{$l.ListType}}</td>
+            <td>
+                {{ range $index, $element := $l.Include}}{{if $index}},{{end}} {{$element}}{{ end }}
+            </td>
+            <!--<td>{{$l.ListType}}</td>-->
             <td>
                 <form action="/site-config/lists/delete" method="post" enctype="multipart/form-data">
                     <input type="hidden" name="idx" value="{{$i}}"/>
