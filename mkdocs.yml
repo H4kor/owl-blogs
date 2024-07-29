@@ -14,7 +14,7 @@ theme:
 nav:
   - Home: index.md
   - User Guide:
-    - installation: user-guide/installation.md
+    - Installation: user-guide/installation.md
     - Setup: user-guide/setup.md
     - First Post: user-guide/first_post.md
     - Setup ActivtiyPub: user-guide/setup_activtiy_pub.md
