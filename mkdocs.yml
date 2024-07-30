@@ -22,6 +22,7 @@ nav:
     - Tags: features/tags.md
     - Lists: features/lists.md
     - Menus: features/menus.md
+    - Me Links: features/me_links.md
 markdown_extensions:
   - attr_list
   - md_in_html

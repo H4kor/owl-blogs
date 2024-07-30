@@ -320,7 +320,8 @@ label {
 }
 
 input,
-textarea {
+textarea,
+select {
     display: inline-block;
     width: 100%;
     vertical-align: middle;
