@@ -3,7 +3,7 @@ package config
 import "os"
 
 const (
-	OWL_VERSION       = "0.3.3"
+	OWL_VERSION       = "0.3.6"
 	SITE_CONFIG       = "site_config"
 	ACT_PUB_CONF_NAME = "activity_pub"
 )
