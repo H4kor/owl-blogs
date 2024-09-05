@@ -56,6 +56,7 @@ func NewWebApp(
 	fiberApp.Use(middleware.NewUserMiddleware(authorService).Handle)
 
 	indexHandler := NewIndexHandler(entryService, siteConfigService)
+	searchHandler := NewSearchHandler(entryService, siteConfigService)
 	listHandler := NewListHandler(entryService, siteConfigService)
 	tagHandler := NewTagHandler(entryService, siteConfigService)
 	entryHandler := NewEntryHandler(entryService, typeRegistry, authorService, configRepo, interactionRepo)
@@ -134,6 +135,7 @@ func NewWebApp(
 		Browse:     false,
 	}))
 	fiberApp.Get("/", activityPubServer.HandleActor, indexHandler.Handle)
+	fiberApp.Get("/search/", searchHandler.Handle)
 	// Posts
 	fiberApp.Get("/posts/:post/", activityPubServer.HandleEntry, entryHandler.Handle)
 	// Tags

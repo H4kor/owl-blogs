@@ -1,0 +1,57 @@
+{{define "title"}}Search{{end}}
+
+{{define "head"}}{{end}}
+
+{{define "main"}}
+
+<form method="get">
+	<label for="query">Query</label>
+	<input type="text" id="query" name="query" value="{{.SearchTerm}}" />
+	<input type="submit" value="Search" />
+</form>
+
+<div role="feed" class="h-feed">
+{{ range .Entries }}
+    <article class="h-entry">
+        <h1 class="entry-title">
+            <a class="u-url" href="/posts/{{ .ID }}/">
+                {{if .Title}}
+                    {{ .Title }}
+                {{else}}
+                    #
+                {{end}}
+            </a>
+        </h1>
+        <div class="entry-meta">
+            Published:
+            {{ if .PublishedAt }}
+                <time class="dt-published" datetime="{{.PublishedAt.Format "2006-01-02T15:04:05" }}">
+                    {{.PublishedAt.Format "2006-01-02" }}
+                </time>
+            {{ end }}
+        </div> 
+        {{ .Content }}
+    </article>
+    <hr>
+{{ end }}
+</div>
+
+{{ if .SearchTerm }}
+	<hr>
+	<nav class="row">
+	    {{ if not .FirstPage }}
+		<div>
+		    <a href="/search/?query={{.SearchTerm}}&page={{ .PrevPage }}">Prev</a>
+		</div>
+	    {{ end }}
+	    
+	    <div>Page {{.Page}}</div>
+
+	    {{ if not .LastPage }}
+		<div>
+		    <a href="/search/?query={{.SearchTerm}}&page={{ .NextPage }}">Next</a>
+		</div>
+	    {{ end }}
+	</nav>
+	{{end}}
+{{ end }}
