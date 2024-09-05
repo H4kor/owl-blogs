@@ -120,6 +120,15 @@ func (s *EntryService) filterEntries(entries []model.Entry, published bool, draf
 	return filteredEntries
 }
 
+// FindAllByType returns all entries with the provided types
+// if types is `nil` it will return all entries
+// if published is false the list will not include published entries
+// if drafts is false the list will not include draft entries
+//
+// Examples:
+// - `FindAllByType(nil, true, true)` will return all entries
+// - `FindAllByType(nil, true, false)` will return all public entries
+// - `FindAllByType([]string{"Notes"}, false, true) will return all drafted notes
 func (s *EntryService) FindAllByType(types *[]string, published bool, drafts bool) ([]model.Entry, error) {
 	entries, err := s.EntryRepository.FindAll(types)
 	return s.filterEntries(entries, published, drafts), err
@@ -166,4 +175,24 @@ func (s *EntryService) ListTags() ([]TagCount, error) {
 func (s *EntryService) FindAll() ([]model.Entry, error) {
 	entries, err := s.EntryRepository.FindAll(nil)
 	return s.filterEntries(entries, true, true), err
+}
+
+func (s *EntryService) SearchEntries(searchTerm string) ([]model.Entry, error) {
+	entries, err := s.FindAllByType(nil, true, false)
+	if err != nil {
+		return nil, err
+	}
+
+	matches := make([]model.Entry, 0)
+	q := strings.ToLower(searchTerm)
+	for _, entry := range entries {
+		c := string(entry.Content())
+		c = strings.ToLower(c)
+		// TODO: strip html tags
+		if strings.Contains(c, q) {
+			matches = append(matches, entry)
+		}
+	}
+
+	return matches, err
 }
