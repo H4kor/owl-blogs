@@ -55,6 +55,10 @@ func TestSearchHandling(t *testing.T) {
 			give: give{queryStr: "?query=AAA", notes: []string{"aaa", "aAa", "AAA"}},
 			want: want{contains: "AAA", notContain: ""},
 		},
+		{
+			give: give{queryStr: "?query=h4", notes: []string{"#### a note"}},
+			want: want{contains: "", notContain: "<h4>a note</h4>"},
+		},
 	}
 	for _, test := range tests {
 		// test

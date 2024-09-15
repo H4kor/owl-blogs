@@ -6,6 +6,8 @@ import (
 	"owl-blogs/internal"
 	"slices"
 	"strings"
+
+	"github.com/microcosm-cc/bluemonday"
 )
 
 type TagCount struct {
@@ -182,13 +184,14 @@ func (s *EntryService) SearchEntries(searchTerm string) ([]model.Entry, error) {
 	if err != nil {
 		return nil, err
 	}
+	p := bluemonday.NewPolicy()
 
 	matches := make([]model.Entry, 0)
 	q := strings.ToLower(searchTerm)
 	for _, entry := range entries {
 		c := string(entry.Content())
+		c = p.Sanitize(c)
 		c = strings.ToLower(c)
-		// TODO: strip html tags
 		if strings.Contains(c, q) {
 			matches = append(matches, entry)
 		}
