@@ -13,13 +13,13 @@ import (
 func TestSearchHandling(t *testing.T) {
 	type give struct {
 		queryStr string
-		notes []string
+		notes    []string
 	}
 	type want struct {
-		contains string
+		contains   string
 		notContain string
 	}
-	tests := []struct{
+	tests := []struct {
 		give
 		want
 	}{
@@ -67,13 +67,13 @@ func TestSearchHandling(t *testing.T) {
 		for _, nText := range test.give.notes {
 			note := entrytypes.Note{}
 			note.SetMetaData(&entrytypes.NoteMetaData{
-			Content: nText,})
+				Content: nText})
 			now := time.Now()
 			note.SetPublishedAt(&now)
 			app.EntryService.Create(&note)
 		}
 		// test
-		req := httptest.NewRequest("GET", "/search" + test.give.queryStr, nil)
+		req := httptest.NewRequest("GET", "/search"+test.give.queryStr, nil)
 		resp := httptest.NewRecorder()
 		srv.ServeHTTP(resp, req)
 		// validation
@@ -85,4 +85,3 @@ func TestSearchHandling(t *testing.T) {
 		}
 	}
 }
-
