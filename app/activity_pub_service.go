@@ -216,8 +216,6 @@ func (s *ActivityPubService) sign(privateKey *rsa.PrivateKey, pubKeyId string, b
 	// ...but it is optional, no digest will be signed if given "nil"
 	// If r were a http.ResponseWriter, call SignResponse instead.
 	err = signer.SignRequest(privateKey, pubKeyId, r, body)
-
-	slog.Info("Signed Request", "req", r.Header)
 	return err
 }
 
@@ -731,6 +729,9 @@ func (svc *ActivityPubService) EntryToObject(entry model.Entry) (vocab.Object, e
 				slog.Warn("could not get reply object", "error", err)
 			}
 		}
+
+        // TODO: extract hrefs from post and check if any support activitypub
+        // add these actors to the "inReplyTo"
 
 		return obj, nil
 	}
