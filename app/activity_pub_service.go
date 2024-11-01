@@ -563,7 +563,8 @@ func (s *ActivityPubService) sendObject(to vocab.Actor, data []byte) error {
 
 	c := http.Client{}
 	req, _ := http.NewRequest("POST", to.Inbox.GetID().String(), bytes.NewReader(data))
-	req.Header.Set("Accept", "application/ld+json")
+	req.Header.Set("Accept", "application/ld+json; profile=\"https://www.w3.org/ns/activitystreams\"")
+    req.Header.Set("Content-Type", "application/ld+json; profile=\"https://www.w3.org/ns/activitystreams\"")
 	req.Header.Set("Date", time.Now().Format(http.TimeFormat))
 	req.Header.Set("Host", actorUrl.Host)
 	err = s.sign(apConfig.PrivateKey(), s.MainKeyUri(), data, req)
