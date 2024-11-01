@@ -5,6 +5,14 @@ on:
     branches: [ "main" ]
     paths-ignore:
       - 'docs/**'
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+
+permissions:
+    contents: write
+    packages: write
 
 jobs:
   build-and-push-image:
