@@ -734,6 +734,7 @@ func (svc *ActivityPubService) collectRetrieversOfObject(objId string) ([]string
     for _, to := range slices.Concat(obj.To, obj.CC) {
         toId := string(to.GetID())
         if toId != string(vocab.PublicNS) {
+            slog.Info("found retriever in object", "obj", obj.ID, "retriever", toId)
             retrievers[toId] = true
         }
     }
@@ -758,16 +759,6 @@ func (svc *ActivityPubService) isActor(id string) bool {
 func (svc *ActivityPubService) processMentions(obj *vocab.Object, entry model.Entry) error {
     retrievers := make(map[string]bool, 0)
     mentions := make(map[string]bool, 0)
-	if obj.InReplyTo != nil && obj.InReplyTo.GetID() != "" {
-        replyRets, err := svc.collectRetrieversOfObject(obj.InReplyTo.GetID().String())
-        if err != nil {
-            return err
-        }
-        for _, x := range replyRets {
-            retrievers[x] = true
-            mentions[x] = true
-        }
-    }
 
     links, err := ParseLinksFromString(string(entry.Content()))
     slog.Info("Parsed links of entry", "entry", entry.ID(), "num_links", len(links))
@@ -787,6 +778,7 @@ func (svc *ActivityPubService) processMentions(obj *vocab.Object, entry model.En
                     
                     // include all to,cc of mentioned object in cc
                     for _, to := range slices.Concat(mentionedObj.To, mentionedObj.CC) {
+                        slog.Info("found retriever in mentioned object", "obj", mentionedObj.ID.String(), "retriever", to.GetID().String())
                         retrievers[to.GetID().String()] = true
                     }
 
@@ -798,6 +790,17 @@ func (svc *ActivityPubService) processMentions(obj *vocab.Object, entry model.En
             } else {
                 slog.Info("Unable to get linked object", "err", err)
             }
+    }
+
+	if obj.InReplyTo != nil && obj.InReplyTo.GetID() != "" {
+        replyRets, err := svc.collectRetrieversOfObject(obj.InReplyTo.GetID().String())
+        if err != nil {
+            return err
+        }
+        for _, x := range replyRets {
+            retrievers[x] = true
+            mentions[x] = true
+        }
     }
 
     for to := range retrievers {
@@ -821,6 +824,7 @@ func (svc *ActivityPubService) processMentions(obj *vocab.Object, entry model.En
         mention.Href = vocab.ID(to)
         obj.Tag = append(obj.Tag, mention)
     }
+
     if len(mentions) == 1 && obj.InReplyTo == nil {
         for k := range mentions{
             slog.Info("entry is only mentioning one object, setting as inReplyTo", "replyTo", k)
