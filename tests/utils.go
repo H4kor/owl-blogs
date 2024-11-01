@@ -118,7 +118,7 @@ func EnsureFollowed(t *testing.T, srv http.HandlerFunc, mock MockApServer, follo
 	inbox := GetInboxUrl(srv)
 	follow := map[string]interface{}{
 		"@context": "https://www.w3.org/ns/activitystreams",
-		"id":       mock.MockActivityUrl(strconv.Itoa(time.Now().Nanosecond())),
+		"id":       mock.MockActivityUrl(follower, strconv.Itoa(time.Now().Nanosecond())),
 		"type":     "Follow",
 		"actor":    follower,
 		"object":   actorUrl,

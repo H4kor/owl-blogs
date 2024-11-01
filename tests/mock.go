@@ -99,6 +99,29 @@ func NewMockAPServer() MockApServer {
 		w.Header().Add("Content-Type", "application/activity+json")
 		w.Write(data)
 	})
+	mux.HandleFunc("GET /actors/{name}/activity/{id}", func(w http.ResponseWriter, r *http.Request) {
+		name := r.PathValue("name")
+		id := r.PathValue("id")
+        activity := vocab.Note{
+            ID:        vocab.ID("http://localhost:" + port + "/actors/" + name + "/activity/" + id),
+            Type:      "Note",
+            Published: time.Now(),
+            Content: vocab.NaturalLanguageValues{
+                {Value: vocab.Content("Mock Note")},
+            },
+            AttributedTo: vocab.ID("http://localhost:" + port + "/actors/" + name),
+        }
+
+		data, err := jsonld.WithContext(
+			jsonld.IRI(vocab.ActivityBaseURI),
+			jsonld.IRI(vocab.SecurityContextURI),
+		).Marshal(activity)
+		if err != nil {
+			slog.Error("Error marshalling", "err", err)
+		}
+		w.Header().Add("Content-Type", "application/activity+json")
+		w.Write(data)
+	})
 	mux.HandleFunc("POST /actors/{name}/inbox", func(w http.ResponseWriter, r *http.Request) {
 		name := r.PathValue("name")
 		slog.Info("Inbox called", "name", name)
@@ -151,8 +174,8 @@ func (s *MockApServer) MockActorUrl(name string) string {
 	return "http://localhost:" + s.Port + "/actors/" + name
 }
 
-func (s *MockApServer) MockActivityUrl(id string) string {
-	return "http://localhost:" + s.Port + "/activity/" + id
+func (s *MockApServer) MockActivityUrl(actor string, id string) string {
+	return actor + "/activity/" + id
 
 }
 

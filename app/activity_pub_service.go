@@ -620,6 +620,17 @@ func (svc *ActivityPubService) NotifyEntryCreated(entry model.Entry) {
 		}
 		svc.sendObject(actor, data)
 	}
+	for _, mentioned := range object.To {
+        href := string(mentioned.GetID())
+        if href == vocab.PublicNS.String() || href == svc.FollowersUrl() {
+            continue
+        }
+		actor, err := svc.GetActor(href)
+		if err != nil {
+			slog.Error("Unable to retrieve mentioned actor", "err", err)
+		}
+		svc.sendObject(actor, data)
+	}
 }
 
 func (svc *ActivityPubService) NotifyEntryUpdated(entry model.Entry) {
@@ -730,8 +741,40 @@ func (svc *ActivityPubService) EntryToObject(entry model.Entry) (vocab.Object, e
 			}
 		}
 
-        // TODO: extract hrefs from post and check if any support activitypub
+        // extract hrefs from post and check if any support activitypub
         // add these actors to the "inReplyTo"
+        links, err := ParseLinksFromString(string(entry.Content()))
+        slog.Info("Parsed links of entry", "entry", entry.ID(), "num_links", len(links))
+        if err != nil {
+            slog.Error("Unable to parse links form entry", "entry", entry.ID(), "err", err)
+        }
+        for _, link := range links {
+            slog.Info("Found link in entry", "link", link)
+            mentionedObj, err := svc.GetObject(link)
+            if err == nil {
+                // case Post mentioned
+                if mentionedObj.AttributedTo != nil {
+                    mentionedActor := mentionedObj.AttributedTo.GetID()
+                    slog.Info("Adding mentioned object", "object", mentionedObj.ID, "actor", mentionedActor)
+                    obj.To = append(obj.To, mentionedActor)
+                    mention := vocab.MentionNew(
+                        mentionedActor,
+                    )
+                    mention.Href = vocab.ID(mentionedObj.ID)
+                    obj.Tag = append(obj.Tag, mention)
+                } else {
+                    slog.Info("Adding actor based on link", "actor", mentionedObj)
+                    obj.To = append(obj.To, mentionedObj.ID)
+                    mention := vocab.MentionNew(
+                        mentionedObj.ID,
+                    )
+                    mention.Href = vocab.ID(mentionedObj.ID)
+                    obj.Tag = append(obj.Tag, mention)
+                }
+            } else {
+                slog.Info("Unable to get linked object", "err", err)
+            }
+        }
 
 		return obj, nil
 	}

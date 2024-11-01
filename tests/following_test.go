@@ -23,7 +23,7 @@ func TestFollowing(t *testing.T) {
 	{
 		follow := map[string]interface{}{
 			"@context": "https://www.w3.org/ns/activitystreams",
-			"id":       mock.MockActivityUrl("1"),
+			"id":       mock.MockActivityUrl(mock.MockActorUrl("foo"), "1"),
 			"type":     "Follow",
 			"actor":    mock.MockActorUrl("foo"),
 			"object":   actorUrl,
@@ -82,7 +82,8 @@ func TestUnfollow(t *testing.T) {
 	srv := adaptor.FiberApp(app.FiberApp)
 	mock := NewMockAPServer()
 	defer mock.Server.Close()
-	EnsureFollowed(t, srv, mock, mock.MockActorUrl("foo"))
+    follower := mock.MockActorUrl("foo")
+    EnsureFollowed(t, srv, mock, follower) 
 	time.Sleep(50 * time.Millisecond)
 	actorUrl := GetActorUrl(srv)
 	inbox := GetInboxUrl(srv)
@@ -92,11 +93,11 @@ func TestUnfollow(t *testing.T) {
 		follow := map[string]interface{}{
 
 			"@context": "https://www.w3.org/ns/activitystreams",
-			"id":       mock.MockActivityUrl("1"),
+			"id":       mock.MockActivityUrl(follower, "1"),
 			"type":     "Undo",
 			"actor":    mock.MockActorUrl("foo"),
 			"object": map[string]interface{}{
-				"id":     mock.MockActivityUrl("2"),
+				"id":     mock.MockActivityUrl(follower, "2"),
 				"type":   "Follow",
 				"actor":  mock.MockActorUrl("foo"),
 				"object": actorUrl,
