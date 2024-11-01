@@ -17,6 +17,7 @@ import (
 	"owl-blogs/interactions"
 	"owl-blogs/render"
 	"reflect"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -607,6 +608,7 @@ func (svc *ActivityPubService) NotifyEntryCreated(entry model.Entry) {
 	create := vocab.CreateNew(object.ID, object)
 	create.Actor = object.AttributedTo
 	create.To = object.To
+	create.CC = object.CC
 	create.Published = object.Published
 	data, err := ApEncoder.Marshal(create)
 	if err != nil {
@@ -620,7 +622,7 @@ func (svc *ActivityPubService) NotifyEntryCreated(entry model.Entry) {
 		}
 		svc.sendObject(actor, data)
 	}
-	for _, mentioned := range object.To {
+	for _, mentioned := range slices.Concat(create.To, create.CC) {
         href := string(mentioned.GetID())
         if href == vocab.PublicNS.String() || href == svc.FollowersUrl() {
             continue
@@ -645,11 +647,11 @@ func (svc *ActivityPubService) NotifyEntryUpdated(entry model.Entry) {
 		slog.Error("Cannot convert object", "err", err)
 	}
 
-	create := vocab.CreateNew(object.ID, object)
-	create.Actor = object.AttributedTo
-	create.To = object.To
-	create.Published = object.Published
-	data, err := ApEncoder.Marshal(create)
+	update := vocab.CreateNew(object.ID, object)
+	update.Actor = object.AttributedTo
+	update.To = object.To
+	update.Published = object.Published
+	data, err := ApEncoder.Marshal(update)
 	if err != nil {
 		slog.Error("marshalling error", "err", err)
 	}
@@ -662,10 +664,14 @@ func (svc *ActivityPubService) NotifyEntryUpdated(entry model.Entry) {
 		svc.sendObject(actor, data)
 	}
 
-	for _, to := range create.To {
-		actor, err := svc.GetActor(to.GetID().String())
+	for _, mentioned := range slices.Concat(update.To, update.CC) {
+        href := string(mentioned.GetID())
+        if href == vocab.PublicNS.String() || href == svc.FollowersUrl() {
+            continue
+        }
+		actor, err := svc.GetActor(href)
 		if err != nil {
-			slog.Error("Unable to retrieve follower actor", "err", err)
+			slog.Error("Unable to retrieve mentioned actor", "err", err)
 		}
 		svc.sendObject(actor, data)
 	}
@@ -687,6 +693,7 @@ func (svc *ActivityPubService) NotifyEntryDeleted(entry model.Entry) {
 	delete := vocab.DeleteNew(obj.ID, obj)
 	delete.Actor = obj.AttributedTo
 	delete.To = obj.To
+	delete.CC = obj.CC
 	delete.Published = time.Now()
 	data, err := ApEncoder.Marshal(delete)
 	if err != nil {
@@ -700,8 +707,129 @@ func (svc *ActivityPubService) NotifyEntryDeleted(entry model.Entry) {
 		}
 		svc.sendObject(actor, data)
 	}
-
+	for _, mentioned := range slices.Concat(delete.To, delete.CC) {
+        href := string(mentioned.GetID())
+        if href == vocab.PublicNS.String() || href == svc.FollowersUrl() {
+            continue
+        }
+		actor, err := svc.GetActor(href)
+		if err != nil {
+			slog.Error("Unable to retrieve mentioned actor", "err", err)
+		}
+		svc.sendObject(actor, data)
+	}
 }
+
+func (svc *ActivityPubService) collectRetrieversOfObject(objId string) ([]string, error) {
+    obj, err := svc.GetObject(objId)
+    if err != nil {
+        return []string{}, err
+    }
+    
+    retrievers := make(map[string]bool)
+    
+    if obj.AttributedTo != nil && obj.AttributedTo.GetID() != "" {
+        retrievers[string(obj.AttributedTo.GetID())] = true
+    }
+    for _, to := range slices.Concat(obj.To, obj.CC) {
+        toId := string(to.GetID())
+        if toId != string(vocab.PublicNS) {
+            retrievers[toId] = true
+        }
+    }
+
+    ids := make([]string, 0, len(retrievers))
+    for k := range retrievers {
+        ids = append(ids, k)
+    }
+
+    return ids, err
+}
+
+func (svc *ActivityPubService) isActor(id string) bool {
+    obj, err := svc.GetObject(id)
+    if err != nil {
+        slog.Error("could not get object to check if isActor", "object", id, "err", err)
+        return false
+    }
+    return slices.Contains(vocab.ActorTypes, obj.Type)
+}
+
+func (svc *ActivityPubService) processMentions(obj *vocab.Object, entry model.Entry) error {
+    retrievers := make(map[string]bool, 0)
+    mentions := make(map[string]bool, 0)
+	if obj.InReplyTo != nil && obj.InReplyTo.GetID() != "" {
+        replyRets, err := svc.collectRetrieversOfObject(obj.InReplyTo.GetID().String())
+        if err != nil {
+            return err
+        }
+        for _, x := range replyRets {
+            retrievers[x] = true
+            mentions[x] = true
+        }
+    }
+
+    links, err := ParseLinksFromString(string(entry.Content()))
+    slog.Info("Parsed links of entry", "entry", entry.ID(), "num_links", len(links))
+    if err != nil {
+        slog.Error("Unable to parse links form entry", "entry", entry.ID(), "err", err)
+    }
+    for _, link := range links {
+            slog.Info("Found link in entry", "link", link)
+            mentionedObj, err := svc.GetObject(link)
+            if err == nil {
+                // case Post mentioned
+                if mentionedObj.AttributedTo != nil {
+                    mentionedActor := mentionedObj.AttributedTo.GetID()
+                    slog.Info("Adding mentioned object", "object", mentionedObj.ID, "actor", mentionedActor)
+                    retrievers[mentionedActor.GetID().String()] = true
+                    mentions[mentionedObj.ID.String()] = true
+                    
+                    // include all to,cc of mentioned object in cc
+                    for _, to := range slices.Concat(mentionedObj.To, mentionedObj.CC) {
+                        retrievers[to.GetID().String()] = true
+                    }
+
+                } else {
+                    slog.Info("Adding actor based on link", "actor", mentionedObj)
+                    retrievers[mentionedObj.ID.String()] = true
+                    mentions[mentionedObj.ID.String()] = true
+                }
+            } else {
+                slog.Info("Unable to get linked object", "err", err)
+            }
+    }
+
+    for to := range retrievers {
+        // remove own followers and public NS
+        if to == vocab.PublicNS.String() || to == svc.FollowersUrl() {
+            continue
+        }
+        // only actors should be listed in CC
+        if !svc.isActor(to) {
+            continue
+        }
+        obj.CC = append(obj.CC, vocab.ID(to))
+    }
+    for to := range mentions {
+        if to == vocab.PublicNS.String() || to == svc.FollowersUrl() {
+            continue
+        }
+        mention := vocab.MentionNew(
+            vocab.IRI(to),
+        )
+        mention.Href = vocab.ID(to)
+        obj.Tag = append(obj.Tag, mention)
+    }
+    if len(mentions) == 1 && obj.InReplyTo == nil {
+        for k := range mentions{
+            slog.Info("entry is only mentioning one object, setting as inReplyTo", "replyTo", k)
+            obj.InReplyTo = vocab.IRI(k)
+        }
+    }
+    return nil
+}
+
 
 func (svc *ActivityPubService) EntryToObject(entry model.Entry) (vocab.Object, error) {
 	// limit to notes for now
@@ -714,6 +842,7 @@ func (svc *ActivityPubService) EntryToObject(entry model.Entry) (vocab.Object, e
 			vocab.PublicNS,
 			vocab.IRI(svc.FollowersUrl()),
 		}
+        obj.CC = vocab.ItemCollection{}
 		obj.AttributedTo = vocab.ID(svc.ActorUrl())
 
 		for _, tag := range entry.Tags() {
@@ -726,56 +855,7 @@ func (svc *ActivityPubService) EntryToObject(entry model.Entry) (vocab.Object, e
 			obj.Tag = append(obj.Tag, hashtag)
 		}
 
-		// if "inReplyTo" is set -> add actor to recipients
-		if obj.InReplyTo != nil && obj.InReplyTo.GetID() != "" {
-			replyObj, err := svc.GetObject(string(obj.InReplyTo.GetID()))
-			if err == nil {
-				obj.To = append(obj.To, replyObj.AttributedTo.GetID())
-				mention := vocab.MentionNew(
-					replyObj.AttributedTo.GetID(),
-				)
-				mention.Href = vocab.ID(replyObj.AttributedTo.GetID())
-				obj.Tag = append(obj.Tag, mention)
-			} else {
-				slog.Warn("could not get reply object", "error", err)
-			}
-		}
-
-        // extract hrefs from post and check if any support activitypub
-        // add these actors to the "inReplyTo"
-        links, err := ParseLinksFromString(string(entry.Content()))
-        slog.Info("Parsed links of entry", "entry", entry.ID(), "num_links", len(links))
-        if err != nil {
-            slog.Error("Unable to parse links form entry", "entry", entry.ID(), "err", err)
-        }
-        for _, link := range links {
-            slog.Info("Found link in entry", "link", link)
-            mentionedObj, err := svc.GetObject(link)
-            if err == nil {
-                // case Post mentioned
-                if mentionedObj.AttributedTo != nil {
-                    mentionedActor := mentionedObj.AttributedTo.GetID()
-                    slog.Info("Adding mentioned object", "object", mentionedObj.ID, "actor", mentionedActor)
-                    obj.To = append(obj.To, mentionedActor)
-                    mention := vocab.MentionNew(
-                        mentionedActor,
-                    )
-                    mention.Href = vocab.ID(mentionedObj.ID)
-                    obj.Tag = append(obj.Tag, mention)
-                } else {
-                    slog.Info("Adding actor based on link", "actor", mentionedObj)
-                    obj.To = append(obj.To, mentionedObj.ID)
-                    mention := vocab.MentionNew(
-                        mentionedObj.ID,
-                    )
-                    mention.Href = vocab.ID(mentionedObj.ID)
-                    obj.Tag = append(obj.Tag, mention)
-                }
-            } else {
-                slog.Info("Unable to get linked object", "err", err)
-            }
-        }
-
+        svc.processMentions(&obj, entry)
 		return obj, nil
 	}
 
