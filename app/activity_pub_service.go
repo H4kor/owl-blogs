@@ -753,7 +753,9 @@ func (svc *ActivityPubService) isActor(id string) bool {
         slog.Error("could not get object to check if isActor", "object", id, "err", err)
         return false
     }
-    return slices.Contains(vocab.ActorTypes, obj.Type)
+    isActor := slices.Contains(vocab.ActorTypes, obj.Type)
+    slog.Info("isActor", "id", id, "types", vocab.ActorTypes, "objType", obj.Type)
+    return isActor
 }
 
 func (svc *ActivityPubService) processMentions(obj *vocab.Object, entry model.Entry) error {
@@ -810,6 +812,7 @@ func (svc *ActivityPubService) processMentions(obj *vocab.Object, entry model.En
         }
         // only actors should be listed in CC
         if !svc.isActor(to) {
+            slog.Info("removing as not actor", "retriever", to)
             continue
         }
         obj.CC = append(obj.CC, vocab.ID(to))
