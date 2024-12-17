@@ -97,6 +97,31 @@ func ParseLinks(resp *http.Response) ([]string, error) {
 	return ParseLinksFromString(htmlStr)
 }
 
+func ParseImagesFromString(htmlStr string) ([]string, error) {
+	doc, err := html.Parse(strings.NewReader(htmlStr))
+	if err != nil {
+		return make([]string, 0), err
+	}
+
+	var findImgs func(*html.Node) ([]string, error)
+	findImgs = func(n *html.Node) ([]string, error) {
+		imgs := make([]string, 0)
+		if n.Type == html.ElementNode && n.Data == "img" {
+			for _, attr := range n.Attr {
+				if attr.Key == "src" {
+					imgs = append(imgs, attr.Val)
+				}
+			}
+		}
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			childLinks, _ := findImgs(c)
+			imgs = append(imgs, childLinks...)
+		}
+		return imgs, nil
+	}
+	return findImgs(doc)
+}
+
 func ParseLinksFromString(htmlStr string) ([]string, error) {
 	doc, err := html.Parse(strings.NewReader(htmlStr))
 	if err != nil {

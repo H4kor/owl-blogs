@@ -102,15 +102,15 @@ func NewMockAPServer() MockApServer {
 	mux.HandleFunc("GET /actors/{name}/activity/{id}", func(w http.ResponseWriter, r *http.Request) {
 		name := r.PathValue("name")
 		id := r.PathValue("id")
-        activity := vocab.Note{
-            ID:        vocab.ID("http://localhost:" + port + "/actors/" + name + "/activity/" + id),
-            Type:      "Note",
-            Published: time.Now(),
-            Content: vocab.NaturalLanguageValues{
-                {Value: vocab.Content("Mock Note")},
-            },
-            AttributedTo: vocab.ID("http://localhost:" + port + "/actors/" + name),
-        }
+		activity := vocab.Note{
+			ID:        vocab.ID("http://localhost:" + port + "/actors/" + name + "/activity/" + id),
+			Type:      "Note",
+			Published: time.Now(),
+			Content: vocab.NaturalLanguageValues{
+				{Value: vocab.Content("Mock Note")},
+			},
+			AttributedTo: vocab.ID("http://localhost:" + port + "/actors/" + name),
+		}
 
 		data, err := jsonld.WithContext(
 			jsonld.IRI(vocab.ActivityBaseURI),

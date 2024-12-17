@@ -341,11 +341,11 @@ func (s *ActivityPubServer) processDelete(r *http.Request, act *vocab.Activity) 
 		return nil
 	})
 
-    if err != nil {
-        // error can be because object is an IRI
-        // this can be safely ignored -> log as warning and return nil
-        slog.Warn("Error on procressDelete", "error", err)
-    }
+	if err != nil {
+		// error can be because object is an IRI
+		// this can be safely ignored -> log as warning and return nil
+		slog.Warn("Error on procressDelete", "error", err)
+	}
 	return nil
 }
 
