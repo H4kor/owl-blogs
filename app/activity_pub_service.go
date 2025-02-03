@@ -872,7 +872,7 @@ func (svc *ActivityPubService) EntryToObject(entry model.Entry) (vocab.Object, e
 				attachments := vocab.ItemCollection{}
 				for _, img := range imgs {
 					slog.Info("checking img for auto attach", "img", img)
-					imgParts := strings.Split(img, "/")
+					imgParts := strings.Split(img.Path, "/")
 					if len(imgParts) < 2 || (imgParts[len(imgParts)-2] != "media" && imgParts[len(imgParts)-2] != "thumbnail") {
 						slog.Info("not our image", "img", img)
 						continue
@@ -882,12 +882,17 @@ func (svc *ActivityPubService) EntryToObject(entry model.Entry) (vocab.Object, e
 					if bin, err := svc.binService.FindById(imgId); err == nil {
 						slog.Info("found binary for image", "img", img, "bin", bin)
 						fullImageUrl, _ := url.JoinPath(siteCfg.FullUrl, "/media/"+bin.Id)
+                        // set name of attachment to alt text if available.
+                        content := bin.Name
+                        if img.Alt != "" {
+                            content = img.Alt
+                        }
 						err = attachments.Append(vocab.Document{
 							Type:      vocab.DocumentType,
 							MediaType: vocab.MimeType(bin.Mime()),
 							URL:       vocab.ID(fullImageUrl),
 							Name: vocab.NaturalLanguageValues{
-								{Value: vocab.Content(bin.Name)},
+								{Value: vocab.Content(content)},
 							},
 						})
 						slog.Info("attachment append", "err", err)

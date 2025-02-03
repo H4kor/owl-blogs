@@ -125,7 +125,7 @@ func TestEntryAutoAttachments(t *testing.T) {
 
 	note := entrytypes.Note{}
 	note.SetMetaData(&entrytypes.NoteMetaData{
-		Content: "![](/media/" + bin.Id + ")",
+		Content: "![This is the alt text](/media/" + bin.Id + ")",
 	})
 	now := time.Now()
 	note.SetPublishedAt(&now)
@@ -141,6 +141,7 @@ func TestEntryAutoAttachments(t *testing.T) {
 	require.Equal(t, "Create", msg["type"])
 	require.Contains(t, msg, "id")
 	require.Contains(t, msg, "published")
-	require.Equal(t, msg["object"].(map[string]interface{})["attachment"].(map[string]interface{})["name"], "image.png")
+	require.Equal(t, msg["object"].(map[string]interface{})["attachment"].(map[string]interface{})["name"], "This is the alt text")
+	require.Contains(t, msg["object"].(map[string]interface{})["attachment"].(map[string]interface{})["url"], "image.png")
 
 }
