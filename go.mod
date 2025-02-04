@@ -18,7 +18,7 @@ require (
 	go.abhg.dev/goldmark/hashtag v0.3.1
 	golang.org/x/crypto v0.31.0
 	golang.org/x/image v0.18.0
-	golang.org/x/net v0.26.0
+	golang.org/x/net v0.33.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 
