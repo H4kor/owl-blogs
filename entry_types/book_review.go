@@ -73,7 +73,7 @@ func (e *BookReview) ActivityObject(siteCfg model.SiteConfig, binSvc app.BinaryS
 	content := e.Content()
 
 	obj := vocab.Article{
-		Type:      "BookReview",
+		Type:      "Article",
 		Published: *e.PublishedAt(),
 		Name: vocab.NaturalLanguageValues{
 			{Value: vocab.Content(e.Title())},
