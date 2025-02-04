@@ -20,6 +20,7 @@ func App(db infra.Database) *web.WebApp {
 	entryRegister.Register(&entrytypes.Note{})
 	entryRegister.Register(&entrytypes.Bookmark{})
 	entryRegister.Register(&entrytypes.Reply{})
+	entryRegister.Register(&entrytypes.BookReview{})
 
 	interactionRegister := app.NewInteractionTypeRegistry()
 	interactionRegister.Register(&interactions.Webmention{})
