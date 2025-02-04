@@ -1,8 +1,12 @@
-<label for="title">Title</label>
+<label for="book">Book</label>
 <input type="text" name="book" required value="{{.Book}}" />
+<label for="book_url">Book URL (optional)</label>
 <input type="text" name="book_url" value="{{.BookUrl}}" />
+<label for="author">Author</label>
 <input type="text" name="author" required value="{{.Author}}" />
+<label for="author_url">Author URL (optional)</label>
 <input type="text" name="author_url" value="{{.AuthorUrl}}" />
+<label for="book">Rating (1-5)</label>
 <input type="number" min="1" max="5" name="rating" value="{{.Rating}}" />
 
 <label for="content">Content</label>

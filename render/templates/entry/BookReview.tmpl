@@ -7,9 +7,9 @@
     {{end}}
     by
     {{ if .MetaData.AuthorUrl }}
-        <a class="p-author h-card" href="{{ .MetaData.AuthorUrl }}">{{ .MetaData.Author }}</a>
+        <a href="{{ .MetaData.AuthorUrl }}">{{ .MetaData.Author }}</a>
     {{ else }}
-        <span class="p-author">{{ .MetaData.Author }}</span>
+        <span>{{ .MetaData.Author }}</span>
     {{end}}
 </span>
 
