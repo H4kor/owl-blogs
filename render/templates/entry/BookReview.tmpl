@@ -1,0 +1,16 @@
+<data class="p-rating" value="{{.MetaData.Rating}}">{{.MetaData.Rating | star_rating}}</data>
+<span class="u-review-of">
+    {{ if .MetaData.BookUrl }}
+        <a class="h-item" href="{{ .MetaData.BookUrl }}">{{ .MetaData.Book }}</a>
+    {{ else }}
+        {{ .MetaData.Book }}
+    {{end}}
+    by
+    {{ if .MetaData.AuthorUrl }}
+        <a class="p-author h-card" href="{{ .MetaData.AuthorUrl }}">{{ .MetaData.Author }}</a>
+    {{ else }}
+        <span class="p-author">{{ .MetaData.Author }}</span>
+    {{end}}
+</span>
+
+{{.MetaData.Content | markdown }}
