@@ -218,7 +218,7 @@ ol {
 }
 
 li {
-    padding-bottom: var(--s0);
+    padding-top: var(--s0);
 }
 
 ul li {
