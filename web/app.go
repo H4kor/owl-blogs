@@ -157,7 +157,7 @@ func NewWebApp(
 		siteConfig, _ := siteConfigService.GetSiteConfig()
 		sitemapUrl, _ := url.JoinPath(siteConfig.FullUrl, "/sitemap.xml")
 		c.Set("Content-Type", "text/plain")
-		return c.SendString(fmt.Sprintf("User-agent: GPTBot\nDisallow: /\n\nUser-agent: *\nAllow: /\n\nSitemap: %s\n", sitemapUrl))
+		return c.SendString(fmt.Sprintf("User-agent: ChatGPT-User\nDisallow: /\n\nUser-agent: OAI-SearchBot\nDisallow: /\n\nUser-agent: GPTBot\nDisallow: /\n\nUser-agent: *\nAllow: /\n\nSitemap: %s\n", sitemapUrl))
 	})
 	// sitemap.xml
 	fiberApp.Get("/sitemap.xml", NewSiteMapHandler(entryService, siteConfigService).Handle)
