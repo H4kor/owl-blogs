@@ -15,6 +15,19 @@ Disallow: /
 User-agent: Perplexity-User
 Disallow: /
 
+# Meta/Facebook
+User-agent: facebookexternalhit
+Disallow: /
+
+User-agent: facebookcatalog
+Disallow: /
+
+User-agent: meta-externalagent
+Disallow: /
+
+User-agent: meta-externalfetcher
+Disallow: /
+
 # everyone else
 User-agent: *
 Allow: /
