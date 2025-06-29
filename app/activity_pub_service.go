@@ -882,11 +882,11 @@ func (svc *ActivityPubService) EntryToObject(entry model.Entry) (vocab.Object, e
 					if bin, err := svc.binService.FindById(imgId); err == nil {
 						slog.Info("found binary for image", "img", img, "bin", bin)
 						fullImageUrl, _ := url.JoinPath(siteCfg.FullUrl, "/media/"+bin.Id)
-                        // set name of attachment to alt text if available.
-                        content := bin.Name
-                        if img.Alt != "" {
-                            content = img.Alt
-                        }
+						// set name of attachment to alt text if available.
+						content := bin.Name
+						if img.Alt != "" {
+							content = img.Alt
+						}
 						err = attachments.Append(vocab.Document{
 							Type:      vocab.DocumentType,
 							MediaType: vocab.MimeType(bin.Mime()),

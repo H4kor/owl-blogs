@@ -37,16 +37,16 @@ var funcMap = template.FuncMap{
 		r, _ := url.JoinPath(elems[0], elems[1:]...)
 		return r
 	},
-    "star_rating": func(rating int) template.HTML {
-        s := ""
-        for i := 0; i < rating; i++ {
-            s += "★"
-        }
-        for i := 0; i < (5-rating); i++ {
-            s += "☆"
-        }
-        return template.HTML(s)
-    },
+	"star_rating": func(rating int) template.HTML {
+		s := ""
+		for i := 0; i < rating; i++ {
+			s += "★"
+		}
+		for i := 0; i < (5 - rating); i++ {
+			s += "☆"
+		}
+		return template.HTML(s)
+	},
 }
 
 func CreateTemplateWithBase(templateName string) (*template.Template, error) {

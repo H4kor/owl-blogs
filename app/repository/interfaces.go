@@ -63,6 +63,11 @@ type InteractionRepository interface {
 	ListAllInteractions() ([]model.Interaction, error)
 }
 
+type ActivityRepository interface {
+	Upsert(activity *model.Activity) error
+	ListRecent(page int, size int) ([]model.Activity, error)
+}
+
 type FollowerRepository interface {
 	Add(follower string) error
 	Remove(follower string) error

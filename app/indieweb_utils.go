@@ -98,8 +98,8 @@ func ParseLinks(resp *http.Response) ([]string, error) {
 }
 
 type ParsedImage struct {
-    Path string
-    Alt string
+	Path string
+	Alt  string
 }
 
 func ParseImagesFromString(htmlStr string) ([]ParsedImage, error) {
@@ -112,19 +112,18 @@ func ParseImagesFromString(htmlStr string) ([]ParsedImage, error) {
 	findImgs = func(n *html.Node) ([]ParsedImage, error) {
 		imgs := make([]ParsedImage, 0)
 		if n.Type == html.ElementNode && n.Data == "img" {
-            img := ParsedImage{
-            }
+			img := ParsedImage{}
 			for _, attr := range n.Attr {
 				if attr.Key == "src" {
-                    img.Path = attr.Val
+					img.Path = attr.Val
 				}
 				if attr.Key == "alt" {
-                    img.Alt = attr.Val
+					img.Alt = attr.Val
 				}
 			}
-            if img.Path != "" {
-			    imgs = append(imgs, img)
-            }
+			if img.Path != "" {
+				imgs = append(imgs, img)
+			}
 		}
 		for c := n.FirstChild; c != nil; c = c.NextSibling {
 			childLinks, _ := findImgs(c)

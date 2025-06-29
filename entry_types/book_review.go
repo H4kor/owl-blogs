@@ -12,22 +12,20 @@ import (
 	vocab "github.com/go-ap/activitypub"
 )
 
-
 type BookReview struct {
-    model.EntryBase
-    meta BookReviewMetaData
+	model.EntryBase
+	meta BookReviewMetaData
 }
 
 type BookReviewMetaData struct {
-    Book string
-    BookUrl string
-    Author string
-    AuthorUrl string
-    // 1 to 5
-    Rating int
-    Content string
+	Book      string
+	BookUrl   string
+	Author    string
+	AuthorUrl string
+	// 1 to 5
+	Rating  int
+	Content string
 }
-
 
 func (meta *BookReviewMetaData) Form(binSvc model.BinaryStorageInterface) template.HTML {
 	f, _ := render.RenderTemplateToString("forms/BookReview", meta)
@@ -40,17 +38,16 @@ func (meta *BookReviewMetaData) ParseFormData(data model.HttpFormData, binSvc mo
 	meta.Author = data.FormValue("author")
 	meta.AuthorUrl = data.FormValue("author_url")
 	meta.Content = data.FormValue("content")
-    var err error
-    meta.Rating, err = strconv.Atoi(data.FormValue("rating"))
-    if meta.Rating < 1 || meta.Rating > 5 {
-        err = errors.New("rating must be between 1 and 5")
-    }
+	var err error
+	meta.Rating, err = strconv.Atoi(data.FormValue("rating"))
+	if meta.Rating < 1 || meta.Rating > 5 {
+		err = errors.New("rating must be between 1 and 5")
+	}
 	return err
 }
 
-
 func (e *BookReview) Title() string {
-    return "Review: " + e.meta.Book + " by " + e.meta.Author
+	return "Review: " + e.meta.Book + " by " + e.meta.Author
 }
 
 func (e *BookReview) Content() template.HTML {
