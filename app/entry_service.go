@@ -6,6 +6,7 @@ import (
 	"owl-blogs/internal"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/microcosm-cc/bluemonday"
 )
@@ -112,7 +113,7 @@ func (s *EntryService) FindByUrl(url string) (model.Entry, error) {
 func (s *EntryService) filterEntries(entries []model.Entry, published bool, drafts bool) []model.Entry {
 	filteredEntries := make([]model.Entry, 0)
 	for _, entry := range entries {
-		if published && entry.PublishedAt() != nil && !entry.PublishedAt().IsZero() {
+		if published && entry.PublishedAt() != nil && !entry.PublishedAt().IsZero() && entry.PublishedAt().Before(time.Now()) {
 			filteredEntries = append(filteredEntries, entry)
 		}
 		if drafts && (entry.PublishedAt() == nil || entry.PublishedAt().IsZero()) {

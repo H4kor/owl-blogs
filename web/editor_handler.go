@@ -67,10 +67,15 @@ func (h *EditorHandler) HandlePostNew(c *fiber.Ctx) error {
 
 	// create entry
 	now := time.Now()
+    publishDateStr := c.FormValue("publishDate")
+    publishDate, err := time.Parse("2006-01-02", publishDateStr)
+    if err != nil {
+        publishDate = now
+    }
 	entry.SetMetaData(entryMeta)
 	published := c.FormValue("action") == "Publish"
 	if published {
-		entry.SetPublishedAt(&now)
+		entry.SetPublishedAt(&publishDate)
 	} else {
 		entry.SetPublishedAt(nil)
 	}
