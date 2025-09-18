@@ -273,7 +273,17 @@ func (s *ActivityPubServer) processCreate(r *http.Request, act *vocab.Activity) 
 	return vocab.OnObject(act.Object, func(o *vocab.Object) error {
 		if o.Type == vocab.NoteType {
 			slog.Info("processing note")
-			return s.apService.AddReply(sender, o.InReplyTo.GetID().String(), o.ID.String(), o.Content.String())
+			if o.InReplyTo == nil {
+				return errors.New("not a reply")
+			}
+			if o.Content == nil {
+				return errors.New("no reply content")
+			}
+			return s.apService.AddReply(
+				sender,
+				o.InReplyTo.GetID().String(),
+				o.ID.String(),
+				o.Content.String())
 		}
 		if o.Type == vocab.ArticleType {
 			slog.Info("processing article")
